@@ -9,27 +9,45 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace LoRSideTracker
-{    public partial class DeckControl : UserControl
+{
+    /// <summary>
+    /// Deck display control
+    /// </summary>
+    public partial class DeckControl : UserControl
     {
+        /// <summary>Deck contents</summary>
         public List<CardWithCount> Cards;
 
-        private int TopBorderSize = 30;
-        private int BottomBorderSize = 1;
-        private int SideBorderSize = 1;
-        private int SpacingSize = 1;
-        private Size CardSize = new Size(192, 28);
+        /// <summary>Top border size (including title)</summary>
+        public int TopBorderSize { get; private set; } = 30;
+        /// <summary>Bottom border size</summary>
+        public int BottomBorderSize { get; private set; } = 1;
+        /// <summary>Side border size</summary>
+        public int SideBorderSize { get; private set; } = 1;
+        /// <summary>Size of spacing between cards</summary>
+        public int SpacingSize { get; private set; } = 1;
+
+        /// <summary>If true, only title is shown</summary>
+        public bool IsMinimized { get; set; } = false;
+
+        /// <summary>Default card size</summary>
+        public Size CardSize { get; private set; } = new Size(192, 28);
 
         private Font TitleFont = new Font("Calibri", 12, FontStyle.Bold);
         private Font CardFont = new Font("Calibri", 12, FontStyle.Bold);
         private Font StatsFont = new Font("Calibri", 12, FontStyle.Bold);
 
+        /// <summary>Window Title</summary>
         public string Title { get; set; }
 
         private CardArtView CardPopup;
         private int HighlightedCard = -1;
 
-        private delegate void SetCardSafeDelegate(int index, string cardCode, int count);
+        private delegate void SetCardSafeDelegate(int index, CardWithCount cardCode);
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
         public DeckControl()
         {
             InitializeComponent();
@@ -37,41 +55,48 @@ namespace LoRSideTracker
             Cards = new List<CardWithCount>();
             CardPopup = new CardArtView();
         }
-        public void SetCard(int index, string cardCode, int count)
+
+        /// <summary>
+        /// Set card
+        /// </summary>
+        /// <param name="index">Card index to set</param>
+        /// <param name="card">Card</param>
+        public void SetCard(int index, CardWithCount card)
         {
             if (this.InvokeRequired)
             {
                 var d = new SetCardSafeDelegate(SetCardSafe);
-                this.Invoke(d, new object[] { index, cardCode, count });
+                this.Invoke(d, new object[] { index, card });
             }
             else
             {
-                SetCardSafe(index, cardCode, count);
+                SetCardSafe(index, card);
             }
         }
 
 
-        private void SetCardSafe(int index, string cardCode, int count)
+        private void SetCardSafe(int index, CardWithCount card)
         {
             if (index == Cards.Count)
             {
-                Card newCard = CardLibrary.GetCard(cardCode);
-                Cards.Add(new CardWithCount(newCard, count));
+                Cards.Add((CardWithCount)card.Clone());
                 Invalidate(GetCardRectangle(Cards.Count - 1));
             }
-            else if (!Cards[index].Code.Equals(cardCode))
+            else if (!Cards[index].Code.Equals(card.Code))
             {
-                Card newCard = CardLibrary.GetCard(cardCode);
-                Cards[index] = new CardWithCount(newCard, count);
+                Cards[index] = (CardWithCount)card.Clone();
                 Invalidate(GetCardRectangle(index));
             }
-            else if (Cards[index].Count != count)
+            else if (Cards[index].Count != card.Count)
             {
-                Cards[index].Count = count;
+                Cards[index].Count = card.Count;
                 Invalidate(GetCardRectangle(index));
             }
         }
 
+        /// <summary>
+        /// Clear deck contents
+        /// </summary>
         public void ClearDeck()
         {
             if (Cards.Count > 0)
@@ -81,9 +106,28 @@ namespace LoRSideTracker
             }
         }
 
+        /// <summary>
+        /// Trim the deck to given size
+        /// </summary>
+        /// <param name="setSize">Size to trim to</param>
+        public void TrimDeck(int setSize)
+        {
+            if (Cards.Count > setSize)
+            {
+                Cards.RemoveRange(setSize, Cards.Count - setSize);
+                Invalidate();
+            }
+        }
+
+        /// <summary>
+        /// Computes best size to display title and all cards (if not minimized)
+        /// </summary>
+        /// <returns></returns>
         public Size GetBestSize()
         {
-            return new Size(2 * SideBorderSize + CardSize.Width, TopBorderSize + BottomBorderSize + (CardSize.Height + SpacingSize) * Cards.Count - SpacingSize);
+            Size result = new Size(2 * SideBorderSize + CardSize.Width, TopBorderSize);
+            if (!IsMinimized) result.Height += BottomBorderSize + CardSize.Height * Cards.Count + SpacingSize * (Cards.Count - 1) + BottomBorderSize;
+            return result;
         }
 
         private void DeckControl_Paint(object sender, PaintEventArgs e)
@@ -195,7 +239,7 @@ namespace LoRSideTracker
             }
             if (HighlightedCard >= 0)
             {
-                CardPopup.SetCard(Cards[index].Code);
+                CardPopup.SetCard(Cards[index].TheCard);
                 Point topLeft = PointToScreen(new Point(0, 0));
                 Rectangle cardRect = GetCardRectangle(index);
                 CardPopup.SetBounds(topLeft.X + cardRect.X + cardRect.Width, topLeft.Y + cardRect.Y,
@@ -229,6 +273,10 @@ namespace LoRSideTracker
                 HighlightCard(-1);
             }
         }
+        /// <summary>
+        /// Override OnPaintBackground() to reduce flicker
+        /// </summary>
+        /// <param name="e"></param>
         protected override void OnPaintBackground(PaintEventArgs e)
         {
             //empty implementation

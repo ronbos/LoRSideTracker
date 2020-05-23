@@ -8,14 +8,25 @@ using System.Threading.Tasks;
 
 namespace LoRSideTracker
 {
-    //    {"IsSwap":true,"DraftPicks":null,"SwappedOut":["01IO037"],"SwappedIn":["02BW007"]}]
+    /// <summary>
+    /// Expedition draft pick
+    /// </summary>
     public class ExpeditionPick
     {
+        /// <summary>Is it a swap pick</summary>
+
         public bool IsSwap { get; private set; }
+        /// <summary>Picks</summary>
         public string[] DraftPicks { get; private set; }
+        /// <summary>What was swapped out if Swap</summary>
         public string[] SwappedOut { get; private set; }
+        /// <summary>What was swapped in if Swap</summary>
         public string[] SwappedIn { get; private set; }
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="json">JSON element containing pick info</param>
         public ExpeditionPick(Dictionary<string, JsonElement> json)
         {
             IsSwap = json["IsSwap"].ToObject<bool>();
@@ -25,26 +36,49 @@ namespace LoRSideTracker
         }
 
     }
+
+    /// <summary>
+    /// Interface to receive expedition updates
+    /// </summary>
     public interface ExpeditionUpdateCallback
     {
+        /// <summary>
+        /// Receives updates that expedition deck changed
+        /// </summary>
+        /// <param name="Cards"></param>
         void OnExpeditionDeckUpdated(List<CardWithCount> Cards);
     }
 
+    /// <summary>
+    /// Expedition state
+    /// </summary>
     public class Expedition : AutoUpdatingWebStringCallback
     {
+        /// <summary>Is expedition active</summary>
         public bool IsActive { get; private set; }
+        /// <summary>Current state</summary>
         public string State { get; private set; }
+        /// <summary>Current record</summary>
         public string[] Record { get; private set; }
+        /// <summary>List of draft picks</summary>
         public ExpeditionPick[] DraftPicks { get; private set; }
+        /// <summary>Current deck</summary>
         public List<CardWithCount> Cards { get; private set; }
+        /// <summary>Number of Games</summary>
         public int NumberOfGames { get; private set; }
+        /// <summary>Number of Wins</summary>
         public int NumberOfWins { get; private set; }
+        /// <summary>Number of Losses</summary>
         public int NumberOfLosses { get; private set; }
 
         private AutoUpdatingWebString WebString;
 
         private ExpeditionUpdateCallback Callback;
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="callback"></param>
         public Expedition(ExpeditionUpdateCallback callback = null)
         {
             Callback = callback;
@@ -52,6 +86,9 @@ namespace LoRSideTracker
             WebString = new AutoUpdatingWebString(Constants.ExpeditionStateURL(), 1000, this);
         }
 
+        /// <summary>
+        /// Clear expedition state
+        /// </summary>
         public void Clear()
         {
             IsActive = false;
@@ -64,6 +101,10 @@ namespace LoRSideTracker
             NumberOfLosses = 0;
         }
 
+        /// <summary>
+        /// Process newly updated web string to generate new expedition state
+        /// </summary>
+        /// <param name="newValue">new web string</param>
         public void OnWebStringUpdated(string newValue)
         {
             if (Utilities.IsJsonStringValid(newValue))
@@ -76,6 +117,10 @@ namespace LoRSideTracker
             }
         }
 
+        /// <summary>
+        /// Load expedition state from JSON string
+        /// </summary>
+        /// <param name="json">JSON string</param>
         public void LoadFromJson(Dictionary<string, JsonElement> json)
         {
             if (json == null)
@@ -86,6 +131,7 @@ namespace LoRSideTracker
             {
                 IsActive = json["IsActive"].ToObject<bool>();
                 State = json["State"].ToString();
+                Record = json["Record"].ToObject<string[]>();
                 Cards = LoadDeckFromStringCodeList(json["Deck"].ToObject<string[]>());
                 NumberOfGames = json["Games"].ToObject<int>();
                 NumberOfWins = json["Wins"].ToObject<int>();
@@ -112,7 +158,12 @@ namespace LoRSideTracker
             }
         }
 
-        public List<CardWithCount> LoadDeckFromStringCodeList(string[] cardCodes)
+        /// <summary>
+        /// Load expedition deck from a string code list
+        /// </summary>
+        /// <param name="cardCodes">List of card codes</param>
+        /// <returns>Deck contents</returns>
+        private List<CardWithCount> LoadDeckFromStringCodeList(string[] cardCodes)
         {
             List<CardWithCount> cards = new List<CardWithCount>();
             if (cardCodes == null)

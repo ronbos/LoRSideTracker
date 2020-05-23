@@ -1,5 +1,4 @@
-﻿#region Using directives
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -8,23 +7,29 @@ using System.Text;
 using System.Windows.Forms;
 using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
-#endregion
-namespace CSWinFormLayeredWindow
+
+
+namespace LoRSideTracker
 {
+    /// <summary>
+    /// Code originated from https://code.msdn.microsoft.com/windowsapps/CSWinFormLayeredWindow-23cdc375
+    /// </summary>
     public partial class PerPixelAlphaForm : Form
     {
+        /// <summary>
+        ///  Constructor
+        /// </summary>
         public PerPixelAlphaForm()
         {
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
             this.ShowInTaskbar = false;
             this.StartPosition = FormStartPosition.CenterScreen;
-            this.Load += PerPixelAlphaForm_Load;
-        }
-
-        void PerPixelAlphaForm_Load(object sender, EventArgs e)
-        {
             this.TopMost = true;
         }
+
+        /// <summary>
+        /// Adds the layered extended style (WS_EX_LAYERED) to this window
+        /// </summary>
         protected override CreateParams CreateParams
         {
             get

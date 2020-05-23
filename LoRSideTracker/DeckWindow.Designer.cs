@@ -33,24 +33,25 @@
             // 
             // MyDeckControl
             // 
-            this.MyDeckControl.Location = new System.Drawing.Point(-1, 3);
-            this.MyDeckControl.Name = "MyDeckControl";
+            this.MyDeckControl.IsMinimized = false;
+            this.MyDeckControl.Location = new System.Drawing.Point(0, 0);
+            this.MyDeckControl.Name = "Deck Control";
             this.MyDeckControl.Size = new System.Drawing.Size(150, 150);
             this.MyDeckControl.TabIndex = 0;
             this.MyDeckControl.Title = null;
             this.MyDeckControl.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MyDeckControl_MouseDown);
             // 
-            // DeckWindow
+            // DeckWindow2
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(436, 592);
+            this.ClientSize = new System.Drawing.Size(150, 266);
             this.Controls.Add(this.MyDeckControl);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
-            this.Name = "DeckWindow";
-            this.Text = "DeckWindow";
+            this.Name = "Deck Window";
+            this.Text = "Deck Window";
             this.TopMost = true;
-            this.Shown += new System.EventHandler(this.DeckWindow_Shown);
+            this.Load += new System.EventHandler(this.DeckWindow_Load);
             this.ResumeLayout(false);
 
         }

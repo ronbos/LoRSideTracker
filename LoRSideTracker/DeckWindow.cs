@@ -10,6 +10,9 @@ using System.Windows.Forms;
 
 namespace LoRSideTracker
 {
+    /// <summary>
+    /// Top-most window to display deck contents
+    /// </summary>
     public partial class DeckWindow : Form
     {
         private List<CardWithCount> AllCards = new List<CardWithCount>();
@@ -18,22 +21,28 @@ namespace LoRSideTracker
 
         private delegate void UpdateDeckSafeDelegate(List<CardWithCount> allCards, List<CardWithCount> drawnCards);
 
+        /// <summary>If true, window is hidden when empty</summary>
+        public bool ShouldHideWhenEmpty { get; set; } = false;
+
+        /// <summary>Window title</summary>
         public string Title
         {
             get { return MyDeckControl != null ? MyDeckControl.Title : ""; }
             set { MyDeckControl.Title = value; }
         }
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
         public DeckWindow()
         {
             InitializeComponent();
         }
 
-        //public Deck GetCurrentDeck()
-        //{
-        //    return List<CardWithCount>;
-        //}
-
+        /// <summary>
+        /// Set the full deck
+        /// </summary>
+        /// <param name="allCards">Deck contents</param>
         public void SetFullDeck(List<CardWithCount> allCards)
         {
             if (this.InvokeRequired)
@@ -47,6 +56,10 @@ namespace LoRSideTracker
             }
         }
 
+        /// <summary>
+        /// Set set of cards that have been drawn from the deck
+        /// </summary>
+        /// <param name="drawnCards">Set of drawn cards</param>
         public void SetDrawnCards(List<CardWithCount> drawnCards)
         {
             if (this.InvokeRequired)
@@ -60,6 +73,11 @@ namespace LoRSideTracker
             }
         }
 
+        /// <summary>
+        /// Safely update full deck and drawn cards contents, and redraw the set of displayed cards
+        /// </summary>
+        /// <param name="allCards"></param>
+        /// <param name="drawnCards"></param>
         private void UpdateDeckSafe(List<CardWithCount> allCards, List<CardWithCount> drawnCards)
         {
             List<CardWithCount> remainingCards = Utilities.Clone(allCards);
@@ -72,56 +90,95 @@ namespace LoRSideTracker
                 }
             }
 
+            if (AllCards.Count == 0)
+            {
+                MyDeckControl.IsMinimized = false;
+            }
+
             AllCards = Utilities.Clone(allCards);
             DrawnCards = Utilities.Clone(drawnCards);
             RemainingCards = Utilities.Clone(remainingCards);
 
-            if (RemainingCards.Count == 0)
-            {
-                Hide();
-                return;
-            }
-            
             MyDeckControl.ClearDeck();
             for (int i = 0; i < RemainingCards.Count; i++)
             {
-                MyDeckControl.SetCard(i, RemainingCards[i].Code, RemainingCards[i].Count);
+                MyDeckControl.SetCard(i, RemainingCards[i]);
             }
-            Size bestSize = MyDeckControl.GetBestSize();
-            Rectangle currentBounds = MyDeckControl.Bounds;
-            MyDeckControl.SetBounds(MyDeckControl.Bounds.X, MyDeckControl.Bounds.Y, bestSize.Width, bestSize.Height);
-            SetBounds(0, 0, bestSize.Width, bestSize.Height, BoundsSpecified.Size);
+            FixMySize();
+
+            if (RemainingCards.Count == 0)
+            {
+                if (ShouldHideWhenEmpty) Hide();
+                return;
+            }
+
             Show();
         }
 
-        public const int WM_NCLBUTTONDOWN = 0xA1;
-        public const int HT_CAPTION = 0x2;
+        /// <summary>
+        /// Fix the size of the window to match the size of the deck control
+        /// </summary>
+        private void FixMySize()
+        {
+            Size bestSize = MyDeckControl.GetBestSize();
+            MyDeckControl.SetBounds(0, 0, bestSize.Width, bestSize.Height, BoundsSpecified.Size);
+            SetBounds(0, 0, bestSize.Width, bestSize.Height, BoundsSpecified.Size);
+        }
 
+        private void DeckWindow_Load(object sender, EventArgs e)
+        {
+            Size bestSize = MyDeckControl.GetBestSize();
+            MyDeckControl.SetBounds(MyDeckControl.Bounds.X, MyDeckControl.Bounds.Y, bestSize.Width, bestSize.Height, BoundsSpecified.All);
+            SetBounds(0, 0, bestSize.Width, bestSize.Height, BoundsSpecified.Size);
+        }
+
+        /// <summary>
+        /// Imported Win32 function to send message
+        /// </summary>
+        /// <param name="hWnd"></param>
+        /// <param name="Msg"></param>
+        /// <param name="wParam"></param>
+        /// <param name="lParam"></param>
+        /// <returns></returns>
         [System.Runtime.InteropServices.DllImport("user32.dll")]
         public static extern int SendMessage(IntPtr hWnd, int Msg, int wParam, int lParam);
+
+        /// <summary>
+        /// Imported Win32 function to release mouse capture
+        /// </summary>
+        /// <returns></returns>
         [System.Runtime.InteropServices.DllImport("user32.dll")]
         public static extern bool ReleaseCapture();
 
+
+        /// <summary>
+        /// Process mouse down events to allow dragging of window, or
+        /// shrink when double-clicking the title
+        /// </summary>
+        /// <param name="sender">Sender object</param>
+        /// <param name="e">Event arguments</param>
         private void MyDeckControl_MouseDown(object sender, MouseEventArgs e)
         {
+            base.OnMouseDown(e);
             if (e.Button == MouseButtons.Left)
             {
-                ReleaseCapture();
-                SendMessage(Handle, WM_NCLBUTTONDOWN, HT_CAPTION, 0);
+                if (e.Clicks == 2)
+                {
+                    if (e.Y < MyDeckControl.TopBorderSize)
+                    {
+                        MyDeckControl.IsMinimized = !MyDeckControl.IsMinimized;
+                        FixMySize();
+                    }
+                }
+                else
+                {
+                    const int WM_NCLBUTTONDOWN = 0xA1;
+                    const int HT_CAPTION = 0x2;
+
+                    ReleaseCapture();
+                    SendMessage(Handle, WM_NCLBUTTONDOWN, HT_CAPTION, 0);
+                }
             }
-        }
-
-        protected override void OnPaintBackground(PaintEventArgs e)
-        {
-            //empty implementation
-        }
-
-        private void DeckWindow_Shown(object sender, EventArgs e)
-        {
-            Size bestSize = MyDeckControl.GetBestSize();
-            Rectangle currentBounds = MyDeckControl.Bounds;
-            MyDeckControl.SetBounds(MyDeckControl.Bounds.X, MyDeckControl.Bounds.Y, bestSize.Width, bestSize.Height);
-            SetBounds(0, 0, bestSize.Width, bestSize.Height, BoundsSpecified.Size);
         }
     }
 }

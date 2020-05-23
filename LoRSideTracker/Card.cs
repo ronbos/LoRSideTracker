@@ -8,30 +8,46 @@ using System.Threading.Tasks;
 
 namespace LoRSideTracker
 {
+    /// <summary>
+    /// Card class contains card info and art
+    /// </summary>
     public class Card
     {
-        // General info
+        /// <summary>Card Name</summary>
         public string Name { get; private set; }
+        /// <summary>Card Code</summary>
         public string Code { get; private set; }
+        /// <summary>Card Type</summary>
         public string Type { get; private set; }
+        /// <summary>Card Cost</summary>
         public int Cost { get; private set; }
+        /// <summary>Card Region</summary>
         public string Region { get; private set; }
+        /// <summary>Card Rarity</summary>
         public string Rarity { get; private set; }
+        /// <summary>Card Flavor Text</summary>
         public string FlavorText { get; private set; }
+        /// <summary>true if Card is collectible</summary>
         public bool IsCollectible { get; private set; }
 
-        // Unit info
+        /// <summary>Default Card Attack Value</summary>
         public int Attack { get; private set; }
+        /// <summary>Default Card Health Value</summary>
         public int Health { get; private set; }
 
-        // Spell info
+        /// <summary>Spell Speed</summary>
         public string SpellSpeed { get; private set; }
 
-        // Display Info
+        /// <summary>Card Image</summary>
         public Image CardArt { get; private set; }
+        /// <summary>Card Banner Image</summary>
         public Image CardBanner { get; private set; }
 
-
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="setPath">Set path</param>
+        /// <param name="dict">Associated JSON</param>
         public Card(string setPath, Dictionary<string, JsonElement> dict)
         {
             const string IsCollectibleString = "True";
@@ -59,25 +75,44 @@ namespace LoRSideTracker
         }
     }
 
+    /// <summary>
+    /// CardWithCount is used for tracking decks and other sets that may contain multiple of one card
+    /// </summary>
     public class CardWithCount : ICloneable
     {
+        /// <summary>Card Object</summary>
         public Card TheCard { get; private set; }
+        /// <summary>Card Name</summary>
         public string Name { get { return TheCard.Name; } }
+        /// <summary>Card Code</summary>
         public string Code { get { return TheCard.Code; } }
+        /// <summary>Card Type</summary>
         public string Type { get { return TheCard.Type; } }
+        /// <summary>Card Cost</summary>
         public int Cost { get { return TheCard.Cost; } }
 
-        // Deck metadata
+        /// <summary>Number of this card in the set</summary>
         public int Count { get; set; }
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="card">Card object</param>
+        /// <param name="count">Initial count</param>
         public CardWithCount(Card card, int count)
         {
             TheCard = card;
             Count = count;
         }
 
+        /// <summary>
+        /// Clone the object, but do not clone the card itself
+        /// </summary>
+        /// <returns></returns>
         public object Clone()
         {
+            // We don't want to clone the Card, just the count, 
+            // since the card contains image art and can be large
             return new CardWithCount(TheCard, Count);
         }
     }

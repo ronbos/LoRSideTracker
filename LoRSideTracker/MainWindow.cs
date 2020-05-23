@@ -15,61 +15,98 @@ using System.Windows.Forms;
 
 namespace LoRSideTracker
 {
-    public partial class MainWindow : Form, ExpeditionUpdateCallback, DeckUpdateCallback, OverlayUpdateCallback
+    /// <summary>
+    /// Main app wondow
+    /// </summary>
+    public partial class MainWindow : Form, ExpeditionUpdateCallback, StaticDeckUpdateCallback, OverlayUpdateCallback
     {
-        private ProgressWindow MyProgressWindow;
-
         private int CurrentDownloadIndex = 0;
         private List<int> MissingSets;
 
         private Expedition CurrentExpedition;
-        private Deck CurrentDeck;
+        private StaticDeck CurrentDeck;
         private Overlay CurrentOverlay;
 
         private DeckWindow ActiveDeckWindow;
         private DeckWindow PlayedCardsWindow;
         private DeckWindow OpponentCardsWindow;
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
         public MainWindow()
         {
             InitializeComponent();
-
-            MyProgressWindow = new ProgressWindow();
-
-            //string deckJson = Utilities.ReadLocalFile("..\\..\\example-static-decklist.json");
-            //Dictionary<string, JsonElement> deck = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(deckJson);
-            //CurrentDeck.LoadDeckFromJson(deck);
-            //ActiveDeckWindow.SetFullDeck(CurrentDeck);
-            //ActiveDeckWindow.Show();
-            //ActiveDeckWindow.Show();
-
         }
 
+        /// <summary>
+        /// Destructor
+        /// </summary>
+        ~MainWindow()
+        {
+            Log.SetTextBox(null);
+        }
+
+        /// <summary>
+        /// Receives notification that static deck was updated
+        /// </summary>
+        /// <param name="cards">Updated set</param>
         public void OnDeckUpdated(List<CardWithCount> cards)
         {
             if (CurrentDeck.Cards.Count > 0)
             {
+                ActiveDeckWindow.Title = string.Format("My Deck");
                 ActiveDeckWindow.SetFullDeck(CurrentDeck.Cards);
             }
-            else if (CurrentExpedition != null)
+            else if (CurrentExpedition != null && CurrentExpedition.Cards.Count > 0)
             {
+                bool isEliminationGame = (Array.FindLastIndex(CurrentExpedition.Record, item => item.Equals("win")) < Array.FindLastIndex(CurrentExpedition.Record, item => item.Equals("loss")));
+                ActiveDeckWindow.Title = string.Format("Expedition {0}-{1}({2})", CurrentExpedition.NumberOfWins, isEliminationGame ? 1 : 0, CurrentExpedition.NumberOfLosses);
                 ActiveDeckWindow.SetFullDeck(CurrentExpedition.Cards);
+            }
+            else
+            {
+                ActiveDeckWindow.Title = "No Active Deck";
+                ActiveDeckWindow.SetFullDeck(new List<CardWithCount>());
             }
         }
 
+        /// <summary>
+        /// Receives notification that expedition deck was updated
+        /// </summary>
+        /// <param name="cards">Updated set</param>
         public void OnExpeditionDeckUpdated(List<CardWithCount> cards)
         {
             if (CurrentDeck.Cards.Count == 0)
             {
-                ActiveDeckWindow.SetFullDeck(CurrentExpedition.Cards);
+                if (CurrentExpedition.Cards.Count > 0)
+                {
+                    bool isEliminationGame = (Array.FindLastIndex(CurrentExpedition.Record, item => item.Equals("win")) < Array.FindLastIndex(CurrentExpedition.Record, item => item.Equals("loss")));
+                    ActiveDeckWindow.Title = string.Format("Expedition {0}-{1}({2})", CurrentExpedition.NumberOfWins, isEliminationGame ? 1 : 0, CurrentExpedition.NumberOfLosses);
+                    ActiveDeckWindow.SetFullDeck(CurrentExpedition.Cards);
+                }
+                else
+                {
+                    ActiveDeckWindow.Title = "No Active Deck";
+                    ActiveDeckWindow.SetFullDeck(new List<CardWithCount>());
+                }
             }
         }
+
+        /// <summary>
+        /// Receives notification that player drawn set was changed
+        /// </summary>
+        /// <param name="cards">Updated set</param>
         public void OnPlayerDrawnSetUpdated(List<CardWithCount> cards)
         {
             ActiveDeckWindow.SetDrawnCards(cards);
             PlayedCardsWindow.SetFullDeck(cards);
         }
 
+        /// <summary>
+        /// Receives notification that opponent played set was changed
+        /// </summary>
+        /// <param name="cards">Updated set</param>
         public void OnOpponentPlayedSetUpdated(List<CardWithCount> cards)
         {
             OpponentCardsWindow.SetFullDeck(cards);
@@ -77,12 +114,15 @@ namespace LoRSideTracker
 
         private void MainWindow_Shown(object sender, EventArgs e)
         {
-            Rectangle progressRect = MyProgressWindow.RectangleToScreen(MyProgressWindow.DesktopBounds);
+            Log.SetTextBox(LogTextBox);
+            DebugLogsCheckBox.Checked = Log.ShowDebugLog;
+
+            Rectangle progressRect = MyProgressDisplay.Bounds;
             progressRect.Offset(
-                (Bounds.Left + Bounds.Right) / 2 - (progressRect.Left + progressRect.Right) / 2,
-                (Bounds.Top + Bounds.Bottom) / 2 - (progressRect.Top + progressRect.Bottom) / 2);
-            MyProgressWindow.SetBounds(progressRect.X, progressRect.Y, progressRect.Width, progressRect.Height);
-            MyProgressWindow.Show();
+                Bounds.Width / 2 - (progressRect.Left + progressRect.Right) / 2,
+                Bounds.Height / 2 - (progressRect.Top + progressRect.Bottom) / 2);
+            MyProgressDisplay.SetBounds(progressRect.X, progressRect.Y, progressRect.Width, progressRect.Height);
+            MyProgressDisplay.Show();
 
             MissingSets = CardLibrary.FindMissingSets();
             if (MissingSets.Count > 0)
@@ -98,16 +138,26 @@ namespace LoRSideTracker
             }
         }
 
-        void OnDownloadProgressChanged(object sender, DownloadProgressChangedEventArgs e)
+        /// <summary>
+        /// Receives notification that set download progress changed
+        /// </summary>
+        /// <param name="sender">Sender</param>
+        /// <param name="e">Arguments</param>
+        private void OnDownloadProgressChanged(object sender, DownloadProgressChangedEventArgs e)
         {
             double bytesIn = double.Parse(e.BytesReceived.ToString());
             double totalBytes = double.Parse(e.TotalBytesToReceive.ToString());
             double percentage = bytesIn / totalBytes * 100;
             string message = String.Format("Downloading card set {0} ({1}/{2})", MissingSets[CurrentDownloadIndex], CurrentDownloadIndex + 1, MissingSets.Count);
-            MyProgressWindow.Update(message, percentage);
+            MyProgressDisplay.Update(message, percentage);
         }
 
-        void OnDownloadFileCompleted(object sender, AsyncCompletedEventArgs e)
+        /// <summary>
+        /// Receives notification that set download was completed
+        /// </summary>
+        /// <param name="sender">Sender</param>
+        /// <param name="e">Arguments</param>
+        private void OnDownloadFileCompleted(object sender, AsyncCompletedEventArgs e)
         {
             if (e != null && e.Error != null && e.Error.HResult != 0)
             {
@@ -124,7 +174,7 @@ namespace LoRSideTracker
             {
                 // Success, finish up and queue up the next one
 
-                MyProgressWindow.Update("Download completed. Processing...", 100);
+                MyProgressDisplay.Update("Download completed. Processing...", 100);
                 CardLibrary.ProcessDownloadedSet(MissingSets[CurrentDownloadIndex]);
                 CurrentDownloadIndex++;
                 if (CurrentDownloadIndex < MissingSets.Count)
@@ -140,13 +190,18 @@ namespace LoRSideTracker
                 }
             }
         }
+
+        /// <summary>
+        /// Runs after all sets are downloaded and processed.
+        /// Initializes the StaticDeck windows and deck tracking objects.
+        /// </summary>
         private async void OnAllSetsDownloaded()
         {
-            await Task.Run(() => CardLibrary.LoadAllCards(MyProgressWindow));
-            MyProgressWindow.Close();
+            await Task.Run(() => CardLibrary.LoadAllCards(MyProgressDisplay));
+            MyProgressDisplay.Hide();
 
             ActiveDeckWindow = new DeckWindow();
-            ActiveDeckWindow.Title = "Active Deck";
+            ActiveDeckWindow.Title = "Your Deck";
             ActiveDeckWindow.Show();
 
             PlayedCardsWindow = new DeckWindow();
@@ -157,12 +212,59 @@ namespace LoRSideTracker
             OpponentCardsWindow.Title = "Opponent Deck";
             OpponentCardsWindow.Show();
 
-            CurrentDeck = new Deck(this);
+            CurrentDeck = new StaticDeck(this);
             Thread.Sleep(500);
             CurrentExpedition = new Expedition(this);
             Thread.Sleep(500);
             CurrentOverlay = new Overlay(this);
+
+            SnapWindowsButton_Click(null, null);
         }
 
+        private void DebugLogsCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            Log.ShowDebugLog = DebugLogsCheckBox.Checked;
+        }
+
+        private void SnapWindowsButton_Click(object sender, EventArgs e)
+        {
+            int margin = 2;
+            int totalWidth = ActiveDeckWindow.DesktopBounds.Width + PlayedCardsWindow.DesktopBounds.Width 
+                + OpponentCardsWindow.DesktopBounds.Width + 2 * margin;
+            int x = (Bounds.Left + Bounds.Right) / 2 - totalWidth / 2;
+            int y = Bounds.Bottom + margin;
+            ActiveDeckWindow.SetDesktopBounds(x, y, ActiveDeckWindow.DesktopBounds.Width, ActiveDeckWindow.DesktopBounds.Height);
+            x += ActiveDeckWindow.DesktopBounds.Width + margin;
+            PlayedCardsWindow.SetDesktopBounds(x, y, PlayedCardsWindow.DesktopBounds.Width, PlayedCardsWindow.DesktopBounds.Height);
+            x += PlayedCardsWindow.DesktopBounds.Width + margin;
+            OpponentCardsWindow.SetDesktopBounds(x, y, OpponentCardsWindow.DesktopBounds.Width, OpponentCardsWindow.DesktopBounds.Height);
+        }
+
+        private void MainWindow_Load(object sender, EventArgs e)
+        {
+            if (Properties.Settings.Default.MainWindowBounds.Width > 0 && Properties.Settings.Default.MainWindowBounds.Height > 0)
+            {
+                this.WindowState = Properties.Settings.Default.MainWindowState;
+                this.Bounds = Properties.Settings.Default.MainWindowBounds;
+            }
+        }
+
+        private void MainWindow_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            Properties.Settings.Default.MainWindowState = this.WindowState;
+            if (this.WindowState == FormWindowState.Normal)
+            {
+                // save location and size if the state is normal
+                Properties.Settings.Default.MainWindowBounds = Bounds;
+            }
+            else
+            {
+                // save the RestoreBounds if the form is minimized or maximized!
+                Properties.Settings.Default.MainWindowBounds = this.RestoreBounds;
+            }
+
+            // Save the settings
+            Properties.Settings.Default.Save();
+        }
     }
 }

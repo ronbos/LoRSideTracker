@@ -6,19 +6,34 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace LoRSideTracker
 {
+    /// <summary>
+    /// Extensions to JsonElement and JsonDocument
+    /// </summary>
     public static partial class JsonExtensions
     {
+        /// <summary>
+        /// Convert JsonElement contents to T
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="element">Element to convert</param>
+        /// <returns>Converted element</returns>
         public static T ToObject<T>(this JsonElement element)
         {
             var json = element.GetRawText();
             return JsonSerializer.Deserialize<T>(json);
         }
+
+        /// <summary>
+        /// Convert JsonDocument contents to T
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="document">Document to convert</param>
+        /// <returns>Converted Document</returns>
         public static T ToObject<T>(this JsonDocument document)
         {
             var json = document.RootElement.GetRawText();
@@ -26,25 +41,63 @@ namespace LoRSideTracker
         }
     }
 
+    /// <summary>
+    /// Extension for RichTextBox
+    /// </summary>
+    public static class RichTextBoxExtensions
+    {
+        /// <summary>
+        /// Allow RichTextBox to append text with specified color and bold flag
+        /// </summary>
+        /// <param name="box">RichTextBox object</param>
+        /// <param name="text">Text to append</param>
+        /// <param name="color">Color to use</param>
+        /// <param name="isBold">Make text bold if true</param>
+        public static void AppendText(this RichTextBox box, string text, Color color, bool isBold = false)
+        {
+            box.SelectionStart = box.TextLength;
+            box.SelectionLength = 0;
+
+            if (isBold)
+            {
+                box.SelectionFont = new Font(box.Font, FontStyle.Bold);
+            }
+            box.SelectionColor = color;
+            box.AppendText(text);
+            box.SelectionColor = box.ForeColor;
+            box.SelectionFont = box.Font;
+        }
+    }
+
+    /// <summary>
+    /// Set of utility functions
+    /// </summary>
     static class Utilities
     {
+        /// <summary>
+        /// Clone a list of ICloneable objects
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="listToClone">List to clone</param>
+        /// <returns>Cloed list</returns>
         public static List<T> Clone<T>(this List<T> listToClone) where T : ICloneable
         {
             return listToClone.Select(item => (T)item.Clone()).ToList();
         }
 
+        /// <summary>
+        /// Chek if a URL is valid
+        /// </summary>
+        /// <param name="url">URL to check</param>
+        /// <returns>true if URL appears valid</returns>
         public static bool CheckURLExists(string url)
         {
             try
             {
-                //Creating the HttpWebRequest
                 HttpWebRequest request = WebRequest.Create(url) as HttpWebRequest;
-                //Setting the Request method HEAD, you can also use GET too.
                 request.Method = "HEAD";
                 request.Timeout = 1000;
-                //Getting the Web Response.
                 HttpWebResponse response = request.GetResponse() as HttpWebResponse;
-                //Returns TRUE if the Status code == 200
                 response.Close();
                 return (response.StatusCode == HttpStatusCode.OK);
             }
@@ -54,6 +107,12 @@ namespace LoRSideTracker
                 return false;
             }
         }
+
+        /// <summary>
+        /// Download web page as a string
+        /// </summary>
+        /// <param name="url">Page URL</param>
+        /// <returns>Web page string contents</returns>
         public static string GetStringFromURL(string url)
         {
             string html = string.Empty;
@@ -70,15 +129,26 @@ namespace LoRSideTracker
             return html;
         }
 
+        /// <summary>
+        /// Download image from URL
+        /// </summary>
+        /// <param name="url">Image URL</param>
+        /// <returns>Downloaded Image</returns>
         public static Image GetImageFromURL(string url)
         {
             WebClient wc = new WebClient();
-            byte[] bytes = wc.DownloadData("http://localhost/image.gif");
+            byte[] bytes = wc.DownloadData(url);
             MemoryStream ms = new MemoryStream(bytes);
             Image img = Image.FromStream(ms);
             return img;
         }
 
+        /// <summary>
+        /// Sanity check if a JSON string is valid
+        /// Checks for balanced parentheses to see if tail of the string was truncated
+        /// </summary>
+        /// <param name="json">JSON string</param>
+        /// <returns>true if JSON string appears valid</returns>
         public static bool IsJsonStringValid(string json)
         {
             if (json.Count(f => f == '{') == 0 || json.Count(f => f == '{') != json.Count(f => f == '}')) return false;
@@ -86,12 +156,25 @@ namespace LoRSideTracker
             return true;
         }
 
+        /// <summary>
+        /// Read local file to string
+        /// </summary>
+        /// <param name="path">File path</param>
+        /// <returns>Contents of the file</returns>
         public static string ReadLocalFile(string path)
         {
             StreamReader r = new StreamReader(path);
             string str = r.ReadToEnd();
             return str;
         }
+
+        /// <summary>
+        /// Resize image helper function -- does not preserve aspect ratio
+        /// </summary>
+        /// <param name="image">image to resize</param>
+        /// <param name="width">Target width</param>
+        /// <param name="height">Target height</param>
+        /// <returns>Resized image</returns>
         public static Bitmap ResizeImage(Image image, int width, int height)
         {
             var destRect = new Rectangle(0, 0, width, height);
@@ -117,6 +200,12 @@ namespace LoRSideTracker
             return destImage;
         }
 
+        /// <summary>
+        /// Crop image helper function
+        /// </summary>
+        /// <param name="img">Image to crop</param>
+        /// <param name="cropArea">Crop rectangle</param>
+        /// <returns>Cropped image</returns>
         public static Image CropImage(Image img, Rectangle cropArea)
         {
             Bitmap bmpImage = new Bitmap(img);

@@ -5,30 +5,33 @@ using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace LoRSideTracker
 {
-    public partial class CardArtView : CSWinFormLayeredWindow.PerPixelAlphaForm
+    /// <summary>
+    /// Window for displaying full card art, with transparency
+    /// </summary>
+    public partial class CardArtView : PerPixelAlphaForm
     {
         private Card MyCard;
+
+        /// <summary>
+        /// Constuctor
+        /// </summary>
         public CardArtView()
         {
             InitializeComponent();
         }
 
-        public void SetCard(string cardCode)
+        /// <summary>
+        /// Set the card to display
+        /// </summary>
+        /// <param name="card">Card to display</param>
+        public void SetCard(Card card)
         {
-            try
-            {
-                MyCard = CardLibrary.GetCard(cardCode);
-                this.SelectBitmap(new Bitmap(MyCard.CardArt));
-            }
-            catch
-            {
-                MyCard = null;
-            }
+            MyCard = card;
+            this.SelectBitmap(new Bitmap(MyCard.CardArt));
         }
 
         private void CardArtView_Paint(object sender, PaintEventArgs e)
@@ -44,10 +47,5 @@ namespace LoRSideTracker
                 e.Graphics.DrawRectangle(new Pen(Color.Red), paintRect);
             }
         }
-
-        //protected override void OnPaintBackground(PaintEventArgs e)
-        //{
-        //empty implementation
-        //}
     }
 }

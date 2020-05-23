@@ -10,10 +10,21 @@ using System.ComponentModel;
 
 namespace LoRSideTracker
 {
+    /// <summary>
+    /// Overlay update callback interface
+    /// </summary>
     public interface OverlayUpdateCallback
     {
+        /// <summary>
+        /// Callback for when player drawn set has been changed
+        /// </summary>
+        /// <param name="cards">Cards in the set</param>
         void OnPlayerDrawnSetUpdated(List<CardWithCount> cards);
 
+        /// <summary>
+        /// Callback for when opponent played set has been changed
+        /// </summary>
+        /// <param name="cards">Cards in the set</param>
         void OnOpponentPlayedSetUpdated(List<CardWithCount> cards);
     }
 
@@ -38,7 +49,7 @@ namespace LoRSideTracker
     {
         public List<string> Hand { get; private set; }
         public List<string> Field { get; private set; }
-        public List<string> Intro { get; private set; }
+        public List<string> Stage { get; private set; }
 
         private bool IsInitialDraw = true;
 
@@ -46,22 +57,21 @@ namespace LoRSideTracker
         {
             Hand = new List<string>();
             Field = new List<string>();
-            Intro = new List<string>();
+            Stage = new List<string>();
         }
 
         public void Reset()
         {
-            if (Hand.Count > 0 || Field.Count > 0 || Intro.Count > 0)
-            {
-                Update(new List<string>(), new List<string>(), new List<string>(), null, null);
-                IsInitialDraw = true;
-            }
+            Hand.Clear();
+            Field.Clear();
+            Stage.Clear();
+            IsInitialDraw = true;
         }
 
-        public void Update(List<OverlayElement> elements, int screenWidth, int screenHeight, List<string> cardsDrawn, List<string> cardsPlayed)
+        public void Update(LogType logType, List<OverlayElement> elements, int screenWidth, int screenHeight, List<string> cardsDrawn, List<string> cardsPlayed)
         {
             List<string> newHand = new List<string>();
-            List<string> newIntro = new List<string>();
+            List<string> newStage = new List<string>();
             List<string> newField = new List<string>();
             bool isDragging = false;
 
@@ -92,7 +102,7 @@ namespace LoRSideTracker
                     }
                     else if (normalizedRect.Height > 0.30f)
                     {
-                        newIntro.Add(element.CardCode);
+                        newStage.Add(element.CardCode);
                     }
                     else
                     {
@@ -103,7 +113,7 @@ namespace LoRSideTracker
             }
             if (!isDragging)
             {
-                Update(newHand, newField, newIntro, cardsDrawn, cardsPlayed);
+                Update(logType, newHand, newField, newStage, cardsDrawn, cardsPlayed);
             }
         }
 
@@ -145,51 +155,80 @@ namespace LoRSideTracker
             return result;
         }
 
-        private void Update(List<string> newHand, List<string> newField, List<string> newIntro, List<string> cardsDrawn, List<string> cardsPlayed)
+        private void Update(LogType logType, List<string> newHand, List<string> newField, List<string> newStage, List<string> cardsDrawn, List<string> cardsPlayed)
         {
-            List<string> movedToIntro = GetDifference(newIntro, Intro);
-            List<string> movedFromIntro = GetDifference(Intro, newIntro);
+            List<string> movedToStage = GetDifference(newStage, Stage);
+            List<string> movedFromStage = GetDifference(Stage, newStage);
             List<string> movedToHand = GetDifference(newHand, Hand);
             List<string> movedFromHand = GetDifference(Hand, newHand);
             List<string> movedToField = GetDifference(newField, Field);
             List<string> movedFromField = GetDifference(Field, newField);
 
-            List<string> movedFromIntroToHand = ExtractIntersection(movedFromIntro, movedToHand);
-            List<string> movedFromHandToIntro = ExtractIntersection(movedFromHand, movedToIntro);
-            List<string> movedFromIntroToField = ExtractIntersection(movedFromIntro, movedToField);
-            List<string> movedFromFieldToIntro = ExtractIntersection(movedFromField, movedToIntro);
+            List<string> movedFromStageToHand = ExtractIntersection(movedFromStage, movedToHand);
+            List<string> movedFromHandToStage = ExtractIntersection(movedFromHand, movedToStage);
+            List<string> movedFromStageToField = ExtractIntersection(movedFromStage, movedToField);
+            List<string> movedFromFieldToStage = ExtractIntersection(movedFromField, movedToStage);
             List<string> movedFromHandToField = ExtractIntersection(movedFromHand, movedToField);
             List<string> movedFromFieldToHand = ExtractIntersection(movedFromField, movedToHand);
 
-            if (Hand.Count > 0)
+            if (Hand.Count > 0 && IsInitialDraw)
             {
                 IsInitialDraw = false;
             }
-            Intro = newIntro;
-            Hand = newHand;
-            Field = newField;
 
-            foreach (var c in movedFromIntroToHand) { Console.WriteLine("Drawn: {0}", CardLibrary.GetCard(c).Name); }
-            foreach (var c in movedFromHandToIntro) { Console.WriteLine("Being Played: {0}", CardLibrary.GetCard(c).Name); }
+            foreach (var c in movedFromStageToHand) { Log.WriteLine(logType, "[SH] Drawn: {0}", CardLibrary.GetCard(c).Name); }
 
-            foreach (var c in movedFromIntroToField) { Console.WriteLine("Played: {0}", CardLibrary.GetCard(c).Name); }
-            foreach (var c in movedFromFieldToIntro) { Console.WriteLine("UNEXPECTED: {0}", CardLibrary.GetCard(c).Name); }
+            // Reporting disabled to make output less verbose
+            foreach (var c in movedFromHandToStage) { Log.WriteLine(LogType.Debug, "[HS] Playing: {0}", CardLibrary.GetCard(c).Name); }
 
-            foreach (var c in movedFromHandToField) { Console.WriteLine("Played Quickly: {0}", CardLibrary.GetCard(c).Name); }
-            foreach (var c in movedFromFieldToHand) { Console.WriteLine("Recalled: {0}", CardLibrary.GetCard(c).Name); }
+            foreach (var c in movedFromStageToField)
+            {
+                Card card = CardLibrary.GetCard(c);
+                Log.WriteLine(logType, "[SF] {0}: {1}", card.Type.Equals("Unit") ? "Summoned" : "Cast", card.Name);
+            }
+            // Reporting disabled due to bugs in rectangles
+            foreach (var c in movedFromFieldToStage) { Log.WriteLine(LogType.Debug, "[FS] UNEXPECTED: {0}", CardLibrary.GetCard(c).Name); }
 
-            foreach (var c in movedFromHand) { Console.WriteLine("Discarded: {0}", CardLibrary.GetCard(c).Name); }
-            foreach (var c in movedToHand) { Console.WriteLine((IsInitialDraw) ? "Initial Hand: {0}" : "Added to Hand: {0}", CardLibrary.GetCard(c).Name); }
+            foreach (var c in movedFromHandToField) { Log.WriteLine(logType, "[HF] Cast: {0}", CardLibrary.GetCard(c).Name); }
 
-            foreach (var c in movedFromField) { Console.WriteLine("Removed from Battlefield: {0}", CardLibrary.GetCard(c).Name); }
-            foreach (var c in movedToField) { Console.WriteLine("Summoned: {0}", CardLibrary.GetCard(c).Name); }
+            foreach (var c in movedFromFieldToHand) { Log.WriteLine(logType, "[FH] Recalled: {0}", CardLibrary.GetCard(c).Name); }
 
-            foreach (var c in movedFromIntro) { Console.WriteLine("Mulliganed: {0}", CardLibrary.GetCard(c).Name); }
-            foreach (var c in movedToIntro) { Console.WriteLine("Being Drawn: {0}", CardLibrary.GetCard(c).Name); }
+            // Reporting disabled due to bugs in rectangles
+            foreach (var c in movedFromHand) { Log.WriteLine(LogType.Debug, "[HX] Discarded: {0}", CardLibrary.GetCard(c).Name); }
+            if (IsInitialDraw)
+            {
+                foreach (var c in movedToHand) { Log.WriteLine(logType, "[XH] Initial Hand: {0}", CardLibrary.GetCard(c).Name); }
+            }
+            else
+            {
+                // Reporting disabled due to bugs in rectangles
+                foreach (var c in movedToHand) { Log.WriteLine(LogType.Debug, "[XH] Added to Hand: {0}", CardLibrary.GetCard(c).Name); }
+            }
+
+            foreach (var c in movedFromField) { Log.WriteLine(logType, "[FX] Removed from Battlefield: {0}", CardLibrary.GetCard(c).Name); }
+            foreach (var c in movedToField)
+            {
+                Card card = CardLibrary.GetCard(c);
+                Log.WriteLine(logType, "[XF] {0}: {1}", card.Type.Equals("Unit") ? "Summoned" : "Cast", card.Name);
+            }
+
+            if (IsInitialDraw && logType != LogType.Opponent)
+            {
+                foreach (var c in movedFromStage) { Log.WriteLine(LogType.Debug, "[SX] Mulliganed: {0}", CardLibrary.GetCard(c).Name); }
+            }
+            if (logType != LogType.Player)
+            {
+                foreach (var c in movedToStage) { Log.WriteLine(logType, "[XS] Drawing: {0}", CardLibrary.GetCard(c).Name); }
+            }
+            else
+            {
+                // Reporting disabled to make output less verbose
+                foreach (var c in movedToStage) { Log.WriteLine(LogType.Debug, "[XS] Playing: {0}", CardLibrary.GetCard(c).Name); }
+            }
 
             if (cardsDrawn != null)
             {
-                cardsDrawn.AddRange(movedFromIntroToHand);
+                cardsDrawn.AddRange(movedFromStageToHand);
                 if (IsInitialDraw)
                 {
                     cardsDrawn.AddRange(movedToHand);
@@ -197,24 +236,26 @@ namespace LoRSideTracker
             }
             if (cardsPlayed != null)
             {
-                cardsPlayed.AddRange(movedFromIntroToField);
+                cardsPlayed.AddRange(movedFromStageToField);
                 cardsPlayed.AddRange(movedFromHandToField);
                 cardsPlayed.AddRange(movedToField);
             }
 
-            if (movedToHand.Count > 0)
+            Hand = GetDifference(Hand, movedFromHandToStage);
+            Hand = GetDifference(Hand, movedFromHandToField);
+            Hand.AddRange(movedFromStageToHand);
+            Hand.AddRange(movedFromFieldToHand);
+            if (IsInitialDraw)
+            {
+                Hand.AddRange(movedToHand);
+            }
+            Stage = newStage;
+            Field = newField;
+
+            if (Hand.Count > 0 && IsInitialDraw)
             {
                 IsInitialDraw = false;
-            }
-
-            if (movedFromHandToIntro.Count > 0 || movedFromIntroToHand.Count > 0
-                || movedFromIntroToField.Count > 0 || movedFromFieldToIntro.Count > 0
-                || movedFromHandToField.Count > 0 || movedFromFieldToHand.Count > 0
-                || movedFromHand.Count > 0 || movedToHand.Count > 0
-                || movedFromField.Count > 0 || movedToField.Count > 0
-                || movedFromIntro.Count > 0 || movedToIntro.Count > 0)
-            {
-                Console.WriteLine("==============");
+                Log.WriteLine("==============");
             }
         }
     }
@@ -225,17 +266,21 @@ namespace LoRSideTracker
         public int ScreenWidth { get; private set; }
         public int ScreenHeight { get; private set; }
 
-        public string PlayerName { get; private set; }
+        public string PlayerName { get; private set; } = "";
         public List<OverlayElement> PlayerElements { get; private set; }
 
         public List<CardWithCount> PlayerDrawnCards { get; private set; }
         public List<CardWithCount> OpponentPlayedCards { get; private set; }
 
-        public string OpponentName { get; private set; }
+        public string OpponentName { get; private set; } = "";
         public List<OverlayElement> OpponentElements { get; private set; }
 
         private PlayerOverlay PlayerTracker;
         private PlayerOverlay OpponentTracker;
+
+        private bool GameWasAnnounced = false;
+
+        private bool NotRespondingHasBeenReported = false;
 
         OverlayUpdateCallback Callback;
 
@@ -252,18 +297,28 @@ namespace LoRSideTracker
             OpponentTracker = new PlayerOverlay();
             GameState = "Unknown";
 
-            WebString = new AutoUpdatingWebString(Constants.OverlayStateURL(), 100, this);
+            WebString = new AutoUpdatingWebString(Constants.OverlayStateURL(), 30, this);
         }
 
 
+        /// <summary>
+        /// Process newly updated web string to generate new overlay state
+        /// </summary>
+        /// <param name="newValue">new web string</param>
         public void OnWebStringUpdated(string newValue)
         {
             if (Utilities.IsJsonStringValid(newValue))
             {
+                NotRespondingHasBeenReported = false;
                 Reload(JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(newValue));
             }
             else
             {
+                if (!NotRespondingHasBeenReported)
+                {
+                    Log.WriteLine("{0} is producing invalid data", Constants.OverlayStateURL());
+                    NotRespondingHasBeenReported = true;
+                }
                 Reload(null);
             }
         }
@@ -314,20 +369,38 @@ namespace LoRSideTracker
 
             if (!oldGameState.Equals(GameState))
             {
+                Log.WriteLine("Game state changed from {0} to {1}", oldGameState, GameState);
                 PlayerDrawnCards.Clear();
                 OpponentPlayedCards.Clear();
                 PlayerTracker.Reset();
                 OpponentTracker.Reset();
+                GameWasAnnounced = false;
                 Callback.OnPlayerDrawnSetUpdated(PlayerDrawnCards);
                 Callback.OnOpponentPlayedSetUpdated(OpponentPlayedCards);
+                if (GameState.Equals("InProgress"))
+                {
+                    Log.Clear();
+                }
+                if (oldGameState.Equals("InProgress"))
+                {
+                    string json = Utilities.GetStringFromURL(Constants.GameResultURL());
+                    Dictionary<string, JsonElement> gameResult = JsonSerializer.Deserialize< Dictionary<string, JsonElement> >(json);
+                    Log.WriteLine("Game no. {0} Result: {1}", gameResult["GameID"].ToObject<int>(), 
+                        gameResult["LocalPlayerWon"].ToObject<bool>() ? "Win" : "Loss");
+                }
             }
 
-            if (GameState.Equals("InProgress"))
+            if (PlayerName != null && PlayerName.Length > 0 && OpponentName != null && OpponentName.Length > 0)
             {
+                if (!GameWasAnnounced && PlayerName.Length > 0)
+                {
+                    Log.WriteLine("New Game: {0} vs {1}", PlayerName, OpponentName);
+                    GameWasAnnounced = true;
+                }
                 List<string> cardsDrawn = new List<string>();
                 List<string> cardsPlayed = new List<string>();
-                PlayerTracker.Update(PlayerElements, ScreenWidth, ScreenHeight, cardsDrawn, null);
-                OpponentTracker.Update(OpponentElements, ScreenWidth, ScreenHeight, null, cardsPlayed);
+                PlayerTracker.Update(LogType.Player, PlayerElements, ScreenWidth, ScreenHeight, cardsDrawn, null);
+                OpponentTracker.Update(LogType.Opponent, OpponentElements, ScreenWidth, ScreenHeight, null, cardsPlayed);
                 if (cardsDrawn.Count > 0)
                 {
                     foreach (string cardCode in cardsDrawn)
@@ -364,11 +437,6 @@ namespace LoRSideTracker
 
                     Callback.OnOpponentPlayedSetUpdated(Utilities.Clone(OpponentPlayedCards));
                 }
-            }
-            else
-            {
-                //Callback.OnPlayerDrawnSetUpdated(PlayerDrawnCards);
-                //Callback.OnOpponentDrawnSetUpdated(OpponentPlayedCards);
             }
         }
     }

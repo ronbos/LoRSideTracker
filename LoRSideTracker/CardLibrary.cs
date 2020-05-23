@@ -8,15 +8,20 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
-using System.Windows.Forms;
 
 namespace LoRSideTracker
 {
+    /// <summary>
+    /// CardLibrary is used to download and load all available cards
+    /// </summary>
     public static class CardLibrary
     {
         private static Dictionary<string, Card> m_cards;
 
+        /// <summary>
+        /// Find the list of missing sets that can be downloaded
+        /// </summary>
+        /// <returns>List of missing set indices</returns>
         public static List<int> FindMissingSets()
         {
             if (!Directory.Exists(Constants.GetLocalSetsPath()))
@@ -41,7 +46,13 @@ namespace LoRSideTracker
             return missingSets;
         }
 
-
+        /// <summary>
+        /// Gegin asynchronous download of a set zip file
+        /// </summary>
+        /// <param name="setNumber">Set number</param>
+        /// <param name="onDownloadProgressChangedHandler">Interface to receive OnDownloadProgressChanged() updates</param>
+        /// <param name="onDownloadFileCompletedHandler">Interface to receive OnDownloadFileCompleted() callback</param>
+        /// <returns>true if set can be downloaded</returns>
         public static bool DownloadSet(int setNumber,
                 DownloadProgressChangedEventHandler onDownloadProgressChangedHandler,
                 AsyncCompletedEventHandler onDownloadFileCompletedHandler)
@@ -58,6 +69,10 @@ namespace LoRSideTracker
             return false;
         }
 
+        /// <summary>
+        /// Unzip downloaded set, Resine image to manageable size, and delete the zip file
+        /// </summary>
+        /// <param name="setNumber">Set number</param>
         public static void ProcessDownloadedSet(int setNumber)
         {
             string setPath = Constants.GetSetPath(setNumber);
@@ -93,7 +108,12 @@ namespace LoRSideTracker
             }
             File.Delete(setZip);
         }
-        public static void LoadAllCards(ProgressDisplay pd)
+
+        /// <summary>
+        /// Load all cards from disk
+        /// </summary>
+        /// <param name="pd">ProgressDisplay interface to use for progress updates</param>
+        public static void LoadAllCards(ProgressDisplayControl pd)
         {
             m_cards = new Dictionary<string, Card>();
             for (int i = 1; ; i++)
@@ -123,6 +143,11 @@ namespace LoRSideTracker
             }
         }
 
+        /// <summary>
+        /// Get the card corresponding to the card code
+        /// </summary>
+        /// <param name="cardCode">Card code</param>
+        /// <returns>Corresponding Card object</returns>
         public static Card GetCard(string cardCode)
         {
             try
