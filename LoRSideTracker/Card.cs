@@ -19,6 +19,8 @@ namespace LoRSideTracker
         public string Code { get; private set; }
         /// <summary>Card Type</summary>
         public string Type { get; private set; }
+        /// <summary>Card Super Type</summary>
+        public string SuperType { get; private set; }
         /// <summary>Card Cost</summary>
         public int Cost { get; private set; }
         /// <summary>Card Region</summary>
@@ -38,6 +40,9 @@ namespace LoRSideTracker
         /// <summary>Spell Speed</summary>
         public string SpellSpeed { get; private set; }
 
+        /// <summary>Associated Card Codes</summary>
+        public string[] AssociatedCardCodes { get; private set; }
+
         /// <summary>Card Image</summary>
         public Image CardArt { get; private set; }
         /// <summary>Card Banner Image</summary>
@@ -54,6 +59,7 @@ namespace LoRSideTracker
             Name = dict["name"].ToString();
             Code = dict["cardCode"].ToString();
             Type = dict["type"].ToString();
+            Type = dict["supertype"].ToString();
             Cost = dict["cost"].ToObject<int>();
             Region = dict["region"].ToString();
             Rarity = dict["rarity"].ToString();
@@ -72,6 +78,9 @@ namespace LoRSideTracker
 
             // Spell info
             SpellSpeed = dict["spellSpeed"].ToString();
+
+            // Spell info
+            AssociatedCardCodes = dict["associatedCardRefs"].ToObject<string[]>();
         }
     }
 

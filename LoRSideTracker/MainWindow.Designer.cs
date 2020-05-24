@@ -50,6 +50,7 @@
             // 
             // DebugLogsCheckBox
             // 
+            this.DebugLogsCheckBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.DebugLogsCheckBox.AutoSize = true;
             this.DebugLogsCheckBox.Location = new System.Drawing.Point(480, 12);
             this.DebugLogsCheckBox.Name = "DebugLogsCheckBox";

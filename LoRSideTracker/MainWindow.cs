@@ -61,7 +61,7 @@ namespace LoRSideTracker
             else if (CurrentExpedition != null && CurrentExpedition.Cards.Count > 0)
             {
                 bool isEliminationGame = (Array.FindLastIndex(CurrentExpedition.Record, item => item.Equals("win")) < Array.FindLastIndex(CurrentExpedition.Record, item => item.Equals("loss")));
-                ActiveDeckWindow.Title = string.Format("Expedition {0}-{1}({2})", CurrentExpedition.NumberOfWins, isEliminationGame ? 1 : 0, CurrentExpedition.NumberOfLosses);
+                ActiveDeckWindow.Title = string.Format("Expedition {0}-{1}{2}", CurrentExpedition.NumberOfWins, CurrentExpedition.NumberOfLosses, isEliminationGame ? "*" : "");
                 ActiveDeckWindow.SetFullDeck(CurrentExpedition.Cards);
             }
             else
@@ -82,7 +82,7 @@ namespace LoRSideTracker
                 if (CurrentExpedition.Cards.Count > 0)
                 {
                     bool isEliminationGame = (Array.FindLastIndex(CurrentExpedition.Record, item => item.Equals("win")) < Array.FindLastIndex(CurrentExpedition.Record, item => item.Equals("loss")));
-                    ActiveDeckWindow.Title = string.Format("Expedition {0}-{1}({2})", CurrentExpedition.NumberOfWins, isEliminationGame ? 1 : 0, CurrentExpedition.NumberOfLosses);
+                    ActiveDeckWindow.Title = string.Format("Expedition {0}-{1}{2}", CurrentExpedition.NumberOfWins, CurrentExpedition.NumberOfLosses, isEliminationGame ? "*" : "");
                     ActiveDeckWindow.SetFullDeck(CurrentExpedition.Cards);
                 }
                 else
@@ -242,6 +242,7 @@ namespace LoRSideTracker
 
         private void MainWindow_Load(object sender, EventArgs e)
         {
+            DebugLogsCheckBox.Checked = Properties.Settings.Default.MainWindowShowDebugLog;
             if (Properties.Settings.Default.MainWindowBounds.Width > 0 && Properties.Settings.Default.MainWindowBounds.Height > 0)
             {
                 this.WindowState = Properties.Settings.Default.MainWindowState;
@@ -251,6 +252,7 @@ namespace LoRSideTracker
 
         private void MainWindow_FormClosing(object sender, FormClosingEventArgs e)
         {
+            Properties.Settings.Default.MainWindowShowDebugLog = DebugLogsCheckBox.Checked;
             Properties.Settings.Default.MainWindowState = this.WindowState;
             if (this.WindowState == FormWindowState.Normal)
             {

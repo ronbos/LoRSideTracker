@@ -58,5 +58,17 @@ namespace LoRSideTracker.Properties {
                 this["MainWindowBounds"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool MainWindowShowDebugLog {
+            get {
+                return ((bool)(this["MainWindowShowDebugLog"]));
+            }
+            set {
+                this["MainWindowShowDebugLog"] = value;
+            }
+        }
     }
 }

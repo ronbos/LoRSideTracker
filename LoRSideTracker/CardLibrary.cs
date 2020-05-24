@@ -150,15 +150,7 @@ namespace LoRSideTracker
         /// <returns>Corresponding Card object</returns>
         public static Card GetCard(string cardCode)
         {
-            try
-            {
-                return (Card)m_cards[cardCode];
-            }
-            catch (NullReferenceException)
-            {
-                return null;
-            }
-
+            return m_cards[cardCode];
         }
     }
 }
