@@ -24,6 +24,9 @@ namespace LoRSideTracker
         /// <summary>If true, window is hidden when empty</summary>
         public bool ShouldHideWhenEmpty { get; set; } = false;
 
+        /// <summary>Deck stats height</summary>
+        public int DeckStatsHeight { get; set; } = 60;
+
         /// <summary>Window title</summary>
         public string Title
         {
@@ -104,6 +107,8 @@ namespace LoRSideTracker
             {
                 MyDeckControl.SetCard(i, RemainingCards[i]);
             }
+            MyDeckStatsDisplay.TheDeck = RemainingCards;
+            MyDeckStatsDisplay.Invalidate();
             FixMySize();
 
             if (RemainingCards.Count == 0)
@@ -111,6 +116,7 @@ namespace LoRSideTracker
                 if (ShouldHideWhenEmpty) Hide();
                 return;
             }
+
 
             Show();
         }
@@ -121,15 +127,35 @@ namespace LoRSideTracker
         private void FixMySize()
         {
             Size bestSize = MyDeckControl.GetBestSize();
+            int deckStatsHeight = MyDeckStatsDisplay.GetBestHeight(bestSize.Width);
             MyDeckControl.SetBounds(0, 0, bestSize.Width, bestSize.Height, BoundsSpecified.Size);
-            SetBounds(0, 0, bestSize.Width, bestSize.Height, BoundsSpecified.Size);
+            if (deckStatsHeight > 0)
+            {
+                MyDeckStatsDisplay.SetBounds(0, bestSize.Height, bestSize.Width, deckStatsHeight, BoundsSpecified.All);
+                MyDeckStatsDisplay.Visible = true;
+            }
+            else
+            {
+                MyDeckStatsDisplay.Visible = false;
+            }
+            SetBounds(0, 0, bestSize.Width, bestSize.Height + deckStatsHeight, BoundsSpecified.Size);
         }
 
         private void DeckWindow_Load(object sender, EventArgs e)
         {
             Size bestSize = MyDeckControl.GetBestSize();
-            MyDeckControl.SetBounds(MyDeckControl.Bounds.X, MyDeckControl.Bounds.Y, bestSize.Width, bestSize.Height, BoundsSpecified.All);
-            SetBounds(0, 0, bestSize.Width, bestSize.Height, BoundsSpecified.Size);
+            int deckStatsHeight = MyDeckStatsDisplay.GetBestHeight(bestSize.Width);
+            MyDeckControl.SetBounds(0, 0, bestSize.Width, bestSize.Height, BoundsSpecified.All);
+            if (deckStatsHeight > 0)
+            {
+                MyDeckStatsDisplay.SetBounds(0, bestSize.Height, bestSize.Width, deckStatsHeight, BoundsSpecified.All);
+                MyDeckStatsDisplay.Visible = true;
+            }
+            else
+            {
+                MyDeckStatsDisplay.Visible = false;
+            }
+            SetBounds(0, 0, bestSize.Width, bestSize.Height + deckStatsHeight, BoundsSpecified.Size);
         }
 
         /// <summary>

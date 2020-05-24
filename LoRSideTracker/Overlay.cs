@@ -176,11 +176,31 @@ namespace LoRSideTracker
             List<string> movedFromHandToField = ExtractIntersection(movedFromHand, movedToField);
             List<string> movedFromFieldToHand = ExtractIntersection(movedFromField, movedToHand);
 
+            // Burst spell don't make it to field, as they appear discarded
+            List<string> movedFromHandBurst = movedFromHand.FindAll(c => CardLibrary.GetCard(c).SpellSpeed.Equals("Burst"));
+            movedFromHand = GetDifference(movedFromHand, movedFromHandBurst);
+            movedFromHandToField.AddRange(movedFromHandBurst);
+
             if (Hand.Count > 0 && IsInitialDraw)
             {
                 IsInitialDraw = false;
             }
 
+            /*
+            foreach (var c in movedFromHand)
+            {
+                Card card = CardLibrary.GetCard(c);
+                if (card.SpellSpeed.Equals("Burst"))
+                {
+                    // Burst spell don't make it to field, as they appear discarded
+                    movedFromHandToField.Add(c);
+                }
+                else
+                {
+                    // Reporting disabled due to bugs in rectangles
+                    Log.WriteLine(LogType.Debug, "[HX] Discarded: {0}", card.Name);
+                }
+            }*/
             foreach (var c in movedFromStageToHand) { Log.WriteLine(MyLogType, "[SH] Drawn: {0}", CardLibrary.GetCard(c).Name); }
 
             // Reporting disabled to make output less verbose
@@ -278,9 +298,8 @@ namespace LoRSideTracker
             Stage.AddRange(movedFromHandToStage);
             Stage.AddRange(movedFromFieldToStage);
             Stage.AddRange(movedToStage);
-            if (IsInitialDraw && Stage.Count > 4)
+            if (!IsInitialDraw)
             {
-                // Allow for mulligan tracking
                 Stage = GetDifference(Stage, movedFromStage);
             }
 

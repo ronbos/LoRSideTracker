@@ -206,6 +206,7 @@ namespace LoRSideTracker
 
             PlayedCardsWindow = new DeckWindow();
             PlayedCardsWindow.Title = "Cards Drawn";
+            PlayedCardsWindow.DeckStatsHeight = 0;
             PlayedCardsWindow.Show();
 
             OpponentCardsWindow = new DeckWindow();

@@ -59,7 +59,7 @@ namespace LoRSideTracker
             Name = dict["name"].ToString();
             Code = dict["cardCode"].ToString();
             Type = dict["type"].ToString();
-            Type = dict["supertype"].ToString();
+            SuperType = dict["supertype"].ToString();
             Cost = dict["cost"].ToObject<int>();
             Region = dict["region"].ToString();
             Rarity = dict["rarity"].ToString();

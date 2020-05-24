@@ -166,7 +166,9 @@ namespace LoRSideTracker
 
             // Create font
             TextRenderer.DrawText(g, card.Cost.ToString(), StatsFont, costRect, Color.Yellow, TextFormatFlags.VerticalCenter | TextFormatFlags.HorizontalCenter);
-            TextRenderer.DrawText(g, card.Name, CardFont, cardRect, Color.White, TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis);
+            TextRenderer.DrawText(g, card.Name, CardFont, cardRect, 
+                card.TheCard.SuperType.Equals("Champion") ? Color.Gold : Color.White, 
+                TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis);
             TextRenderer.DrawText(g, "x" + card.Count.ToString(), StatsFont, countRect, Color.GreenYellow, TextFormatFlags.VerticalCenter | TextFormatFlags.HorizontalCenter);
 
             // Highlight

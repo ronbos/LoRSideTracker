@@ -23,7 +23,7 @@
     <UpdatePeriodically>false</UpdatePeriodically>
     <UpdateRequired>false</UpdateRequired>
     <MapFileExtensions>true</MapFileExtensions>
-    <ApplicationRevision>1</ApplicationRevision>
+    <ApplicationRevision>2</ApplicationRevision>
     <ApplicationVersion>0.6.0.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -119,6 +119,12 @@
     </Compile>
     <Compile Include="CardLibrary.cs" />
     <Compile Include="Constants.cs" />
+    <Compile Include="DeckStatsDisplay.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="DeckStatsDisplay.Designer.cs">
+      <DependentUpon>DeckStatsDisplay.cs</DependentUpon>
+    </Compile>
     <Compile Include="DeckWindow.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -158,6 +164,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="DeckControl.resx">
       <DependentUpon>DeckControl.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="DeckStatsDisplay.resx">
+      <DependentUpon>DeckStatsDisplay.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="DeckWindow.resx">
       <DependentUpon>DeckWindow.cs</DependentUpon>
