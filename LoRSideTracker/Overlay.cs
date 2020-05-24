@@ -50,6 +50,7 @@ namespace LoRSideTracker
         public List<string> Hand { get; private set; }
         public List<string> Field { get; private set; }
         public List<string> Stage { get; private set; }
+        public List<string> Ether { get; private set; }
 
         private bool IsInitialDraw = true;
 
@@ -60,6 +61,7 @@ namespace LoRSideTracker
             Hand = new List<string>();
             Field = new List<string>();
             Stage = new List<string>();
+            Ether = new List<string>();
         }
 
         public void Reset()
@@ -67,6 +69,7 @@ namespace LoRSideTracker
             Hand.Clear();
             Field.Clear();
             Stage.Clear();
+            Ether.Clear();
             IsInitialDraw = true;
         }
 
@@ -168,6 +171,7 @@ namespace LoRSideTracker
             List<string> movedFromHand = GetDifference(Hand, newHand);
             List<string> movedToField = GetDifference(newField, Field);
             List<string> movedFromField = GetDifference(Field, newField);
+            List<string> movedFromEther = Ether.Clone();
 
             List<string> movedFromStageToHand = ExtractIntersection(movedFromStage, movedToHand);
             List<string> movedFromHandToStage = ExtractIntersection(movedFromHand, movedToStage);
@@ -175,6 +179,9 @@ namespace LoRSideTracker
             List<string> movedFromFieldToStage = ExtractIntersection(movedFromField, movedToStage);
             List<string> movedFromHandToField = ExtractIntersection(movedFromHand, movedToField);
             List<string> movedFromFieldToHand = ExtractIntersection(movedFromField, movedToHand);
+            List<string> movedFromEtherToHand = ExtractIntersection(movedFromEther, movedToHand);
+            List<string> movedFromHandToEther = movedFromHand;
+            movedFromHand.Clear();
 
             // Burst spell don't make it to field, as they appear discarded
             List<string> movedFromHandBurst = movedFromHand.FindAll(c => CardLibrary.GetCard(c).SpellSpeed.Equals("Burst"));
@@ -186,21 +193,6 @@ namespace LoRSideTracker
                 IsInitialDraw = false;
             }
 
-            /*
-            foreach (var c in movedFromHand)
-            {
-                Card card = CardLibrary.GetCard(c);
-                if (card.SpellSpeed.Equals("Burst"))
-                {
-                    // Burst spell don't make it to field, as they appear discarded
-                    movedFromHandToField.Add(c);
-                }
-                else
-                {
-                    // Reporting disabled due to bugs in rectangles
-                    Log.WriteLine(LogType.Debug, "[HX] Discarded: {0}", card.Name);
-                }
-            }*/
             foreach (var c in movedFromStageToHand) { Log.WriteLine(MyLogType, "[SH] Drawn: {0}", CardLibrary.GetCard(c).Name); }
 
             // Reporting disabled to make output less verbose
@@ -252,6 +244,11 @@ namespace LoRSideTracker
             // Reporting disabled to make output less verbose
             foreach (var c in movedToStage) { Log.WriteLine(LogType.Debug, "[XS] {0}: {1}", (MyLogType != LogType.Player) ? "Playing" : "Drawing", CardLibrary.GetCard(c).Name); }
 
+            if (MyLogType != LogType.Opponent)
+            {
+                foreach (var c in movedFromHandToEther) { Log.WriteLine(LogType.Debug, "[HE] Disappeared from hand: {0}", CardLibrary.GetCard(c).Name); }
+                foreach (var c in movedFromEtherToHand) { Log.WriteLine(LogType.Debug, "[EH] Came back to hand: {0}", CardLibrary.GetCard(c).Name); }
+            }
             if (cardsDrawn != null)
             {
                 cardsDrawn.AddRange(movedFromStageToHand);
@@ -270,8 +267,10 @@ namespace LoRSideTracker
             // Update hand based on card movement only
             Hand = GetDifference(Hand, movedFromHandToStage);
             Hand = GetDifference(Hand, movedFromHandToField);
+            Hand = GetDifference(Hand, movedFromHandToEther);
             Hand.AddRange(movedFromStageToHand);
             Hand.AddRange(movedFromFieldToHand);
+            Hand.AddRange(movedFromEtherToHand);
             Hand.AddRange(movedToHand);
 
             // Special case: champion card may change form, either by upgrading or by
@@ -303,8 +302,16 @@ namespace LoRSideTracker
                 Stage = GetDifference(Stage, movedFromStage);
             }
 
-            //Stage = newStage;
-
+            Ether = GetDifference(Ether, movedFromEtherToHand);
+            Ether.AddRange(movedFromHandToEther);
+            if (cardsDrawn != null && cardsDrawn.Count > 0)
+            {
+                Ether.AddRange(movedFromEther);
+            }
+            else
+            {
+                foreach (var c in movedFromHand) { Log.WriteLine(MyLogType, "[HX] Discarded: {0}", CardLibrary.GetCard(c).Name); }
+            }
 
             Field = newField;
 
