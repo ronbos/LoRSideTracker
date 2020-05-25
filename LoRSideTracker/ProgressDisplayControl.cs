@@ -64,6 +64,7 @@ namespace LoRSideTracker
             MyProgressBar.Increment((int)(0.5 + percentage) - MyProgressBar.Value);
             //MyProgressBar.Value = 99;// (int)(0.5 + percentage);
             //MyProgressBar.Invalidate();
+            PercentageLabel.Text = string.Format("{0}%", (int)(0.5 + percentage));
             Application.DoEvents();
         }
     }

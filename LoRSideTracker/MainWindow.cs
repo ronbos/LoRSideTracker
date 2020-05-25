@@ -59,16 +59,10 @@ namespace LoRSideTracker
                 PlayerActiveDeckWindow.Title = string.Format("My Deck");
                 PlayerActiveDeckWindow.SetFullDeck(cards);
             }
-            else if (CurrentExpedition != null && CurrentExpedition.Cards.Count > 0)
-            {
-                bool isEliminationGame = (Array.FindLastIndex(CurrentExpedition.Record, item => item.Equals("win")) < Array.FindLastIndex(CurrentExpedition.Record, item => item.Equals("loss")));
-                PlayerActiveDeckWindow.Title = string.Format("Expedition {0}-{1}{2}", CurrentExpedition.NumberOfWins, CurrentExpedition.NumberOfLosses, isEliminationGame ? "*" : "");
-                PlayerActiveDeckWindow.SetFullDeck(CurrentExpedition.Cards);
-            }
             else
             {
-                PlayerActiveDeckWindow.Title = "No Active Deck";
-                PlayerActiveDeckWindow.SetFullDeck(new List<CardWithCount>());
+                // No active static deck -- show expedition deck or no deck
+                OnExpeditionDeckUpdated(CurrentExpedition.Cards);
             }
         }
 
@@ -82,7 +76,8 @@ namespace LoRSideTracker
             {
                 if (cards.Count > 0)
                 {
-                    bool isEliminationGame = (Array.FindLastIndex(CurrentExpedition.Record, item => item.Equals("win")) < Array.FindLastIndex(CurrentExpedition.Record, item => item.Equals("loss")));
+                    bool isEliminationGame = (Array.FindLastIndex(CurrentExpedition.Record, item => item.Equals("win")) < Array.FindLastIndex(CurrentExpedition.Record, item => item.Equals("loss")))
+                        || (CurrentExpedition.NumberOfWins == 6);
                     PlayerActiveDeckWindow.Title = string.Format("Expedition {0}-{1}{2}", CurrentExpedition.NumberOfWins, CurrentExpedition.NumberOfLosses, isEliminationGame ? "*" : "");
                     PlayerActiveDeckWindow.SetFullDeck(cards);
                 }
@@ -129,8 +124,8 @@ namespace LoRSideTracker
 
             Rectangle progressRect = MyProgressDisplay.Bounds;
             progressRect.Offset(
-                Bounds.Width / 2 - (progressRect.Left + progressRect.Right) / 2,
-                Bounds.Height / 2 - (progressRect.Top + progressRect.Bottom) / 2);
+                ClientRectangle.Width / 2 - (progressRect.Left + progressRect.Right) / 2,
+                ClientRectangle.Height / 2 - (progressRect.Top + progressRect.Bottom) / 2);
             MyProgressDisplay.SetBounds(progressRect.X, progressRect.Y, progressRect.Width, progressRect.Height);
             MyProgressDisplay.Show();
 

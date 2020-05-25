@@ -34,11 +34,11 @@
             this.SnapWindowsButton = new System.Windows.Forms.Button();
             this.MyProgressDisplay = new LoRSideTracker.ProgressDisplayControl();
             this.DeckOptionsGroupBox = new System.Windows.Forms.GroupBox();
-            this.PlayerDeckCheckBox = new System.Windows.Forms.CheckBox();
-            this.PlayerDrawnCheckBox = new System.Windows.Forms.CheckBox();
-            this.PlayerPlayedCheckBox = new System.Windows.Forms.CheckBox();
-            this.OpponentPlayedCheckBox = new System.Windows.Forms.CheckBox();
             this.DeckStatsCheckBox = new System.Windows.Forms.CheckBox();
+            this.OpponentPlayedCheckBox = new System.Windows.Forms.CheckBox();
+            this.PlayerPlayedCheckBox = new System.Windows.Forms.CheckBox();
+            this.PlayerDrawnCheckBox = new System.Windows.Forms.CheckBox();
+            this.PlayerDeckCheckBox = new System.Windows.Forms.CheckBox();
             this.DeckOptionsGroupBox.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -81,7 +81,7 @@
             // MyProgressDisplay
             // 
             this.MyProgressDisplay.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.MyProgressDisplay.Location = new System.Drawing.Point(110, 35);
+            this.MyProgressDisplay.Location = new System.Drawing.Point(135, 53);
             this.MyProgressDisplay.Name = "MyProgressDisplay";
             this.MyProgressDisplay.Size = new System.Drawing.Size(360, 120);
             this.MyProgressDisplay.TabIndex = 1;
@@ -102,40 +102,16 @@
             this.DeckOptionsGroupBox.TabStop = false;
             this.DeckOptionsGroupBox.Text = "Show Decks";
             // 
-            // PlayerDeckCheckBox
+            // DeckStatsCheckBox
             // 
-            this.PlayerDeckCheckBox.AutoSize = true;
-            this.PlayerDeckCheckBox.Checked = true;
-            this.PlayerDeckCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.PlayerDeckCheckBox.Location = new System.Drawing.Point(7, 20);
-            this.PlayerDeckCheckBox.Name = "PlayerDeckCheckBox";
-            this.PlayerDeckCheckBox.Size = new System.Drawing.Size(114, 17);
-            this.PlayerDeckCheckBox.TabIndex = 0;
-            this.PlayerDeckCheckBox.Text = "Your Current Deck";
-            this.PlayerDeckCheckBox.UseVisualStyleBackColor = true;
-            this.PlayerDeckCheckBox.CheckedChanged += new System.EventHandler(this.PlayerDeckCheckBox_CheckedChanged);
-            // 
-            // PlayerDrawnCheckBox
-            // 
-            this.PlayerDrawnCheckBox.AutoSize = true;
-            this.PlayerDrawnCheckBox.Location = new System.Drawing.Point(7, 44);
-            this.PlayerDrawnCheckBox.Name = "PlayerDrawnCheckBox";
-            this.PlayerDrawnCheckBox.Size = new System.Drawing.Size(87, 17);
-            this.PlayerDrawnCheckBox.TabIndex = 1;
-            this.PlayerDrawnCheckBox.Text = "Drawn Cards";
-            this.PlayerDrawnCheckBox.UseVisualStyleBackColor = true;
-            this.PlayerDrawnCheckBox.CheckedChanged += new System.EventHandler(this.PlayerDrawnCheckBox_CheckedChanged);
-            // 
-            // PlayerPlayedCheckBox
-            // 
-            this.PlayerPlayedCheckBox.AutoSize = true;
-            this.PlayerPlayedCheckBox.Location = new System.Drawing.Point(7, 68);
-            this.PlayerPlayedCheckBox.Name = "PlayerPlayedCheckBox";
-            this.PlayerPlayedCheckBox.Size = new System.Drawing.Size(88, 17);
-            this.PlayerPlayedCheckBox.TabIndex = 2;
-            this.PlayerPlayedCheckBox.Text = "Played Cards";
-            this.PlayerPlayedCheckBox.UseVisualStyleBackColor = true;
-            this.PlayerPlayedCheckBox.CheckedChanged += new System.EventHandler(this.PlayerPlayedCheckBox_CheckedChanged);
+            this.DeckStatsCheckBox.AutoSize = true;
+            this.DeckStatsCheckBox.Location = new System.Drawing.Point(7, 115);
+            this.DeckStatsCheckBox.Name = "DeckStatsCheckBox";
+            this.DeckStatsCheckBox.Size = new System.Drawing.Size(79, 17);
+            this.DeckStatsCheckBox.TabIndex = 3;
+            this.DeckStatsCheckBox.Text = "Deck Stats";
+            this.DeckStatsCheckBox.UseVisualStyleBackColor = true;
+            this.DeckStatsCheckBox.CheckedChanged += new System.EventHandler(this.DecksStatsCheckBox_CheckedChanged);
             // 
             // OpponentPlayedCheckBox
             // 
@@ -148,16 +124,40 @@
             this.OpponentPlayedCheckBox.UseVisualStyleBackColor = true;
             this.OpponentPlayedCheckBox.CheckedChanged += new System.EventHandler(this.OpponentPlayedCheckBox_CheckedChanged);
             // 
-            // DeckStatsCheckBox
+            // PlayerPlayedCheckBox
             // 
-            this.DeckStatsCheckBox.AutoSize = true;
-            this.DeckStatsCheckBox.Location = new System.Drawing.Point(7, 115);
-            this.DeckStatsCheckBox.Name = "DeckStatsCheckBox";
-            this.DeckStatsCheckBox.Size = new System.Drawing.Size(79, 17);
-            this.DeckStatsCheckBox.TabIndex = 3;
-            this.DeckStatsCheckBox.Text = "Deck Stats";
-            this.DeckStatsCheckBox.UseVisualStyleBackColor = true;
-            this.DeckStatsCheckBox.CheckedChanged += new System.EventHandler(this.DecksStatsCheckBox_CheckedChanged);
+            this.PlayerPlayedCheckBox.AutoSize = true;
+            this.PlayerPlayedCheckBox.Location = new System.Drawing.Point(7, 68);
+            this.PlayerPlayedCheckBox.Name = "PlayerPlayedCheckBox";
+            this.PlayerPlayedCheckBox.Size = new System.Drawing.Size(88, 17);
+            this.PlayerPlayedCheckBox.TabIndex = 2;
+            this.PlayerPlayedCheckBox.Text = "Played Cards";
+            this.PlayerPlayedCheckBox.UseVisualStyleBackColor = true;
+            this.PlayerPlayedCheckBox.CheckedChanged += new System.EventHandler(this.PlayerPlayedCheckBox_CheckedChanged);
+            // 
+            // PlayerDrawnCheckBox
+            // 
+            this.PlayerDrawnCheckBox.AutoSize = true;
+            this.PlayerDrawnCheckBox.Location = new System.Drawing.Point(7, 44);
+            this.PlayerDrawnCheckBox.Name = "PlayerDrawnCheckBox";
+            this.PlayerDrawnCheckBox.Size = new System.Drawing.Size(87, 17);
+            this.PlayerDrawnCheckBox.TabIndex = 1;
+            this.PlayerDrawnCheckBox.Text = "Drawn Cards";
+            this.PlayerDrawnCheckBox.UseVisualStyleBackColor = true;
+            this.PlayerDrawnCheckBox.CheckedChanged += new System.EventHandler(this.PlayerDrawnCheckBox_CheckedChanged);
+            // 
+            // PlayerDeckCheckBox
+            // 
+            this.PlayerDeckCheckBox.AutoSize = true;
+            this.PlayerDeckCheckBox.Checked = true;
+            this.PlayerDeckCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.PlayerDeckCheckBox.Location = new System.Drawing.Point(7, 20);
+            this.PlayerDeckCheckBox.Name = "PlayerDeckCheckBox";
+            this.PlayerDeckCheckBox.Size = new System.Drawing.Size(114, 17);
+            this.PlayerDeckCheckBox.TabIndex = 0;
+            this.PlayerDeckCheckBox.Text = "Your Current Deck";
+            this.PlayerDeckCheckBox.UseVisualStyleBackColor = true;
+            this.PlayerDeckCheckBox.CheckedChanged += new System.EventHandler(this.PlayerDeckCheckBox_CheckedChanged);
             // 
             // MainWindow
             // 

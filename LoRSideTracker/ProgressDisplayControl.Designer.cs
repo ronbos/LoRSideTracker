@@ -30,6 +30,7 @@
         {
             this.MyLabel = new System.Windows.Forms.Label();
             this.MyProgressBar = new System.Windows.Forms.ProgressBar();
+            this.PercentageLabel = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // MyLabel
@@ -39,7 +40,6 @@
             this.MyLabel.Name = "MyLabel";
             this.MyLabel.Size = new System.Drawing.Size(330, 50);
             this.MyLabel.TabIndex = 4;
-            this.MyLabel.Text = "This is a sample text.";
             this.MyLabel.TextAlign = System.Drawing.ContentAlignment.TopCenter;
             // 
             // MyProgressBar
@@ -51,15 +51,27 @@
             this.MyProgressBar.Style = System.Windows.Forms.ProgressBarStyle.Continuous;
             this.MyProgressBar.TabIndex = 3;
             // 
+            // PercentageLabel
+            // 
+            this.PercentageLabel.Font = new System.Drawing.Font("Calibri", 14F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.PercentageLabel.Location = new System.Drawing.Point(50, 80);
+            this.PercentageLabel.Name = "PercentageLabel";
+            this.PercentageLabel.Size = new System.Drawing.Size(260, 23);
+            this.PercentageLabel.TabIndex = 4;
+            this.PercentageLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
             // ProgressDisplayControl
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.Controls.Add(this.PercentageLabel);
             this.Controls.Add(this.MyLabel);
             this.Controls.Add(this.MyProgressBar);
+            this.MaximumSize = new System.Drawing.Size(360, 120);
+            this.MinimumSize = new System.Drawing.Size(360, 120);
             this.Name = "ProgressDisplayControl";
-            this.Size = new System.Drawing.Size(360, 120);
+            this.Size = new System.Drawing.Size(358, 118);
             this.ResumeLayout(false);
 
         }
@@ -68,5 +80,6 @@
 
         private System.Windows.Forms.Label MyLabel;
         private System.Windows.Forms.ProgressBar MyProgressBar;
+        private System.Windows.Forms.Label PercentageLabel;
     }
 }
