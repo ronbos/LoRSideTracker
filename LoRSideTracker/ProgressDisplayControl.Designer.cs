@@ -37,7 +37,7 @@
             this.MyLabel.Font = new System.Drawing.Font("Calibri", 14F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.MyLabel.Location = new System.Drawing.Point(15, 15);
             this.MyLabel.Name = "MyLabel";
-            this.MyLabel.Size = new System.Drawing.Size(370, 50);
+            this.MyLabel.Size = new System.Drawing.Size(330, 50);
             this.MyLabel.TabIndex = 4;
             this.MyLabel.Text = "This is a sample text.";
             this.MyLabel.TextAlign = System.Drawing.ContentAlignment.TopCenter;
@@ -46,7 +46,7 @@
             // 
             this.MyProgressBar.Location = new System.Drawing.Point(50, 80);
             this.MyProgressBar.Name = "MyProgressBar";
-            this.MyProgressBar.Size = new System.Drawing.Size(300, 23);
+            this.MyProgressBar.Size = new System.Drawing.Size(260, 23);
             this.MyProgressBar.Step = 1;
             this.MyProgressBar.Style = System.Windows.Forms.ProgressBarStyle.Continuous;
             this.MyProgressBar.TabIndex = 3;
@@ -59,7 +59,7 @@
             this.Controls.Add(this.MyLabel);
             this.Controls.Add(this.MyProgressBar);
             this.Name = "ProgressDisplayControl";
-            this.Size = new System.Drawing.Size(400, 120);
+            this.Size = new System.Drawing.Size(360, 120);
             this.ResumeLayout(false);
 
         }

@@ -22,6 +22,12 @@ namespace LoRSideTracker
         void OnPlayerDrawnSetUpdated(List<CardWithCount> cards);
 
         /// <summary>
+        /// Callback for when player played set has been changed
+        /// </summary>
+        /// <param name="cards">Cards in the set</param>
+        void OnPlayerPlayedSetUpdated(List<CardWithCount> cards);
+
+        /// <summary>
         /// Callback for when opponent played set has been changed
         /// </summary>
         /// <param name="cards">Cards in the set</param>
@@ -236,7 +242,7 @@ namespace LoRSideTracker
                 Log.WriteLine(MyLogType, "[XF] {0}: {1}", card.Type.Equals("Unit") ? "Summoned" : "Cast", card.Name);
             }
 
-            if (IsInitialDraw && MyLogType != LogType.Opponent)
+            if (!IsInitialDraw && MyLogType != LogType.Opponent)
             {
                 foreach (var c in movedFromStage) { Log.WriteLine(LogType.Debug, "[SX] Mulliganed: {0}", CardLibrary.GetCard(c).Name); }
             }
@@ -333,6 +339,7 @@ namespace LoRSideTracker
         public List<OverlayElement> PlayerElements { get; private set; }
 
         public List<CardWithCount> PlayerDrawnCards { get; private set; }
+        public List<CardWithCount> PlayerPlayedCards { get; private set; }
         public List<CardWithCount> OpponentPlayedCards { get; private set; }
 
         public string OpponentName { get; private set; } = "";
@@ -359,6 +366,7 @@ namespace LoRSideTracker
             PlayerElements = new List<OverlayElement>();
             OpponentElements = new List<OverlayElement>();
             PlayerDrawnCards = new List<CardWithCount>();
+            PlayerPlayedCards = new List<CardWithCount>();
             OpponentPlayedCards = new List<CardWithCount>();
             PlayerTracker = new PlayerOverlay(LogType.Player);
             OpponentTracker = new PlayerOverlay(LogType.Opponent);
@@ -437,11 +445,13 @@ namespace LoRSideTracker
             {
                 Log.WriteLine("Game state changed from {0} to {1}", oldGameState, GameState);
                 PlayerDrawnCards.Clear();
+                PlayerPlayedCards.Clear();
                 OpponentPlayedCards.Clear();
                 PlayerTracker.Reset();
                 OpponentTracker.Reset();
                 GameWasAnnounced = false;
                 Callback.OnPlayerDrawnSetUpdated(PlayerDrawnCards);
+                Callback.OnPlayerPlayedSetUpdated(PlayerPlayedCards);
                 Callback.OnOpponentPlayedSetUpdated(OpponentPlayedCards);
                 if (GameState.Equals("InProgress"))
                 {
@@ -465,45 +475,42 @@ namespace LoRSideTracker
                 }
                 List<string> cardsDrawn = new List<string>();
                 List<string> cardsPlayed = new List<string>();
-                PlayerTracker.Update(PlayerElements, ScreenWidth, ScreenHeight, cardsDrawn, null);
-                OpponentTracker.Update(OpponentElements, ScreenWidth, ScreenHeight, null, cardsPlayed);
-                if (cardsDrawn.Count > 0)
-                {
-                    foreach (string cardCode in cardsDrawn)
-                    {
-                        int index = PlayerDrawnCards.FindIndex(item => item.Code.Equals(cardCode));
-                        if (index >= 0)
-                        {
-                            PlayerDrawnCards[index].Count++;
-                        }
-                        else
-                        {
-                            PlayerDrawnCards.Add(new CardWithCount(CardLibrary.GetCard(cardCode), 1));
-                        }
-                        PlayerDrawnCards = PlayerDrawnCards.OrderBy(card => card.Cost).ThenBy(card => card.Name).ToList();
-                    }
+                List<string> opponentCardsPlayed = new List<string>();
+                PlayerTracker.Update(PlayerElements, ScreenWidth, ScreenHeight, cardsDrawn, cardsPlayed);
+                OpponentTracker.Update(OpponentElements, ScreenWidth, ScreenHeight, null, opponentCardsPlayed);
 
+                if (AddCardsToSet(PlayerDrawnCards, cardsDrawn))
+                {
                     Callback.OnPlayerDrawnSetUpdated(Utilities.Clone(PlayerDrawnCards));
                 }
-                if (cardsPlayed.Count > 0)
+                if (AddCardsToSet(PlayerPlayedCards, cardsPlayed))
                 {
-                    foreach (string cardCode in cardsPlayed)
-                    {
-                        int index = OpponentPlayedCards.FindIndex(item => item.Code.Equals(cardCode));
-                        if (index >= 0)
-                        {
-                            OpponentPlayedCards[index].Count++;
-                        }
-                        else
-                        {
-                            OpponentPlayedCards.Add(new CardWithCount(CardLibrary.GetCard(cardCode), 1));
-                        }
-                        OpponentPlayedCards = OpponentPlayedCards.OrderBy(card => card.Cost).ThenBy(card => card.Name).ToList();
-                    }
-
+                    Callback.OnPlayerPlayedSetUpdated(Utilities.Clone(PlayerPlayedCards));
+                }
+                if (AddCardsToSet(OpponentPlayedCards, opponentCardsPlayed))
+                {
                     Callback.OnOpponentPlayedSetUpdated(Utilities.Clone(OpponentPlayedCards));
                 }
             }
+        }
+
+        private bool AddCardsToSet(List<CardWithCount> cardSet, List<string> cardCodes)
+        {
+            foreach (string cardCode in cardCodes)
+            {
+                int index = cardSet.FindIndex(item => item.Code.Equals(cardCode));
+                if (index >= 0)
+                {
+                    cardSet[index].Count++;
+                }
+                else
+                {
+                    cardSet.Add(new CardWithCount(CardLibrary.GetCard(cardCode), 1));
+                }
+            }
+            cardSet = cardSet.OrderBy(card => card.Cost).ThenBy(card => card.Name).ToList();
+
+            return cardCodes.Count > 0;
         }
     }
 }

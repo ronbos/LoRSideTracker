@@ -25,7 +25,7 @@ namespace LoRSideTracker
         public bool ShouldHideWhenEmpty { get; set; } = false;
 
         /// <summary>Deck stats height</summary>
-        public int DeckStatsHeight { get; set; } = 60;
+        public bool ShouldShowDeckStats { get; set; } = true;
 
         /// <summary>Window title</summary>
         public string Title
@@ -51,7 +51,7 @@ namespace LoRSideTracker
             if (this.InvokeRequired)
             {
                 var d = new UpdateDeckSafeDelegate(UpdateDeckSafe);
-                this.Invoke(d, new object[] { allCards, DrawnCards });
+                this.Invoke(d, new object[] { Utilities.Clone(allCards), Utilities.Clone(DrawnCards) });
             }
             else
             {
@@ -68,7 +68,7 @@ namespace LoRSideTracker
             if (this.InvokeRequired)
             {
                 var d = new UpdateDeckSafeDelegate(UpdateDeckSafe);
-                this.Invoke(d, new object[] { AllCards, drawnCards });
+                this.Invoke(d, new object[] { Utilities.Clone(AllCards), Utilities.Clone(drawnCards) });
             }
             else
             {
@@ -116,9 +116,21 @@ namespace LoRSideTracker
                 if (ShouldHideWhenEmpty) Hide();
                 return;
             }
+        }
 
-
-            Show();
+        /// <summary>
+        /// Update the size of the window and the controls
+        /// </summary>
+        public void UpdateSize()
+        {
+            if (this.InvokeRequired)
+            {
+                this.Invoke(new Action(() => { FixMySize(); }));
+            }
+            else
+            {
+                FixMySize();
+            }
         }
 
         /// <summary>
@@ -129,7 +141,7 @@ namespace LoRSideTracker
             Size bestSize = MyDeckControl.GetBestSize();
             int deckStatsHeight = MyDeckStatsDisplay.GetBestHeight(bestSize.Width);
             MyDeckControl.SetBounds(0, 0, bestSize.Width, bestSize.Height, BoundsSpecified.Size);
-            if (deckStatsHeight > 0)
+            if (ShouldShowDeckStats && deckStatsHeight > 0)
             {
                 MyDeckStatsDisplay.SetBounds(0, bestSize.Height, bestSize.Width, deckStatsHeight, BoundsSpecified.All);
                 MyDeckStatsDisplay.Visible = true;
@@ -137,6 +149,7 @@ namespace LoRSideTracker
             else
             {
                 MyDeckStatsDisplay.Visible = false;
+                deckStatsHeight = 0;
             }
             SetBounds(0, 0, bestSize.Width, bestSize.Height + deckStatsHeight, BoundsSpecified.Size);
         }

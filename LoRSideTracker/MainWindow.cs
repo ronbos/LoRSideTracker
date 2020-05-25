@@ -27,9 +27,10 @@ namespace LoRSideTracker
         private StaticDeck CurrentDeck;
         private Overlay CurrentOverlay;
 
-        private DeckWindow ActiveDeckWindow;
-        private DeckWindow PlayedCardsWindow;
-        private DeckWindow OpponentCardsWindow;
+        private DeckWindow PlayerActiveDeckWindow;
+        private DeckWindow PlayerDrawnCardsWindow;
+        private DeckWindow PlayerPlayedCardsWindow;
+        private DeckWindow OpponentPlayedCardsWindow;
 
         /// <summary>
         /// Constructor
@@ -53,21 +54,21 @@ namespace LoRSideTracker
         /// <param name="cards">Updated set</param>
         public void OnDeckUpdated(List<CardWithCount> cards)
         {
-            if (CurrentDeck.Cards.Count > 0)
+            if (cards.Count > 0)
             {
-                ActiveDeckWindow.Title = string.Format("My Deck");
-                ActiveDeckWindow.SetFullDeck(CurrentDeck.Cards);
+                PlayerActiveDeckWindow.Title = string.Format("My Deck");
+                PlayerActiveDeckWindow.SetFullDeck(cards);
             }
             else if (CurrentExpedition != null && CurrentExpedition.Cards.Count > 0)
             {
                 bool isEliminationGame = (Array.FindLastIndex(CurrentExpedition.Record, item => item.Equals("win")) < Array.FindLastIndex(CurrentExpedition.Record, item => item.Equals("loss")));
-                ActiveDeckWindow.Title = string.Format("Expedition {0}-{1}{2}", CurrentExpedition.NumberOfWins, CurrentExpedition.NumberOfLosses, isEliminationGame ? "*" : "");
-                ActiveDeckWindow.SetFullDeck(CurrentExpedition.Cards);
+                PlayerActiveDeckWindow.Title = string.Format("Expedition {0}-{1}{2}", CurrentExpedition.NumberOfWins, CurrentExpedition.NumberOfLosses, isEliminationGame ? "*" : "");
+                PlayerActiveDeckWindow.SetFullDeck(CurrentExpedition.Cards);
             }
             else
             {
-                ActiveDeckWindow.Title = "No Active Deck";
-                ActiveDeckWindow.SetFullDeck(new List<CardWithCount>());
+                PlayerActiveDeckWindow.Title = "No Active Deck";
+                PlayerActiveDeckWindow.SetFullDeck(new List<CardWithCount>());
             }
         }
 
@@ -79,16 +80,16 @@ namespace LoRSideTracker
         {
             if (CurrentDeck.Cards.Count == 0)
             {
-                if (CurrentExpedition.Cards.Count > 0)
+                if (cards.Count > 0)
                 {
                     bool isEliminationGame = (Array.FindLastIndex(CurrentExpedition.Record, item => item.Equals("win")) < Array.FindLastIndex(CurrentExpedition.Record, item => item.Equals("loss")));
-                    ActiveDeckWindow.Title = string.Format("Expedition {0}-{1}{2}", CurrentExpedition.NumberOfWins, CurrentExpedition.NumberOfLosses, isEliminationGame ? "*" : "");
-                    ActiveDeckWindow.SetFullDeck(CurrentExpedition.Cards);
+                    PlayerActiveDeckWindow.Title = string.Format("Expedition {0}-{1}{2}", CurrentExpedition.NumberOfWins, CurrentExpedition.NumberOfLosses, isEliminationGame ? "*" : "");
+                    PlayerActiveDeckWindow.SetFullDeck(cards);
                 }
                 else
                 {
-                    ActiveDeckWindow.Title = "No Active Deck";
-                    ActiveDeckWindow.SetFullDeck(new List<CardWithCount>());
+                    PlayerActiveDeckWindow.Title = "No Active Deck";
+                    PlayerActiveDeckWindow.SetFullDeck(new List<CardWithCount>());
                 }
             }
         }
@@ -99,8 +100,17 @@ namespace LoRSideTracker
         /// <param name="cards">Updated set</param>
         public void OnPlayerDrawnSetUpdated(List<CardWithCount> cards)
         {
-            ActiveDeckWindow.SetDrawnCards(cards);
-            PlayedCardsWindow.SetFullDeck(cards);
+            PlayerActiveDeckWindow.SetDrawnCards(cards);
+            PlayerDrawnCardsWindow.SetFullDeck(cards);
+        }
+
+        /// <summary>
+        /// Receives notification that player played set was changed
+        /// </summary>
+        /// <param name="cards">Updated set</param>
+        public void OnPlayerPlayedSetUpdated(List<CardWithCount> cards)
+        {
+            PlayerPlayedCardsWindow.SetFullDeck(cards);
         }
 
         /// <summary>
@@ -109,7 +119,7 @@ namespace LoRSideTracker
         /// <param name="cards">Updated set</param>
         public void OnOpponentPlayedSetUpdated(List<CardWithCount> cards)
         {
-            OpponentCardsWindow.SetFullDeck(cards);
+            OpponentPlayedCardsWindow.SetFullDeck(cards);
         }
 
         private void MainWindow_Shown(object sender, EventArgs e)
@@ -200,18 +210,29 @@ namespace LoRSideTracker
             await Task.Run(() => CardLibrary.LoadAllCards(MyProgressDisplay));
             MyProgressDisplay.Hide();
 
-            ActiveDeckWindow = new DeckWindow();
-            ActiveDeckWindow.Title = "Your Deck";
-            ActiveDeckWindow.Show();
+            PlayerActiveDeckWindow = new DeckWindow();
+            PlayerActiveDeckWindow.Title = "Your Deck";
+            PlayerActiveDeckWindow.ShouldShowDeckStats = DeckStatsCheckBox.Checked;
+            PlayerActiveDeckWindow.Show();
+            if (!PlayerDeckCheckBox.Checked) PlayerActiveDeckWindow.Hide();
 
-            PlayedCardsWindow = new DeckWindow();
-            PlayedCardsWindow.Title = "Cards Drawn";
-            PlayedCardsWindow.DeckStatsHeight = 0;
-            PlayedCardsWindow.Show();
+            PlayerDrawnCardsWindow = new DeckWindow();
+            PlayerDrawnCardsWindow.Title = "Cards Drawn";
+            PlayerDrawnCardsWindow.ShouldShowDeckStats = DeckStatsCheckBox.Checked;
+            PlayerDrawnCardsWindow.Show();
+            if (!PlayerDrawnCheckBox.Checked) PlayerDrawnCardsWindow.Hide();
 
-            OpponentCardsWindow = new DeckWindow();
-            OpponentCardsWindow.Title = "Opponent Deck";
-            OpponentCardsWindow.Show();
+            PlayerPlayedCardsWindow = new DeckWindow();
+            PlayerPlayedCardsWindow.Title = "You Played";
+            PlayerPlayedCardsWindow.ShouldShowDeckStats = DeckStatsCheckBox.Checked;
+            PlayerPlayedCardsWindow.Show();
+            if (!PlayerPlayedCheckBox.Checked) PlayerPlayedCardsWindow.Hide();
+
+            OpponentPlayedCardsWindow = new DeckWindow();
+            OpponentPlayedCardsWindow.Title = "Opponent Played";
+            OpponentPlayedCardsWindow.ShouldShowDeckStats = DeckStatsCheckBox.Checked;
+            OpponentPlayedCardsWindow.Show();
+            if (!OpponentPlayedCheckBox.Checked) OpponentPlayedCardsWindow.Hide();
 
             CurrentDeck = new StaticDeck(this);
             Thread.Sleep(500);
@@ -230,15 +251,27 @@ namespace LoRSideTracker
         private void SnapWindowsButton_Click(object sender, EventArgs e)
         {
             int margin = 2;
-            int totalWidth = ActiveDeckWindow.DesktopBounds.Width + PlayedCardsWindow.DesktopBounds.Width 
-                + OpponentCardsWindow.DesktopBounds.Width + 2 * margin;
-            int x = (Bounds.Left + Bounds.Right) / 2 - totalWidth / 2;
-            int y = Bounds.Bottom + margin;
-            ActiveDeckWindow.SetDesktopBounds(x, y, ActiveDeckWindow.DesktopBounds.Width, ActiveDeckWindow.DesktopBounds.Height);
-            x += ActiveDeckWindow.DesktopBounds.Width + margin;
-            PlayedCardsWindow.SetDesktopBounds(x, y, PlayedCardsWindow.DesktopBounds.Width, PlayedCardsWindow.DesktopBounds.Height);
-            x += PlayedCardsWindow.DesktopBounds.Width + margin;
-            OpponentCardsWindow.SetDesktopBounds(x, y, OpponentCardsWindow.DesktopBounds.Width, OpponentCardsWindow.DesktopBounds.Height);
+            int x = Bounds.Left + 6;
+            int y = Bounds.Bottom + 2;
+            if (PlayerDeckCheckBox.Checked)
+            {
+                PlayerActiveDeckWindow.SetDesktopBounds(x, y, PlayerActiveDeckWindow.DesktopBounds.Width, PlayerActiveDeckWindow.DesktopBounds.Height);
+                x += PlayerActiveDeckWindow.DesktopBounds.Width + margin;
+            }
+            if (PlayerDrawnCheckBox.Checked)
+            {
+                PlayerDrawnCardsWindow.SetDesktopBounds(x, y, PlayerDrawnCardsWindow.DesktopBounds.Width, PlayerDrawnCardsWindow.DesktopBounds.Height);
+                x += PlayerDrawnCardsWindow.DesktopBounds.Width + margin;
+            }
+            if (PlayerPlayedCheckBox.Checked)
+            {
+                PlayerPlayedCardsWindow.SetDesktopBounds(x, y, PlayerPlayedCardsWindow.DesktopBounds.Width, PlayerPlayedCardsWindow.DesktopBounds.Height);
+                x += PlayerPlayedCardsWindow.DesktopBounds.Width + margin;
+            }
+            if (OpponentPlayedCheckBox.Checked)
+            {
+                OpponentPlayedCardsWindow.SetDesktopBounds(x, y, OpponentPlayedCardsWindow.DesktopBounds.Width, OpponentPlayedCardsWindow.DesktopBounds.Height);
+            }
         }
 
         private void MainWindow_Load(object sender, EventArgs e)
@@ -249,6 +282,11 @@ namespace LoRSideTracker
                 this.WindowState = Properties.Settings.Default.MainWindowState;
                 this.Bounds = Properties.Settings.Default.MainWindowBounds;
             }
+            PlayerDeckCheckBox.Checked = Properties.Settings.Default.ShowPlayerDeck;
+            PlayerDrawnCheckBox.Checked = Properties.Settings.Default.ShowPlayerDrawnCards;
+            PlayerPlayedCheckBox.Checked = Properties.Settings.Default.ShowPlayerPlayedCards;
+            OpponentPlayedCheckBox.Checked = Properties.Settings.Default.ShowOpponentPlayedCards;
+            DeckStatsCheckBox.Checked = Properties.Settings.Default.ShowDeckStats;
         }
 
         private void MainWindow_FormClosing(object sender, FormClosingEventArgs e)
@@ -265,9 +303,70 @@ namespace LoRSideTracker
                 // save the RestoreBounds if the form is minimized or maximized!
                 Properties.Settings.Default.MainWindowBounds = this.RestoreBounds;
             }
+            Properties.Settings.Default.ShowPlayerDeck = PlayerDeckCheckBox.Checked;
+            Properties.Settings.Default.ShowPlayerDrawnCards = PlayerDrawnCheckBox.Checked;
+            Properties.Settings.Default.ShowPlayerPlayedCards = PlayerPlayedCheckBox.Checked;
+            Properties.Settings.Default.ShowOpponentPlayedCards = OpponentPlayedCheckBox.Checked;
+            Properties.Settings.Default.ShowDeckStats = DeckStatsCheckBox.Checked;
 
             // Save the settings
             Properties.Settings.Default.Save();
+        }
+
+        private void PlayerDeckCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            if (PlayerActiveDeckWindow != null)
+            {
+                PlayerActiveDeckWindow.Visible = PlayerDeckCheckBox.Checked;
+            }
+        }
+
+        private void PlayerDrawnCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            if (PlayerDrawnCardsWindow != null)
+            {
+                PlayerDrawnCardsWindow.Visible = PlayerDrawnCheckBox.Checked;
+            }
+        }
+
+        private void PlayerPlayedCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            if (PlayerPlayedCardsWindow != null)
+            {
+                PlayerPlayedCardsWindow.Visible = PlayerPlayedCheckBox.Checked;
+            }
+        }
+
+        private void OpponentPlayedCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            if (OpponentPlayedCardsWindow != null)
+            {
+                OpponentPlayedCardsWindow.Visible = OpponentPlayedCheckBox.Checked;
+            }
+        }
+
+        private void DecksStatsCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            if (PlayerActiveDeckWindow != null)
+            {
+                PlayerActiveDeckWindow.ShouldShowDeckStats = DeckStatsCheckBox.Checked;
+                PlayerActiveDeckWindow.UpdateSize();
+            }
+            if (PlayerDrawnCardsWindow != null)
+            {
+                PlayerDrawnCardsWindow.ShouldShowDeckStats = DeckStatsCheckBox.Checked;
+                PlayerDrawnCardsWindow.UpdateSize();
+            }
+            if (PlayerPlayedCardsWindow != null)
+            {
+                PlayerPlayedCardsWindow.ShouldShowDeckStats = DeckStatsCheckBox.Checked;
+                PlayerPlayedCardsWindow.UpdateSize();
+            }
+            if (OpponentPlayedCardsWindow != null)
+            {
+                OpponentPlayedCardsWindow.ShouldShowDeckStats = DeckStatsCheckBox.Checked;
+                OpponentPlayedCardsWindow.UpdateSize();
+            }
         }
     }
 }

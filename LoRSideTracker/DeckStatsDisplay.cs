@@ -95,20 +95,7 @@ namespace LoRSideTracker
                 int left = boundsRect.X + boundsRect.Width * i / numCols;
                 int nextLeft = boundsRect.X + boundsRect.Width * (i + 1) / numCols;
                 int right = (i + 1 == numCols) ? nextLeft :  nextLeft - ColumnMargin;
-                int bottom = boundsRect.Bottom;
 
-                /*
-                if (unitCounts[i] > 0)
-                {
-                    int top = boundsRect.Top + boundsRect.Height * (maxCount - unitCounts[i]) / maxCount;
-                    e.Graphics.FillRectangle(new SolidBrush(Color.Blue), new Rectangle(left, top, right - left, bottom - top));
-                    bottom = top;
-                }
-                if (spellCounts[i] > 0)
-                {
-                    int top = boundsRect.Top + boundsRect.Height * (maxCount - unitCounts[i] - spellCounts[i]) / maxCount;
-                    e.Graphics.FillRectangle(new SolidBrush(Color.Red), new Rectangle(left, top, right - left, bottom - top));
-                }*/
                 DrawColumn(e.Graphics, new Rectangle(left, boundsRect.Y, right - left, boundsRect.Height),
                     unitCounts[i], spellCounts[i], maxCount);
 

@@ -70,5 +70,65 @@ namespace LoRSideTracker.Properties {
                 this["MainWindowShowDebugLog"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool ShowPlayerDeck {
+            get {
+                return ((bool)(this["ShowPlayerDeck"]));
+            }
+            set {
+                this["ShowPlayerDeck"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool ShowPlayerPlayedCards {
+            get {
+                return ((bool)(this["ShowPlayerPlayedCards"]));
+            }
+            set {
+                this["ShowPlayerPlayedCards"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool ShowPlayerDrawnCards {
+            get {
+                return ((bool)(this["ShowPlayerDrawnCards"]));
+            }
+            set {
+                this["ShowPlayerDrawnCards"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool ShowOpponentPlayedCards {
+            get {
+                return ((bool)(this["ShowOpponentPlayedCards"]));
+            }
+            set {
+                this["ShowOpponentPlayedCards"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool ShowDeckStats {
+            get {
+                return ((bool)(this["ShowDeckStats"]));
+            }
+            set {
+                this["ShowDeckStats"] = value;
+            }
+        }
     }
 }
