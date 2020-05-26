@@ -49,12 +49,32 @@ namespace LoRSideTracker
         }
 
         /// <summary>
+        /// Check if two decks are equal
+        /// </summary>
+        /// <param name="cardsA">First deck</param>
+        /// <param name="cardsB">Second deck</param>
+        /// <returns>true if decks are exactly the same</returns>
+        private bool AreDecksEqual(List<CardWithCount> cardsA, List<CardWithCount> cardsB)
+        {
+            if (cardsA.Count != cardsB.Count) return false;
+            for (int i = 0; i < cardsA.Count; i++)
+            {
+                if (cardsA[i].Code != cardsB[i].Code || cardsA[i].Count != cardsB[i].Count)
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        /// <summary>
         /// Receives notification that static deck was updated
         /// </summary>
         /// <param name="cards">Updated set</param>
         public void OnDeckUpdated(List<CardWithCount> cards)
         {
-            if (cards.Count > 0)
+            if (cards.Count > 0 &&
+                (CurrentExpedition == null || !AreDecksEqual(cards, CurrentExpedition.Cards)))
             {
                 PlayerActiveDeckWindow.Title = string.Format("My Deck");
                 PlayerActiveDeckWindow.SetFullDeck(cards);
@@ -72,7 +92,7 @@ namespace LoRSideTracker
         /// <param name="cards">Updated set</param>
         public void OnExpeditionDeckUpdated(List<CardWithCount> cards)
         {
-            if (CurrentDeck.Cards.Count == 0)
+            if (CurrentDeck.Cards.Count == 0 || AreDecksEqual(CurrentDeck.Cards, cards))
             {
                 if (cards.Count > 0)
                 {
@@ -239,6 +259,8 @@ namespace LoRSideTracker
             PlayerPlayedCardsWindow.Opacity = TransparencyTrackBar.Value / 100.0;
             OpponentPlayedCardsWindow.Opacity = TransparencyTrackBar.Value / 100.0;
 
+            PlayerActiveDeckWindow.HideZeroCountCards = HideZeroCountCheckBox.Checked;
+
             CurrentDeck = new StaticDeck(this);
             Thread.Sleep(500);
             CurrentExpedition = new Expedition(this);
@@ -313,6 +335,7 @@ namespace LoRSideTracker
                 this.Bounds = Properties.Settings.Default.MainWindowBounds;
             }
             PlayerDeckCheckBox.Checked = Properties.Settings.Default.ShowPlayerDeck;
+            HideZeroCountCheckBox.Checked = Properties.Settings.Default.HideZeroCountInDeck;
             PlayerDrawnCheckBox.Checked = Properties.Settings.Default.ShowPlayerDrawnCards;
             PlayerPlayedCheckBox.Checked = Properties.Settings.Default.ShowPlayerPlayedCards;
             OpponentPlayedCheckBox.Checked = Properties.Settings.Default.ShowOpponentPlayedCards;
@@ -335,6 +358,7 @@ namespace LoRSideTracker
                 Properties.Settings.Default.MainWindowBounds = this.RestoreBounds;
             }
             Properties.Settings.Default.ShowPlayerDeck = PlayerDeckCheckBox.Checked;
+            Properties.Settings.Default.HideZeroCountInDeck = HideZeroCountCheckBox.Checked;
             Properties.Settings.Default.ShowPlayerDrawnCards = PlayerDrawnCheckBox.Checked;
             Properties.Settings.Default.ShowPlayerPlayedCards = PlayerPlayedCheckBox.Checked;
             Properties.Settings.Default.ShowOpponentPlayedCards = OpponentPlayedCheckBox.Checked;
@@ -425,6 +449,16 @@ namespace LoRSideTracker
                 OpponentPlayedCardsWindow.Opacity = TransparencyTrackBar.Value / 100.0;
             }
 
+        }
+
+        private void HideZeroCountCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            if (PlayerActiveDeckWindow != null)
+            {
+                PlayerActiveDeckWindow.HideZeroCountCards = HideZeroCountCheckBox.Checked;
+                PlayerActiveDeckWindow.RefreshDeck();
+
+            }
         }
     }
 }

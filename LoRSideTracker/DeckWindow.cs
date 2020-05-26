@@ -24,9 +24,11 @@ namespace LoRSideTracker
         /// <summary>If true, window is hidden when empty</summary>
         public bool ShouldHideWhenEmpty { get; set; } = false;
 
-        /// <summary>Deck stats height</summary>
-        public bool ShouldShowDeckStats { get; set; } = true;
+        /// <summary>Are cards with zero count shown?</summary>
+        public bool HideZeroCountCards { get; set; } = false;
 
+        /// <summary>Are deck stats shown?</summary>
+        public bool ShouldShowDeckStats { get; set; } = true;
         /// <summary>Window title</summary>
         public string Title
         {
@@ -77,6 +79,22 @@ namespace LoRSideTracker
         }
 
         /// <summary>
+        /// Reevaluate current deck -- useful when flipping zero count visibility
+        /// </summary>
+        public void RefreshDeck()
+        {
+            if (this.InvokeRequired)
+            {
+                var d = new UpdateDeckSafeDelegate(UpdateDeckSafe);
+                this.Invoke(d, new object[] { Utilities.Clone(AllCards), Utilities.Clone(DrawnCards) });
+            }
+            else
+            {
+                UpdateDeckSafe(AllCards, DrawnCards);
+            }
+        }
+
+        /// <summary>
         /// Safely update full deck and drawn cards contents, and redraw the set of displayed cards
         /// </summary>
         /// <param name="allCards"></param>
@@ -103,9 +121,14 @@ namespace LoRSideTracker
             RemainingCards = Utilities.Clone(remainingCards);
 
             MyDeckControl.ClearDeck();
+            int nextCard = 0;
             for (int i = 0; i < RemainingCards.Count; i++)
             {
-                MyDeckControl.SetCard(i, RemainingCards[i]);
+                if (!HideZeroCountCards || RemainingCards[i].Count > 0)
+                {
+                    MyDeckControl.SetCard(nextCard, RemainingCards[i]);
+                    nextCard++;
+                }
             }
             MyDeckStatsDisplay.TheDeck = RemainingCards;
             MyDeckStatsDisplay.Invalidate();

@@ -33,12 +33,13 @@
             this.DebugLogsCheckBox = new System.Windows.Forms.CheckBox();
             this.SnapWindowsButton = new System.Windows.Forms.Button();
             this.DeckOptionsGroupBox = new System.Windows.Forms.GroupBox();
+            this.TransparencyTrackBar = new System.Windows.Forms.TrackBar();
             this.DeckStatsCheckBox = new System.Windows.Forms.CheckBox();
             this.OpponentPlayedCheckBox = new System.Windows.Forms.CheckBox();
             this.PlayerPlayedCheckBox = new System.Windows.Forms.CheckBox();
             this.PlayerDrawnCheckBox = new System.Windows.Forms.CheckBox();
             this.PlayerDeckCheckBox = new System.Windows.Forms.CheckBox();
-            this.TransparencyTrackBar = new System.Windows.Forms.TrackBar();
+            this.HideZeroCountCheckBox = new System.Windows.Forms.CheckBox();
             this.MyProgressDisplay = new LoRSideTracker.ProgressDisplayControl();
             this.DeckOptionsGroupBox.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.TransparencyTrackBar)).BeginInit();
@@ -53,7 +54,7 @@
             this.LogTextBox.Name = "LogTextBox";
             this.LogTextBox.ReadOnly = true;
             this.LogTextBox.ScrollBars = System.Windows.Forms.RichTextBoxScrollBars.ForcedVertical;
-            this.LogTextBox.Size = new System.Drawing.Size(546, 237);
+            this.LogTextBox.Size = new System.Drawing.Size(546, 255);
             this.LogTextBox.TabIndex = 0;
             this.LogTextBox.Text = "";
             this.LogTextBox.Visible = false;
@@ -74,7 +75,7 @@
             // SnapWindowsButton
             // 
             this.SnapWindowsButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.SnapWindowsButton.Location = new System.Drawing.Point(617, 226);
+            this.SnapWindowsButton.Location = new System.Drawing.Point(617, 242);
             this.SnapWindowsButton.Name = "SnapWindowsButton";
             this.SnapWindowsButton.Size = new System.Drawing.Size(99, 23);
             this.SnapWindowsButton.TabIndex = 3;
@@ -90,31 +91,47 @@
             this.DeckOptionsGroupBox.Controls.Add(this.DeckStatsCheckBox);
             this.DeckOptionsGroupBox.Controls.Add(this.OpponentPlayedCheckBox);
             this.DeckOptionsGroupBox.Controls.Add(this.PlayerPlayedCheckBox);
+            this.DeckOptionsGroupBox.Controls.Add(this.HideZeroCountCheckBox);
             this.DeckOptionsGroupBox.Controls.Add(this.PlayerDrawnCheckBox);
             this.DeckOptionsGroupBox.Controls.Add(this.PlayerDeckCheckBox);
             this.DeckOptionsGroupBox.Location = new System.Drawing.Point(564, 41);
             this.DeckOptionsGroupBox.Name = "DeckOptionsGroupBox";
-            this.DeckOptionsGroupBox.Size = new System.Drawing.Size(151, 176);
+            this.DeckOptionsGroupBox.Size = new System.Drawing.Size(151, 195);
             this.DeckOptionsGroupBox.TabIndex = 4;
             this.DeckOptionsGroupBox.TabStop = false;
             this.DeckOptionsGroupBox.Text = "Show Decks";
             this.DeckOptionsGroupBox.Visible = false;
             // 
+            // TransparencyTrackBar
+            // 
+            this.TransparencyTrackBar.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.TransparencyTrackBar.AutoSize = false;
+            this.TransparencyTrackBar.LargeChange = 20;
+            this.TransparencyTrackBar.Location = new System.Drawing.Point(6, 158);
+            this.TransparencyTrackBar.Maximum = 100;
+            this.TransparencyTrackBar.Name = "TransparencyTrackBar";
+            this.TransparencyTrackBar.Size = new System.Drawing.Size(138, 31);
+            this.TransparencyTrackBar.SmallChange = 5;
+            this.TransparencyTrackBar.TabIndex = 6;
+            this.TransparencyTrackBar.TickFrequency = 10;
+            this.TransparencyTrackBar.Value = 100;
+            this.TransparencyTrackBar.ValueChanged += new System.EventHandler(this.TransparencyTrackBar_ValueChanged);
+            // 
             // DeckStatsCheckBox
             // 
             this.DeckStatsCheckBox.AutoSize = true;
-            this.DeckStatsCheckBox.Location = new System.Drawing.Point(7, 115);
+            this.DeckStatsCheckBox.Location = new System.Drawing.Point(7, 135);
             this.DeckStatsCheckBox.Name = "DeckStatsCheckBox";
-            this.DeckStatsCheckBox.Size = new System.Drawing.Size(79, 17);
+            this.DeckStatsCheckBox.Size = new System.Drawing.Size(84, 17);
             this.DeckStatsCheckBox.TabIndex = 3;
-            this.DeckStatsCheckBox.Text = "Deck Stats";
+            this.DeckStatsCheckBox.Text = "Mana Curve";
             this.DeckStatsCheckBox.UseVisualStyleBackColor = true;
             this.DeckStatsCheckBox.CheckedChanged += new System.EventHandler(this.DecksStatsCheckBox_CheckedChanged);
             // 
             // OpponentPlayedCheckBox
             // 
             this.OpponentPlayedCheckBox.AutoSize = true;
-            this.OpponentPlayedCheckBox.Location = new System.Drawing.Point(7, 92);
+            this.OpponentPlayedCheckBox.Location = new System.Drawing.Point(7, 112);
             this.OpponentPlayedCheckBox.Name = "OpponentPlayedCheckBox";
             this.OpponentPlayedCheckBox.Size = new System.Drawing.Size(138, 17);
             this.OpponentPlayedCheckBox.TabIndex = 3;
@@ -125,7 +142,7 @@
             // PlayerPlayedCheckBox
             // 
             this.PlayerPlayedCheckBox.AutoSize = true;
-            this.PlayerPlayedCheckBox.Location = new System.Drawing.Point(7, 68);
+            this.PlayerPlayedCheckBox.Location = new System.Drawing.Point(7, 89);
             this.PlayerPlayedCheckBox.Name = "PlayerPlayedCheckBox";
             this.PlayerPlayedCheckBox.Size = new System.Drawing.Size(88, 17);
             this.PlayerPlayedCheckBox.TabIndex = 2;
@@ -136,7 +153,7 @@
             // PlayerDrawnCheckBox
             // 
             this.PlayerDrawnCheckBox.AutoSize = true;
-            this.PlayerDrawnCheckBox.Location = new System.Drawing.Point(7, 44);
+            this.PlayerDrawnCheckBox.Location = new System.Drawing.Point(7, 66);
             this.PlayerDrawnCheckBox.Name = "PlayerDrawnCheckBox";
             this.PlayerDrawnCheckBox.Size = new System.Drawing.Size(87, 17);
             this.PlayerDrawnCheckBox.TabIndex = 1;
@@ -157,20 +174,16 @@
             this.PlayerDeckCheckBox.UseVisualStyleBackColor = true;
             this.PlayerDeckCheckBox.CheckedChanged += new System.EventHandler(this.PlayerDeckCheckBox_CheckedChanged);
             // 
-            // TransparencyTrackBar
+            // HideZeroCountCheckBox
             // 
-            this.TransparencyTrackBar.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.TransparencyTrackBar.AutoSize = false;
-            this.TransparencyTrackBar.LargeChange = 20;
-            this.TransparencyTrackBar.Location = new System.Drawing.Point(6, 138);
-            this.TransparencyTrackBar.Maximum = 100;
-            this.TransparencyTrackBar.Name = "TransparencyTrackBar";
-            this.TransparencyTrackBar.Size = new System.Drawing.Size(138, 31);
-            this.TransparencyTrackBar.SmallChange = 5;
-            this.TransparencyTrackBar.TabIndex = 6;
-            this.TransparencyTrackBar.TickFrequency = 10;
-            this.TransparencyTrackBar.Value = 100;
-            this.TransparencyTrackBar.ValueChanged += new System.EventHandler(this.TransparencyTrackBar_ValueChanged);
+            this.HideZeroCountCheckBox.AutoSize = true;
+            this.HideZeroCountCheckBox.Location = new System.Drawing.Point(17, 43);
+            this.HideZeroCountCheckBox.Name = "HideZeroCountCheckBox";
+            this.HideZeroCountCheckBox.Size = new System.Drawing.Size(104, 17);
+            this.HideZeroCountCheckBox.TabIndex = 1;
+            this.HideZeroCountCheckBox.Text = "Hide Zero Count";
+            this.HideZeroCountCheckBox.UseVisualStyleBackColor = true;
+            this.HideZeroCountCheckBox.CheckedChanged += new System.EventHandler(this.HideZeroCountCheckBox_CheckedChanged);
             // 
             // MyProgressDisplay
             // 
@@ -187,14 +200,14 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(728, 261);
+            this.ClientSize = new System.Drawing.Size(728, 279);
             this.Controls.Add(this.MyProgressDisplay);
             this.Controls.Add(this.DeckOptionsGroupBox);
             this.Controls.Add(this.SnapWindowsButton);
             this.Controls.Add(this.DebugLogsCheckBox);
             this.Controls.Add(this.LogTextBox);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-            this.MinimumSize = new System.Drawing.Size(420, 300);
+            this.MinimumSize = new System.Drawing.Size(420, 318);
             this.Name = "MainWindow";
             this.Text = "LoR Side Tracker";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainWindow_FormClosing);
@@ -221,6 +234,7 @@
         private System.Windows.Forms.CheckBox PlayerDeckCheckBox;
         private System.Windows.Forms.CheckBox DeckStatsCheckBox;
         private System.Windows.Forms.TrackBar TransparencyTrackBar;
+        private System.Windows.Forms.CheckBox HideZeroCountCheckBox;
     }
 }
 

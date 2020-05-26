@@ -190,5 +190,17 @@ namespace LoRSideTracker.Properties {
                 this["DeckTransparency"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool HideZeroCountInDeck {
+            get {
+                return ((bool)(this["HideZeroCountInDeck"]));
+            }
+            set {
+                this["HideZeroCountInDeck"] = value;
+            }
+        }
     }
 }

@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Drawing.Drawing2D;
 
 namespace LoRSideTracker
 {
@@ -31,10 +32,10 @@ namespace LoRSideTracker
         public bool IsMinimized { get; set; } = false;
 
         /// <summary>Default card size</summary>
-        public Size CardSize { get; private set; } = new Size(192, 28);
+        public Size CardSize { get; private set; } = new Size(180, 25);
 
         private Font TitleFont = new Font("Calibri", 12, FontStyle.Bold);
-        private Font CardFont = new Font("Calibri", 12, FontStyle.Bold);
+        private Font CardFont = new Font("Calibri", 10, FontStyle.Regular);
         private Font StatsFont = new Font("Calibri", 12, FontStyle.Bold);
 
         /// <summary>Window Title</summary>
@@ -161,15 +162,15 @@ namespace LoRSideTracker
             countRect.X = cardRect.X + cardRect.Width;
 
             // Draw the card and a translucent layer to make the tile darker
-            DrawCardArt(g, card.TheCard, cardRect);
-            g.FillRectangle(new SolidBrush(Color.FromArgb(96, Color.Black)), cardRect);
+            DrawCardArt(g, card.TheCard, paintRect);
+            g.FillRectangle(new SolidBrush(Color.FromArgb(96, Color.Black)), paintRect);
 
             // Create font
-            TextRenderer.DrawText(g, card.Cost.ToString(), StatsFont, costRect, Color.Yellow, TextFormatFlags.VerticalCenter | TextFormatFlags.HorizontalCenter);
+            TextRenderer.DrawText(g, card.Cost.ToString(), StatsFont, costRect, Color.LightGray, TextFormatFlags.VerticalCenter | TextFormatFlags.HorizontalCenter);
             TextRenderer.DrawText(g, card.Name, CardFont, cardRect, 
                 card.TheCard.SuperType.Equals("Champion") ? Color.Gold : Color.White, 
                 TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis);
-            TextRenderer.DrawText(g, "x" + card.Count.ToString(), StatsFont, countRect, Color.GreenYellow, TextFormatFlags.VerticalCenter | TextFormatFlags.HorizontalCenter);
+            TextRenderer.DrawText(g, "x" + card.Count.ToString(), StatsFont, countRect, Color.LightGray, TextFormatFlags.VerticalCenter | TextFormatFlags.HorizontalCenter);
 
             // Highlight
             Rectangle frameRect = new Rectangle(paintRect.X - 5, paintRect.Y, paintRect.Width + 10, paintRect.Height - 1);
@@ -219,6 +220,15 @@ namespace LoRSideTracker
             }
 
             g.DrawImage(img, dstRect, srcRect, GraphicsUnit.Pixel);
+
+            Color regionColor = Constants.GetRegionAccentColor(card.Region);
+            //dstRect.Width /= 2;
+            LinearGradientBrush linGrBrush = new LinearGradientBrush(
+               new Point(dstRect.X, 10),
+               new Point(dstRect.X + dstRect.Width / 2, 10),
+               Color.FromArgb(160, regionColor),
+               Color.FromArgb(0, regionColor));
+            g.FillRectangle(linGrBrush, dstRect.X, dstRect.Y, dstRect.Width / 2, dstRect.Height);
         }
 
         private void DeckControl_MouseLeave(object sender, EventArgs e)

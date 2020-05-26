@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -111,6 +112,23 @@ namespace LoRSideTracker
         public static string GetSetURL(int setNumber)
         {
             return String.Format("https://dd.b.pvp.net/latest/{0}.zip", GetSetName(setNumber));
+        }
+
+        /// <summary>
+        /// Accent color for LoR region
+        /// </summary>
+        /// <param name="region">region string</param>
+        /// <returns>Accent color</returns>
+        public static Color GetRegionAccentColor(string region)
+        {
+            if (region.Equals("Bilgewater")) { return Color.Chocolate; }
+            if (region.Equals("Demacia")) { return Color.Goldenrod; }
+            if (region.Equals("Freljord")) { return Color.DodgerBlue; }
+            if (region.Equals("Ionia")) { return Color.HotPink; }
+            if (region.Equals("Noxus")) { return Color.Crimson; }
+            if (region.Equals("PiltoverZaun")) { return Color.OrangeRed; }
+            if (region.Equals("ShadowIsles")) { return Color.Teal; }
+            return Color.Gray;
         }
     }
 }
