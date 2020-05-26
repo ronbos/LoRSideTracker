@@ -32,14 +32,16 @@
             this.LogTextBox = new System.Windows.Forms.RichTextBox();
             this.DebugLogsCheckBox = new System.Windows.Forms.CheckBox();
             this.SnapWindowsButton = new System.Windows.Forms.Button();
-            this.MyProgressDisplay = new LoRSideTracker.ProgressDisplayControl();
             this.DeckOptionsGroupBox = new System.Windows.Forms.GroupBox();
             this.DeckStatsCheckBox = new System.Windows.Forms.CheckBox();
             this.OpponentPlayedCheckBox = new System.Windows.Forms.CheckBox();
             this.PlayerPlayedCheckBox = new System.Windows.Forms.CheckBox();
             this.PlayerDrawnCheckBox = new System.Windows.Forms.CheckBox();
             this.PlayerDeckCheckBox = new System.Windows.Forms.CheckBox();
+            this.TransparencyTrackBar = new System.Windows.Forms.TrackBar();
+            this.MyProgressDisplay = new LoRSideTracker.ProgressDisplayControl();
             this.DeckOptionsGroupBox.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.TransparencyTrackBar)).BeginInit();
             this.SuspendLayout();
             // 
             // LogTextBox
@@ -51,9 +53,10 @@
             this.LogTextBox.Name = "LogTextBox";
             this.LogTextBox.ReadOnly = true;
             this.LogTextBox.ScrollBars = System.Windows.Forms.RichTextBoxScrollBars.ForcedVertical;
-            this.LogTextBox.Size = new System.Drawing.Size(546, 197);
+            this.LogTextBox.Size = new System.Drawing.Size(546, 237);
             this.LogTextBox.TabIndex = 0;
             this.LogTextBox.Text = "";
+            this.LogTextBox.Visible = false;
             // 
             // DebugLogsCheckBox
             // 
@@ -65,31 +68,25 @@
             this.DebugLogsCheckBox.TabIndex = 2;
             this.DebugLogsCheckBox.Text = "Show Debug Logs";
             this.DebugLogsCheckBox.UseVisualStyleBackColor = true;
+            this.DebugLogsCheckBox.Visible = false;
             this.DebugLogsCheckBox.CheckedChanged += new System.EventHandler(this.DebugLogsCheckBox_CheckedChanged);
             // 
             // SnapWindowsButton
             // 
             this.SnapWindowsButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.SnapWindowsButton.Location = new System.Drawing.Point(617, 186);
+            this.SnapWindowsButton.Location = new System.Drawing.Point(617, 226);
             this.SnapWindowsButton.Name = "SnapWindowsButton";
             this.SnapWindowsButton.Size = new System.Drawing.Size(99, 23);
             this.SnapWindowsButton.TabIndex = 3;
             this.SnapWindowsButton.Text = "Snap Windows";
             this.SnapWindowsButton.UseVisualStyleBackColor = true;
+            this.SnapWindowsButton.Visible = false;
             this.SnapWindowsButton.Click += new System.EventHandler(this.SnapWindowsButton_Click);
-            // 
-            // MyProgressDisplay
-            // 
-            this.MyProgressDisplay.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.MyProgressDisplay.Location = new System.Drawing.Point(135, 53);
-            this.MyProgressDisplay.Name = "MyProgressDisplay";
-            this.MyProgressDisplay.Size = new System.Drawing.Size(360, 120);
-            this.MyProgressDisplay.TabIndex = 1;
-            this.MyProgressDisplay.Visible = false;
             // 
             // DeckOptionsGroupBox
             // 
             this.DeckOptionsGroupBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.DeckOptionsGroupBox.Controls.Add(this.TransparencyTrackBar);
             this.DeckOptionsGroupBox.Controls.Add(this.DeckStatsCheckBox);
             this.DeckOptionsGroupBox.Controls.Add(this.OpponentPlayedCheckBox);
             this.DeckOptionsGroupBox.Controls.Add(this.PlayerPlayedCheckBox);
@@ -97,10 +94,11 @@
             this.DeckOptionsGroupBox.Controls.Add(this.PlayerDeckCheckBox);
             this.DeckOptionsGroupBox.Location = new System.Drawing.Point(564, 41);
             this.DeckOptionsGroupBox.Name = "DeckOptionsGroupBox";
-            this.DeckOptionsGroupBox.Size = new System.Drawing.Size(151, 138);
+            this.DeckOptionsGroupBox.Size = new System.Drawing.Size(151, 176);
             this.DeckOptionsGroupBox.TabIndex = 4;
             this.DeckOptionsGroupBox.TabStop = false;
             this.DeckOptionsGroupBox.Text = "Show Decks";
+            this.DeckOptionsGroupBox.Visible = false;
             // 
             // DeckStatsCheckBox
             // 
@@ -159,18 +157,44 @@
             this.PlayerDeckCheckBox.UseVisualStyleBackColor = true;
             this.PlayerDeckCheckBox.CheckedChanged += new System.EventHandler(this.PlayerDeckCheckBox_CheckedChanged);
             // 
+            // TransparencyTrackBar
+            // 
+            this.TransparencyTrackBar.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.TransparencyTrackBar.AutoSize = false;
+            this.TransparencyTrackBar.LargeChange = 20;
+            this.TransparencyTrackBar.Location = new System.Drawing.Point(6, 138);
+            this.TransparencyTrackBar.Maximum = 100;
+            this.TransparencyTrackBar.Name = "TransparencyTrackBar";
+            this.TransparencyTrackBar.Size = new System.Drawing.Size(138, 31);
+            this.TransparencyTrackBar.SmallChange = 5;
+            this.TransparencyTrackBar.TabIndex = 6;
+            this.TransparencyTrackBar.TickFrequency = 10;
+            this.TransparencyTrackBar.Value = 100;
+            this.TransparencyTrackBar.ValueChanged += new System.EventHandler(this.TransparencyTrackBar_ValueChanged);
+            // 
+            // MyProgressDisplay
+            // 
+            this.MyProgressDisplay.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.MyProgressDisplay.Location = new System.Drawing.Point(135, 53);
+            this.MyProgressDisplay.MaximumSize = new System.Drawing.Size(360, 120);
+            this.MyProgressDisplay.MinimumSize = new System.Drawing.Size(360, 120);
+            this.MyProgressDisplay.Name = "MyProgressDisplay";
+            this.MyProgressDisplay.Size = new System.Drawing.Size(360, 120);
+            this.MyProgressDisplay.TabIndex = 1;
+            this.MyProgressDisplay.Visible = false;
+            // 
             // MainWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(728, 221);
+            this.ClientSize = new System.Drawing.Size(728, 261);
             this.Controls.Add(this.MyProgressDisplay);
             this.Controls.Add(this.DeckOptionsGroupBox);
             this.Controls.Add(this.SnapWindowsButton);
             this.Controls.Add(this.DebugLogsCheckBox);
             this.Controls.Add(this.LogTextBox);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-            this.MinimumSize = new System.Drawing.Size(420, 260);
+            this.MinimumSize = new System.Drawing.Size(420, 300);
             this.Name = "MainWindow";
             this.Text = "LoR Side Tracker";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainWindow_FormClosing);
@@ -178,6 +202,7 @@
             this.Shown += new System.EventHandler(this.MainWindow_Shown);
             this.DeckOptionsGroupBox.ResumeLayout(false);
             this.DeckOptionsGroupBox.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.TransparencyTrackBar)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -195,6 +220,7 @@
         private System.Windows.Forms.CheckBox PlayerDrawnCheckBox;
         private System.Windows.Forms.CheckBox PlayerDeckCheckBox;
         private System.Windows.Forms.CheckBox DeckStatsCheckBox;
+        private System.Windows.Forms.TrackBar TransparencyTrackBar;
     }
 }
 

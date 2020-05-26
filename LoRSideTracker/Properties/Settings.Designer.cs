@@ -130,5 +130,65 @@ namespace LoRSideTracker.Properties {
                 this["ShowDeckStats"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("20, 20")]
+        public global::System.Drawing.Point PlayerDeckLocation {
+            get {
+                return ((global::System.Drawing.Point)(this["PlayerDeckLocation"]));
+            }
+            set {
+                this["PlayerDeckLocation"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("220, 20")]
+        public global::System.Drawing.Point PlayerPlayedCardsLocation {
+            get {
+                return ((global::System.Drawing.Point)(this["PlayerPlayedCardsLocation"]));
+            }
+            set {
+                this["PlayerPlayedCardsLocation"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("420, 20")]
+        public global::System.Drawing.Point PlayerDrawnCardsLocation {
+            get {
+                return ((global::System.Drawing.Point)(this["PlayerDrawnCardsLocation"]));
+            }
+            set {
+                this["PlayerDrawnCardsLocation"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("620, 20")]
+        public global::System.Drawing.Point OpponentPlayedCardsLocation {
+            get {
+                return ((global::System.Drawing.Point)(this["OpponentPlayedCardsLocation"]));
+            }
+            set {
+                this["OpponentPlayedCardsLocation"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("100")]
+        public int DeckTransparency {
+            get {
+                return ((int)(this["DeckTransparency"]));
+            }
+            set {
+                this["DeckTransparency"] = value;
+            }
+        }
     }
 }

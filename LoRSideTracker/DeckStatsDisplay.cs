@@ -22,9 +22,9 @@ namespace LoRSideTracker
         private Font CostsFont = new Font("Calibri", 8, FontStyle.Bold);
 
         /// <summary>Unit color in histogram</summary>
-        public Color UnitColor { get; set; } = Color.Blue;
+        public Color UnitColor { get; set; } = Color.RoyalBlue;
         /// <summary>Spell color in histogram</summary>
-        public Color SpellColor { get; set; } = Color.DarkCyan;
+        public Color SpellColor { get; set; } = Color.MediumSeaGreen;
         /// <summary>Text color in histogram</summary>
         public Color TextColor { get; set; } = Color.White;
 

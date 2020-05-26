@@ -62,7 +62,7 @@ namespace LoRSideTracker
             else
             {
                 // No active static deck -- show expedition deck or no deck
-                OnExpeditionDeckUpdated(CurrentExpedition.Cards);
+                OnExpeditionDeckUpdated((CurrentExpedition != null) ? CurrentExpedition.Cards : new List<CardWithCount>());
             }
         }
 
@@ -229,13 +229,28 @@ namespace LoRSideTracker
             OpponentPlayedCardsWindow.Show();
             if (!OpponentPlayedCheckBox.Checked) OpponentPlayedCardsWindow.Hide();
 
+            PlayerActiveDeckWindow.SetBounds(Properties.Settings.Default.PlayerDeckLocation.X, Properties.Settings.Default.PlayerDeckLocation.Y, 0, 0, BoundsSpecified.Location);
+            PlayerDrawnCardsWindow.SetBounds(Properties.Settings.Default.PlayerDrawnCardsLocation.X, Properties.Settings.Default.PlayerDrawnCardsLocation.Y, 0, 0, BoundsSpecified.Location);
+            PlayerPlayedCardsWindow.SetBounds(Properties.Settings.Default.PlayerPlayedCardsLocation.X, Properties.Settings.Default.PlayerPlayedCardsLocation.Y, 0, 0, BoundsSpecified.Location);
+            OpponentPlayedCardsWindow.SetBounds(Properties.Settings.Default.OpponentPlayedCardsLocation.X, Properties.Settings.Default.OpponentPlayedCardsLocation.Y, 0, 0, BoundsSpecified.Location);
+
+            PlayerActiveDeckWindow.Opacity = TransparencyTrackBar.Value / 100.0;
+            PlayerDrawnCardsWindow.Opacity = TransparencyTrackBar.Value / 100.0;
+            PlayerPlayedCardsWindow.Opacity = TransparencyTrackBar.Value / 100.0;
+            OpponentPlayedCardsWindow.Opacity = TransparencyTrackBar.Value / 100.0;
+
             CurrentDeck = new StaticDeck(this);
             Thread.Sleep(500);
             CurrentExpedition = new Expedition(this);
             Thread.Sleep(500);
             CurrentOverlay = new Overlay(this);
 
-            SnapWindowsButton_Click(null, null);
+            //SnapWindowsButton_Click(null, null);
+
+            DeckOptionsGroupBox.Visible = true;
+            SnapWindowsButton.Visible = true;
+            DebugLogsCheckBox.Visible = true;
+            LogTextBox.Visible = true;
         }
 
         private void DebugLogsCheckBox_CheckedChanged(object sender, EventArgs e)
@@ -245,27 +260,47 @@ namespace LoRSideTracker
 
         private void SnapWindowsButton_Click(object sender, EventArgs e)
         {
-            int margin = 2;
-            int x = Bounds.Left + 6;
-            int y = Bounds.Bottom + 2;
+            Point location;
             if (PlayerDeckCheckBox.Checked)
             {
-                PlayerActiveDeckWindow.SetDesktopBounds(x, y, PlayerActiveDeckWindow.DesktopBounds.Width, PlayerActiveDeckWindow.DesktopBounds.Height);
-                x += PlayerActiveDeckWindow.DesktopBounds.Width + margin;
+                location = PlayerActiveDeckWindow.Location;
+            }
+            else if (PlayerDrawnCheckBox.Checked)
+            {
+                location = PlayerDrawnCardsWindow.Location;
+            }
+            else if (PlayerPlayedCheckBox.Checked)
+            {
+                location = PlayerPlayedCardsWindow.Location;
+            }
+            else if (OpponentPlayedCheckBox.Checked)
+            {
+                location = OpponentPlayedCardsWindow.Location;
+            }
+            else
+            {
+                return;
+            }
+
+            int margin = 2;
+            if (PlayerDeckCheckBox.Checked)
+            {
+                PlayerActiveDeckWindow.SetDesktopBounds(location.X, location.Y, PlayerActiveDeckWindow.DesktopBounds.Width, PlayerActiveDeckWindow.DesktopBounds.Height);
+                location.X += PlayerActiveDeckWindow.DesktopBounds.Width + margin;
             }
             if (PlayerDrawnCheckBox.Checked)
             {
-                PlayerDrawnCardsWindow.SetDesktopBounds(x, y, PlayerDrawnCardsWindow.DesktopBounds.Width, PlayerDrawnCardsWindow.DesktopBounds.Height);
-                x += PlayerDrawnCardsWindow.DesktopBounds.Width + margin;
+                PlayerDrawnCardsWindow.SetDesktopBounds(location.X, location.Y, PlayerDrawnCardsWindow.DesktopBounds.Width, PlayerDrawnCardsWindow.DesktopBounds.Height);
+                location.X += PlayerDrawnCardsWindow.DesktopBounds.Width + margin;
             }
             if (PlayerPlayedCheckBox.Checked)
             {
-                PlayerPlayedCardsWindow.SetDesktopBounds(x, y, PlayerPlayedCardsWindow.DesktopBounds.Width, PlayerPlayedCardsWindow.DesktopBounds.Height);
-                x += PlayerPlayedCardsWindow.DesktopBounds.Width + margin;
+                PlayerPlayedCardsWindow.SetDesktopBounds(location.X, location.Y, PlayerPlayedCardsWindow.DesktopBounds.Width, PlayerPlayedCardsWindow.DesktopBounds.Height);
+                location.X += PlayerPlayedCardsWindow.DesktopBounds.Width + margin;
             }
             if (OpponentPlayedCheckBox.Checked)
             {
-                OpponentPlayedCardsWindow.SetDesktopBounds(x, y, OpponentPlayedCardsWindow.DesktopBounds.Width, OpponentPlayedCardsWindow.DesktopBounds.Height);
+                OpponentPlayedCardsWindow.SetDesktopBounds(location.X, location.Y, OpponentPlayedCardsWindow.DesktopBounds.Width, OpponentPlayedCardsWindow.DesktopBounds.Height);
             }
         }
 
@@ -282,6 +317,7 @@ namespace LoRSideTracker
             PlayerPlayedCheckBox.Checked = Properties.Settings.Default.ShowPlayerPlayedCards;
             OpponentPlayedCheckBox.Checked = Properties.Settings.Default.ShowOpponentPlayedCards;
             DeckStatsCheckBox.Checked = Properties.Settings.Default.ShowDeckStats;
+            TransparencyTrackBar.Value = Properties.Settings.Default.DeckTransparency;
         }
 
         private void MainWindow_FormClosing(object sender, FormClosingEventArgs e)
@@ -303,6 +339,12 @@ namespace LoRSideTracker
             Properties.Settings.Default.ShowPlayerPlayedCards = PlayerPlayedCheckBox.Checked;
             Properties.Settings.Default.ShowOpponentPlayedCards = OpponentPlayedCheckBox.Checked;
             Properties.Settings.Default.ShowDeckStats = DeckStatsCheckBox.Checked;
+            Properties.Settings.Default.DeckTransparency = TransparencyTrackBar.Value;
+
+            if (PlayerActiveDeckWindow != null) Properties.Settings.Default.PlayerDeckLocation = PlayerActiveDeckWindow.Location;
+            if (PlayerDrawnCardsWindow != null) Properties.Settings.Default.PlayerDrawnCardsLocation = PlayerDrawnCardsWindow.Location;
+            if (PlayerPlayedCardsWindow != null) Properties.Settings.Default.PlayerPlayedCardsLocation = PlayerPlayedCardsWindow.Location;
+            if (OpponentPlayedCardsWindow != null) Properties.Settings.Default.OpponentPlayedCardsLocation = OpponentPlayedCardsWindow.Location;
 
             // Save the settings
             Properties.Settings.Default.Save();
@@ -362,6 +404,27 @@ namespace LoRSideTracker
                 OpponentPlayedCardsWindow.ShouldShowDeckStats = DeckStatsCheckBox.Checked;
                 OpponentPlayedCardsWindow.UpdateSize();
             }
+        }
+
+        private void TransparencyTrackBar_ValueChanged(object sender, EventArgs e)
+        {
+            if (PlayerActiveDeckWindow != null)
+            {
+                PlayerActiveDeckWindow.Opacity = TransparencyTrackBar.Value / 100.0;
+            }
+            if (PlayerDrawnCardsWindow != null)
+            {
+                PlayerDrawnCardsWindow.Opacity = TransparencyTrackBar.Value / 100.0;
+            }
+            if (PlayerPlayedCardsWindow != null)
+            {
+                PlayerPlayedCardsWindow.Opacity = TransparencyTrackBar.Value / 100.0;
+            }
+            if (OpponentPlayedCardsWindow != null)
+            {
+                OpponentPlayedCardsWindow.Opacity = TransparencyTrackBar.Value / 100.0;
+            }
+
         }
     }
 }
