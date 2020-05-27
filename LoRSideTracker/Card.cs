@@ -55,7 +55,6 @@ namespace LoRSideTracker
         /// <param name="dict">Associated JSON</param>
         public Card(string setPath, Dictionary<string, JsonElement> dict)
         {
-            const string IsCollectibleString = "True";
             Name = dict["name"].ToString();
             Code = dict["cardCode"].ToString();
             Type = dict["type"].ToString();
@@ -64,7 +63,7 @@ namespace LoRSideTracker
             Region = dict["regionRef"].ToString();
             Rarity = dict["rarity"].ToString();
             FlavorText = dict["flavorText"].ToString();
-            IsCollectible = IsCollectibleString.Equals(dict["collectible"].ToString());
+            IsCollectible = dict["collectible"].ToObject<bool>();
 
             // Unit info
             Attack = dict["attack"].ToObject<int>();

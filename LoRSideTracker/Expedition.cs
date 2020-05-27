@@ -168,7 +168,6 @@ namespace LoRSideTracker
             List<CardWithCount> cards = new List<CardWithCount>();
             if (cardCodes == null)
             {
-                //RawData = "";
                 return cards;
             }
             foreach (var cardCode in cardCodes)
@@ -188,6 +187,5 @@ namespace LoRSideTracker
 
             return cards;
         }
-
     }
 }

@@ -100,9 +100,18 @@ namespace LoRSideTracker
         /// Produce local set zip path
         /// </summary>
         /// <returns>Local set zip path</returns>
-        public static string GetSetZip(int setNumber)
+        public static string GetSetZipPath(int setNumber)
         {
             return GetSetPath(setNumber) + @".zip";
+        }
+
+        /// <summary>
+        /// Produce local set version info path
+        /// </summary>
+        /// <returns>Local set version info file path</returns>
+        public static string GetSetVersionInfoPath(int setNumber)
+        {
+            return GetSetPath(setNumber) + @"\versionInfo.json";
         }
 
         /// <summary>
@@ -121,13 +130,13 @@ namespace LoRSideTracker
         /// <returns>Accent color</returns>
         public static Color GetRegionAccentColor(string region)
         {
-            if (region.Equals("Bilgewater")) { return Color.Chocolate; }
-            if (region.Equals("Demacia")) { return Color.Goldenrod; }
-            if (region.Equals("Freljord")) { return Color.DodgerBlue; }
-            if (region.Equals("Ionia")) { return Color.HotPink; }
-            if (region.Equals("Noxus")) { return Color.Crimson; }
-            if (region.Equals("PiltoverZaun")) { return Color.OrangeRed; }
-            if (region.Equals("ShadowIsles")) { return Color.Teal; }
+            if (region == "Bilgewater") { return Color.Chocolate; }
+            if (region == "Demacia") { return Color.Goldenrod; }
+            if (region == "Freljord") { return Color.DodgerBlue; }
+            if (region == "Ionia") { return Color.HotPink; }
+            if (region == "Noxus") { return Color.Crimson; }
+            if (region == "PiltoverZaun") { return Color.OrangeRed; }
+            if (region == "ShadowIsles") { return Color.Teal; }
             return Color.Gray;
         }
     }

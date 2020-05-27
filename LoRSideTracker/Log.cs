@@ -20,7 +20,9 @@ namespace LoRSideTracker
         /// <summary>Log other actions</summary>
         Other,
         /// <summary>Debug log only logs to console</summary>
-        Debug
+        Debug,
+        /// <summary>Debug log only logs to console in debug builds</summary>
+        DebugVerbose
     }
 
     /// <summary>
@@ -31,6 +33,8 @@ namespace LoRSideTracker
         static RichTextBox LogTextBox = null;
 
         public static bool ShowDebugLog { get; set; } = false;
+
+        public static bool IgnoreDebugVerboseLog { get; set; } = false;
 
         /// <summary>
         /// Set the RichTextBox to use for logging
@@ -78,6 +82,15 @@ namespace LoRSideTracker
         /// <param name="arg">Format string arguments</param>
         public static void WriteLine(LogType type, string format, params object[] arg)
         {
+            if (type == LogType.DebugVerbose
+#if DEBUG
+                && IgnoreDebugVerboseLog
+#endif
+                )
+            {
+                return;
+            }
+
             string text = String.Format(format, arg);
             Console.WriteLine(text);
 
@@ -92,7 +105,7 @@ namespace LoRSideTracker
                 }
                 else
                 {
-                    frontText = "";
+                    frontText = string.Empty;
                     backText = text + "\r\n";
                 }
                 Color textColor = Color.Black;
@@ -105,6 +118,7 @@ namespace LoRSideTracker
                         textColor = Color.Red;
                         break;
                     case LogType.Debug:
+                    case LogType.DebugVerbose:
                         textColor = Color.Gray;
                         break;
                     default:
@@ -114,14 +128,14 @@ namespace LoRSideTracker
                 if (LogTextBox.InvokeRequired)
                 {
                     LogTextBox.Invoke(new Action(() => {
-                        if (frontText.Length > 0) LogTextBox.AppendText(frontText, textColor, true);
+                        if (!string.IsNullOrEmpty(frontText)) LogTextBox.AppendText(frontText, textColor, true);
                         LogTextBox.AppendText(backText, textColor, false);
                         LogTextBox.ScrollToCaret();
                     }));
                 }
                 else
                 {
-                    if (frontText.Length > 0) LogTextBox.AppendText(frontText, textColor, true);
+                    if (!string.IsNullOrEmpty(frontText)) LogTextBox.AppendText(frontText, textColor, true);
                     LogTextBox.AppendText(backText, textColor, false);
                     LogTextBox.ScrollToCaret();
                 }

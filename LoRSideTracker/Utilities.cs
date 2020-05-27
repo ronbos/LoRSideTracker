@@ -89,8 +89,8 @@ namespace LoRSideTracker
         /// Chek if a URL is valid
         /// </summary>
         /// <param name="url">URL to check</param>
-        /// <returns>true if URL appears valid</returns>
-        public static bool CheckURLExists(string url)
+        /// <returns>File size, or -1 if invalid</returns>
+        public static long CheckURLExists(string url)
         {
             try
             {
@@ -99,12 +99,12 @@ namespace LoRSideTracker
                 request.Timeout = 1000;
                 HttpWebResponse response = request.GetResponse() as HttpWebResponse;
                 response.Close();
-                return (response.StatusCode == HttpStatusCode.OK);
+                return (response.StatusCode == HttpStatusCode.OK) ? response.ContentLength : -1;
             }
             catch
             {
-                //Any exception will returns false.
-                return false;
+                //Any exception will returns -1.
+                return -1;
             }
         }
 
@@ -112,21 +112,28 @@ namespace LoRSideTracker
         /// Download web page as a string
         /// </summary>
         /// <param name="url">Page URL</param>
-        /// <returns>Web page string contents</returns>
+        /// <returns>Web page string contents, or empty string in case of error</returns>
         public static string GetStringFromURL(string url)
         {
-            string html = string.Empty;
-            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
-            request.AutomaticDecompression = DecompressionMethods.GZip;
-
-            using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
-            using (Stream stream = response.GetResponseStream())
-            using (StreamReader reader = new StreamReader(stream))
+            try
             {
-                html = reader.ReadToEnd();
-            }
+                string html = string.Empty;
+                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
+                request.AutomaticDecompression = DecompressionMethods.GZip;
 
-            return html;
+                using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
+                using (Stream stream = response.GetResponseStream())
+                using (StreamReader reader = new StreamReader(stream))
+                {
+                    html = reader.ReadToEnd();
+                }
+
+                return html;
+            }
+            catch
+            {
+                return string.Empty;
+            }
         }
 
         /// <summary>

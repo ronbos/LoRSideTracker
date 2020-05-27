@@ -65,7 +65,7 @@ namespace LoRSideTracker
                 int index = Math.Min(numCols - 1, card.Cost);
                 maxCost = Math.Max(maxCost, index);
 
-                if (card.Type.Equals("Unit"))
+                if (card.Type == "Unit")
                 {
                     unitCounts[index] += card.Count;
                 }

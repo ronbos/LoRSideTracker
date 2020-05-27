@@ -54,27 +54,25 @@ namespace LoRSideTracker
             {
                 // Load deck from JSON
                 Dictionary<string, JsonElement> deck = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(newValue);
-                if (deck == null)
+                if (deck != null)
                 {
-                    return;
-                }
-
-                var deckList = deck["CardsInDeck"].ToObject<Dictionary<string, JsonElement>>();
-                if (deckList != null)
-                {
-                    foreach (var j in deckList)
+                    var deckList = deck["CardsInDeck"].ToObject<Dictionary<string, JsonElement>>();
+                    if (deckList != null)
                     {
-                        string cardCode = j.Key;
-                        Card card = CardLibrary.GetCard(cardCode);
-                        int count = Int32.Parse(j.Value.ToString());
-                        Cards.Add(new CardWithCount(card, count));
+                        foreach (var j in deckList)
+                        {
+                            string cardCode = j.Key;
+                            Card card = CardLibrary.GetCard(cardCode);
+                            int count = Int32.Parse(j.Value.ToString());
+                            Cards.Add(new CardWithCount(card, count));
+                        }
+                        Cards = Cards.OrderBy(card => card.Cost).ThenBy(card => card.Name).ToList();
                     }
-                    Cards = Cards.OrderBy(card => card.Cost).ThenBy(card => card.Name).ToList();
                 }
-                if (Callback != null)
-                {
-                    Callback.OnDeckUpdated(Cards);
-                }
+            }
+            if (Callback != null)
+            {
+                Callback.OnDeckUpdated(Cards);
             }
         }
     }

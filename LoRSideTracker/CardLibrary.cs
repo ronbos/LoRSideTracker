@@ -22,24 +22,39 @@ namespace LoRSideTracker
         /// Find the list of missing sets that can be downloaded
         /// </summary>
         /// <returns>List of missing set indices</returns>
-        public static List<int> FindMissingSets()
+        public static List<ValueTuple<int, long>> FindMissingSets()
         {
             if (!Directory.Exists(Constants.GetLocalSetsPath()))
             {
                 Directory.CreateDirectory(Constants.GetLocalSetsPath());
             }
-            List<int> missingSets = new List<int>();
+            var missingSets = new List<ValueTuple<int, long>>();
             for (int i = 1; i < 99; i++)
             {
+                long remoteZipSize = Utilities.CheckURLExists(Constants.GetSetURL(i));
+                if (remoteZipSize <= 0)
+                {
+                    break;
+                }
                 if (!Directory.Exists(Constants.GetSetPath(i)))
                 {
-                    if (Utilities.CheckURLExists(Constants.GetSetURL(i)))
+                    if (remoteZipSize > 0)
                     {
-                        missingSets.Add(i);
+                        missingSets.Add((i, remoteZipSize));
                     }
                     else
                     {
                         break;
+                    }
+                }
+                else
+                {
+                    var json = Utilities.ReadLocalFile(Constants.GetSetVersionInfoPath(i));
+                    Dictionary<string, JsonElement> info = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(json);
+                    long refRemoteZipSize = info["remoteZipSize"].ToObject<long>();
+                    if (remoteZipSize != refRemoteZipSize)
+                    {
+                        missingSets.Add((i, remoteZipSize));
                     }
                 }
             }
@@ -52,35 +67,37 @@ namespace LoRSideTracker
         /// <param name="setNumber">Set number</param>
         /// <param name="onDownloadProgressChangedHandler">Interface to receive OnDownloadProgressChanged() updates</param>
         /// <param name="onDownloadFileCompletedHandler">Interface to receive OnDownloadFileCompleted() callback</param>
-        /// <returns>true if set can be downloaded</returns>
-        public static bool DownloadSet(int setNumber,
+        public static void DownloadSet(int setNumber,
                 DownloadProgressChangedEventHandler onDownloadProgressChangedHandler,
                 AsyncCompletedEventHandler onDownloadFileCompletedHandler)
         {
-            string setZip = Constants.GetSetZip(setNumber);
-            if (!File.Exists(setZip))
-            {
-                WebClient client = new WebClient();
-                client.DownloadProgressChanged += onDownloadProgressChangedHandler;
-                client.DownloadFileCompleted += onDownloadFileCompletedHandler;
-                client.DownloadFileAsync(new Uri(Constants.GetSetURL(setNumber)), setZip);
-                return true;
-            }
-            return false;
+            WebClient client = new WebClient();
+            client.DownloadProgressChanged += onDownloadProgressChangedHandler;
+            client.DownloadFileCompleted += onDownloadFileCompletedHandler;
+            client.DownloadFileAsync(new Uri(Constants.GetSetURL(setNumber)), Constants.GetSetZipPath(setNumber));
         }
 
         /// <summary>
         /// Unzip downloaded set, Resine image to manageable size, and delete the zip file
         /// </summary>
         /// <param name="setNumber">Set number</param>
-        public static void ProcessDownloadedSet(int setNumber)
+        /// <param name="remoteZipSize">Zip file size as given by remote URL query</param>
+        public static void ProcessDownloadedSet(int setNumber, long remoteZipSize)
         {
             string setPath = Constants.GetSetPath(setNumber);
-            string setZip = Constants.GetSetZip(setNumber);
+            string setZip = Constants.GetSetZipPath(setNumber);
             if (!Directory.Exists(setPath))
             {
                 ZipFile.ExtractToDirectory(setZip, setPath);
             }
+
+            // We don't have a way of checking version. Check by download size instead
+            var json = JsonSerializer.Serialize(new
+            {
+                setNumber = setNumber,
+                remoteZipSize = remoteZipSize
+            });
+            File.WriteAllText(Constants.GetSetVersionInfoPath(setNumber), json);
 
             // Resize all images to manageable size
             string imagesDir = String.Format("{0}\\{1}\\img\\cards", setPath, Constants.Language);

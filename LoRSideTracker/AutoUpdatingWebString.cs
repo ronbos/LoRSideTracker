@@ -25,7 +25,7 @@ namespace LoRSideTracker
     public class AutoUpdatingWebString : AutoUpdatingObject
     {
         private string URL;
-        private string Value = "";
+        private string Value = string.Empty;
 
         AutoUpdatingWebStringCallback CallbackObject;
 
@@ -48,18 +48,9 @@ namespace LoRSideTracker
         /// </summary>
         public override void AutoUpdate()
         {
-            string newValue;
-            try
-            {
-                newValue = Utilities.GetStringFromURL(URL);
-                if (newValue == null) newValue = "";
-            }
-            catch
-            {
-                newValue = "";
-            }
+            string newValue = Utilities.GetStringFromURL(URL);
 
-            if (!Value.Equals(newValue))
+            if (Value != newValue)
             {
                 Value = newValue;
                 if (CallbackObject != null)

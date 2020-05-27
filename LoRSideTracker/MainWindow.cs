@@ -21,7 +21,7 @@ namespace LoRSideTracker
     public partial class MainWindow : Form, ExpeditionUpdateCallback, StaticDeckUpdateCallback, OverlayUpdateCallback
     {
         private int CurrentDownloadIndex = 0;
-        private List<int> MissingSets;
+        private List<ValueTuple<int,long>> MissingSets;
 
         private Expedition CurrentExpedition;
         private StaticDeck CurrentDeck;
@@ -76,8 +76,8 @@ namespace LoRSideTracker
             if (cards.Count > 0 &&
                 (CurrentExpedition == null || !AreDecksEqual(cards, CurrentExpedition.Cards)))
             {
-                PlayerActiveDeckWindow.Title = string.Format("My Deck");
-                PlayerActiveDeckWindow.SetFullDeck(cards);
+                PlayerActiveDeckWindow.Title = string.Format("Constructed Deck");
+                PlayerActiveDeckWindow.SetFullDeck(Utilities.Clone(cards));
             }
             else
             {
@@ -99,7 +99,7 @@ namespace LoRSideTracker
                     bool isEliminationGame = (Array.FindLastIndex(CurrentExpedition.Record, item => item.Equals("win")) < Array.FindLastIndex(CurrentExpedition.Record, item => item.Equals("loss")))
                         || (CurrentExpedition.NumberOfWins == 6);
                     PlayerActiveDeckWindow.Title = string.Format("Expedition {0}-{1}{2}", CurrentExpedition.NumberOfWins, CurrentExpedition.NumberOfLosses, isEliminationGame ? "*" : "");
-                    PlayerActiveDeckWindow.SetFullDeck(cards);
+                    PlayerActiveDeckWindow.SetFullDeck(Utilities.Clone(cards));
                 }
                 else
                 {
@@ -115,8 +115,8 @@ namespace LoRSideTracker
         /// <param name="cards">Updated set</param>
         public void OnPlayerDrawnSetUpdated(List<CardWithCount> cards)
         {
-            PlayerActiveDeckWindow.SetDrawnCards(cards);
-            PlayerDrawnCardsWindow.SetFullDeck(cards);
+            PlayerActiveDeckWindow.SetDrawnCards(Utilities.Clone(cards));
+            PlayerDrawnCardsWindow.SetFullDeck(Utilities.Clone(cards));
         }
 
         /// <summary>
@@ -125,7 +125,16 @@ namespace LoRSideTracker
         /// <param name="cards">Updated set</param>
         public void OnPlayerPlayedSetUpdated(List<CardWithCount> cards)
         {
-            PlayerPlayedCardsWindow.SetFullDeck(cards);
+            PlayerPlayedCardsWindow.SetFullDeck(Utilities.Clone(cards));
+        }
+
+        /// <summary>
+        /// Receives notification that player played set was changed
+        /// </summary>
+        /// <param name="cards">Updated set</param>
+        public void OnPlayerTossedSetUpdated(List<CardWithCount> cards)
+        {
+            PlayerActiveDeckWindow.SetTossedCards(Utilities.Clone(cards));
         }
 
         /// <summary>
@@ -134,7 +143,7 @@ namespace LoRSideTracker
         /// <param name="cards">Updated set</param>
         public void OnOpponentPlayedSetUpdated(List<CardWithCount> cards)
         {
-            OpponentPlayedCardsWindow.SetFullDeck(cards);
+            OpponentPlayedCardsWindow.SetFullDeck(Utilities.Clone(cards));
         }
 
         private void MainWindow_Shown(object sender, EventArgs e)
@@ -152,8 +161,28 @@ namespace LoRSideTracker
             MissingSets = CardLibrary.FindMissingSets();
             if (MissingSets.Count > 0)
             {
+                long totalDownloadSize = MissingSets.Sum(x => x.Item1);
+                var result = MessageBox.Show(
+                    string.Format("Card sets have been updated. Download size is {0} MB. Download new sets?", totalDownloadSize / 1024 / 1024), 
+                    "Sets Out of Date", 
+                    MessageBoxButtons.YesNo);
+                if (result != DialogResult.Yes)
+                {
+                    Close();
+                    return;
+                }
+
+                // Delete existing outdated sets
+                foreach (var set in MissingSets)
+                {
+                    if (Directory.Exists(Constants.GetSetPath(set.Item1)))
+                    {
+                        Directory.Delete(Constants.GetSetPath(set.Item1), true);
+                    }
+                }
+
                 CurrentDownloadIndex = 0;
-                CardLibrary.DownloadSet(MissingSets[CurrentDownloadIndex], 
+                CardLibrary.DownloadSet(MissingSets[CurrentDownloadIndex].Item1, 
                     new DownloadProgressChangedEventHandler(OnDownloadProgressChanged),
                     new AsyncCompletedEventHandler(OnDownloadFileCompleted));
             }
@@ -186,7 +215,7 @@ namespace LoRSideTracker
         {
             if (e != null && e.Error != null && e.Error.HResult != 0)
             {
-                string localFile = Constants.GetSetZip(MissingSets[CurrentDownloadIndex]);
+                string localFile = Constants.GetSetZipPath(MissingSets[CurrentDownloadIndex].Item1);
                 if (File.Exists(localFile))
                 {
                     File.Delete(localFile);
@@ -200,11 +229,11 @@ namespace LoRSideTracker
                 // Success, finish up and queue up the next one
 
                 MyProgressDisplay.Update("Download completed. Processing...", 100);
-                CardLibrary.ProcessDownloadedSet(MissingSets[CurrentDownloadIndex]);
+                CardLibrary.ProcessDownloadedSet(MissingSets[CurrentDownloadIndex].Item1, MissingSets[CurrentDownloadIndex].Item2);
                 CurrentDownloadIndex++;
                 if (CurrentDownloadIndex < MissingSets.Count)
                 {
-                    CardLibrary.DownloadSet(MissingSets[CurrentDownloadIndex],
+                    CardLibrary.DownloadSet(MissingSets[CurrentDownloadIndex].Item1,
                         new DownloadProgressChangedEventHandler(OnDownloadProgressChanged),
                         new AsyncCompletedEventHandler(OnDownloadFileCompleted));
                 }
@@ -226,7 +255,7 @@ namespace LoRSideTracker
             MyProgressDisplay.Hide();
 
             PlayerActiveDeckWindow = new DeckWindow();
-            PlayerActiveDeckWindow.Title = "Your Deck";
+            PlayerActiveDeckWindow.Title = "No Active Deck";
             PlayerActiveDeckWindow.ShouldShowDeckStats = DeckStatsCheckBox.Checked;
             PlayerActiveDeckWindow.Show();
             if (!PlayerDeckCheckBox.Checked) PlayerActiveDeckWindow.Hide();

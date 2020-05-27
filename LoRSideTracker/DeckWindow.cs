@@ -17,9 +17,10 @@ namespace LoRSideTracker
     {
         private List<CardWithCount> AllCards = new List<CardWithCount>();
         private List<CardWithCount> DrawnCards = new List<CardWithCount>();
+        private List<CardWithCount> TossedCards = new List<CardWithCount>();
         private List<CardWithCount> RemainingCards = new List<CardWithCount>();
 
-        private delegate void UpdateDeckSafeDelegate(List<CardWithCount> allCards, List<CardWithCount> drawnCards);
+        private delegate void UpdateDeckSafeDelegate(List<CardWithCount> allCards, List<CardWithCount> drawnCards, List<CardWithCount> tossedCards);
 
         /// <summary>If true, window is hidden when empty</summary>
         public bool ShouldHideWhenEmpty { get; set; } = false;
@@ -32,8 +33,8 @@ namespace LoRSideTracker
         /// <summary>Window title</summary>
         public string Title
         {
-            get { return MyDeckControl != null ? MyDeckControl.Title : ""; }
-            set { MyDeckControl.Title = value; }
+            get { return MyDeckControl != null ? MyDeckControl.Title : string.Empty; }
+            set { MyDeckControl.Title = value; MyDeckControl.Invalidate(new Rectangle(0, 0, MyDeckControl.Width, MyDeckControl.TopBorderSize));  }
         }
 
         /// <summary>
@@ -53,11 +54,11 @@ namespace LoRSideTracker
             if (this.InvokeRequired)
             {
                 var d = new UpdateDeckSafeDelegate(UpdateDeckSafe);
-                this.Invoke(d, new object[] { Utilities.Clone(allCards), Utilities.Clone(DrawnCards) });
+                this.Invoke(d, new object[] { Utilities.Clone(allCards), Utilities.Clone(DrawnCards), Utilities.Clone(TossedCards) });
             }
             else
             {
-                UpdateDeckSafe(allCards, DrawnCards);
+                UpdateDeckSafe(allCards, DrawnCards, TossedCards);
             }
         }
 
@@ -70,11 +71,28 @@ namespace LoRSideTracker
             if (this.InvokeRequired)
             {
                 var d = new UpdateDeckSafeDelegate(UpdateDeckSafe);
-                this.Invoke(d, new object[] { Utilities.Clone(AllCards), Utilities.Clone(drawnCards) });
+                this.Invoke(d, new object[] { Utilities.Clone(AllCards), Utilities.Clone(drawnCards) , Utilities.Clone(TossedCards)});
             }
             else
             {
-                UpdateDeckSafe(AllCards, Utilities.Clone(drawnCards));
+                UpdateDeckSafe(AllCards, Utilities.Clone(drawnCards), TossedCards);
+            }
+        }
+
+        /// <summary>
+        /// Set set of cards that have been tossed from the deck
+        /// </summary>
+        /// <param name="tossedCards">Set of drawn cards</param>
+        public void SetTossedCards(List<CardWithCount> tossedCards)
+        {
+            if (this.InvokeRequired)
+            {
+                var d = new UpdateDeckSafeDelegate(UpdateDeckSafe);
+                this.Invoke(d, new object[] { Utilities.Clone(AllCards), Utilities.Clone(DrawnCards), Utilities.Clone(tossedCards) });
+            }
+            else
+            {
+                UpdateDeckSafe(AllCards, DrawnCards, Utilities.Clone(tossedCards));
             }
         }
 
@@ -86,11 +104,11 @@ namespace LoRSideTracker
             if (this.InvokeRequired)
             {
                 var d = new UpdateDeckSafeDelegate(UpdateDeckSafe);
-                this.Invoke(d, new object[] { Utilities.Clone(AllCards), Utilities.Clone(DrawnCards) });
+                this.Invoke(d, new object[] { Utilities.Clone(AllCards), Utilities.Clone(DrawnCards), Utilities.Clone(TossedCards) });
             }
             else
             {
-                UpdateDeckSafe(AllCards, DrawnCards);
+                UpdateDeckSafe(AllCards, DrawnCards, TossedCards);
             }
         }
 
@@ -99,10 +117,19 @@ namespace LoRSideTracker
         /// </summary>
         /// <param name="allCards"></param>
         /// <param name="drawnCards"></param>
-        private void UpdateDeckSafe(List<CardWithCount> allCards, List<CardWithCount> drawnCards)
+        /// <param name="tossedCards"></param>
+        private void UpdateDeckSafe(List<CardWithCount> allCards, List<CardWithCount> drawnCards, List<CardWithCount> tossedCards)
         {
             List<CardWithCount> remainingCards = Utilities.Clone(allCards);
             foreach (var card in drawnCards)
+            {
+                int index = remainingCards.FindIndex(item => item.Code.Equals(card.Code));
+                if (index >= 0)
+                {
+                    remainingCards[index].Count -= card.Count;
+                }
+            }
+            foreach (var card in tossedCards)
             {
                 int index = remainingCards.FindIndex(item => item.Code.Equals(card.Code));
                 if (index >= 0)
@@ -118,6 +145,7 @@ namespace LoRSideTracker
 
             AllCards = Utilities.Clone(allCards);
             DrawnCards = Utilities.Clone(drawnCards);
+            TossedCards = Utilities.Clone(tossedCards);
             RemainingCards = Utilities.Clone(remainingCards);
 
             MyDeckControl.ClearDeck();

@@ -28,6 +28,12 @@ namespace LoRSideTracker
         void OnPlayerPlayedSetUpdated(List<CardWithCount> cards);
 
         /// <summary>
+        /// Callback for when player tossed set has been changed
+        /// </summary>
+        /// <param name="cards">Cards in the set</param>
+        void OnPlayerTossedSetUpdated(List<CardWithCount> cards);
+
+        /// <summary>
         /// Callback for when opponent played set has been changed
         /// </summary>
         /// <param name="cards">Cards in the set</param>
@@ -57,6 +63,7 @@ namespace LoRSideTracker
         public List<string> Field { get; private set; }
         public List<string> Stage { get; private set; }
         public List<string> Ether { get; private set; }
+        public List<string> Tossing { get; private set; }
 
         private bool IsInitialDraw = true;
 
@@ -68,6 +75,7 @@ namespace LoRSideTracker
             Field = new List<string>();
             Stage = new List<string>();
             Ether = new List<string>();
+            Tossing = new List<string>();
         }
 
         public void Reset()
@@ -76,20 +84,37 @@ namespace LoRSideTracker
             Field.Clear();
             Stage.Clear();
             Ether.Clear();
+            Tossing.Clear();
             IsInitialDraw = true;
         }
 
-        public void Update(List<OverlayElement> elements, int screenWidth, int screenHeight, List<string> cardsDrawn, List<string> cardsPlayed)
+        public void Update(List<OverlayElement> elements, 
+            int screenWidth, 
+            int screenHeight, 
+            List<string> cardsDrawn,
+            List<string> cardsPlayed,
+            List<string> cardsTossed)
         {
             List<string> newHand = new List<string>();
             List<string> newStage = new List<string>();
             List<string> newField = new List<string>();
+            List<string> newTossing = new List<string>();
             bool isDragging = false;
+
+            // We normalize everything based on screen height. However, if screen ratio becomes
+            // too high, screen expands height-wise. To make sure we have same behavior as before,
+            // We adjust the height accordingly.
+            int screenHeightAdjustment = 0;
+            if (screenWidth * 0.66 < screenHeight)
+            {
+                int newScreenHeight = (int)(0.5 + screenWidth * 0.66);
+                screenHeightAdjustment = (screenHeight - newScreenHeight) / 2;
+            }
 
             foreach (OverlayElement element in elements)
             {
                 // Ignore skills/abilities
-                if (element.TheCard.Type.Equals("Ability"))
+                if (element.TheCard.Type == "Ability")
                 {
                     continue;
                 }
@@ -99,12 +124,17 @@ namespace LoRSideTracker
                 // a bug, and cards being dragged to be played are problematic as well
                 float left = (float)(element.BoundingBox.X - screenWidth / 2) / (float)screenHeight;
                 float right = (float)(element.BoundingBox.Right - screenWidth / 2) / (float)screenHeight;
-                float top = (float)(element.BoundingBox.Y) / (float)screenHeight;
+                float top = (float)(element.BoundingBox.Y + screenHeightAdjustment) / (float)screenHeight;
                 float bottom = (float)(element.BoundingBox.Bottom) / (float)screenHeight;
                 RectangleF normalizedRect = new RectangleF(left, top, right - left, bottom - top);
                 PointF normalizedCenter = new PointF((normalizedRect.X + normalizedRect.Right) / 2, (normalizedRect.Y + normalizedRect.Bottom) / 2);
+                //Log.WriteLine(LogType.DebugVerbose, "[--] {0} ({1},{2},{3},{4})", element.TheCard.Name, left, top, right-left, bottom - top);
 
-                if (normalizedCenter.Y > 1.0f)
+                if (normalizedRect.Height == 0)
+                {
+                    newTossing.Add(element.CardCode);
+                }
+                else if (normalizedCenter.Y > 1.0f)
                 {
                     newHand.Add(element.CardCode);
                 }
@@ -121,10 +151,25 @@ namespace LoRSideTracker
                     else
                     {
                         isDragging = true;
-                        break;
+                        //break;
                     }
                 }
             }
+
+            //if (elements.Count > 0)
+            //{
+            //    Log.WriteLine(LogType.DebugVerbose, "[--] ---------");
+            //}
+
+            // Update tossing set here since it does ot depend on others
+            if (cardsTossed != null)
+            {
+                List<string> movedFromTossing = GetDifference(Tossing, newTossing);
+                cardsTossed.AddRange(movedFromTossing);
+                Tossing = newTossing;
+                foreach (var c in movedFromTossing) { Log.WriteLine(MyLogType, "[FH] Tossed: {0}", CardLibrary.GetCard(c).Name); }
+            }
+
             if (!isDragging)
             {
                 Update(newHand, newField, newStage, cardsDrawn, cardsPlayed);
@@ -230,7 +275,7 @@ namespace LoRSideTracker
 
             foreach (var c in movedFromField)
             {
-                if (CardLibrary.GetCard(c).Type.Equals("Unit"))
+                if (CardLibrary.GetCard(c).Type == "Unit")
                 {
                     Log.WriteLine(MyLogType, "[FX] Removed from Battlefield: {0}", CardLibrary.GetCard(c).Name);
                 }
@@ -239,7 +284,7 @@ namespace LoRSideTracker
             foreach (var c in movedToField)
             {
                 Card card = CardLibrary.GetCard(c);
-                Log.WriteLine(MyLogType, "[XF] {0}: {1}", card.Type.Equals("Unit") ? "Summoned" : "Cast", card.Name);
+                Log.WriteLine(MyLogType, "[XF] {0}: {1}", (card.Type == "Unit") ? "Summoned" : "Cast", card.Name);
             }
 
             if (!IsInitialDraw && MyLogType != LogType.Opponent)
@@ -335,14 +380,15 @@ namespace LoRSideTracker
         public int ScreenWidth { get; private set; }
         public int ScreenHeight { get; private set; }
 
-        public string PlayerName { get; private set; } = "";
+        public string PlayerName { get; private set; } = string.Empty;
         public List<OverlayElement> PlayerElements { get; private set; }
 
         public List<CardWithCount> PlayerDrawnCards { get; private set; }
         public List<CardWithCount> PlayerPlayedCards { get; private set; }
+        public List<CardWithCount> PlayerTossedCards { get; private set; }
         public List<CardWithCount> OpponentPlayedCards { get; private set; }
 
-        public string OpponentName { get; private set; } = "";
+        public string OpponentName { get; private set; } = string.Empty;
         public List<OverlayElement> OpponentElements { get; private set; }
 
         private PlayerOverlay PlayerTracker;
@@ -351,6 +397,9 @@ namespace LoRSideTracker
         private bool GameWasAnnounced = false;
 
         private bool NotRespondingHasBeenReported = false;
+
+        // Tossed cards cannot be tracked reliably yet
+        private bool ShouldTrackTossedCards = false;
 
         OverlayUpdateCallback Callback;
 
@@ -367,6 +416,7 @@ namespace LoRSideTracker
             OpponentElements = new List<OverlayElement>();
             PlayerDrawnCards = new List<CardWithCount>();
             PlayerPlayedCards = new List<CardWithCount>();
+            PlayerTossedCards = new List<CardWithCount>();
             OpponentPlayedCards = new List<CardWithCount>();
             PlayerTracker = new PlayerOverlay(LogType.Player);
             OpponentTracker = new PlayerOverlay(LogType.Opponent);
@@ -419,7 +469,7 @@ namespace LoRSideTracker
                 foreach (var dict in rectangles)
                 {
                     string cardCode = dict["CardCode"].GetString();
-                    if (!cardCode.Equals("face"))
+                    if (cardCode != "face")
                     {
                         if (dict["LocalPlayer"].GetBoolean())
                         {
@@ -441,43 +491,49 @@ namespace LoRSideTracker
                 GameState = "Unknown";
             }
 
-            if (!oldGameState.Equals(GameState))
+            if (oldGameState != GameState)
             {
                 Log.WriteLine("Game state changed from {0} to {1}", oldGameState, GameState);
                 PlayerDrawnCards.Clear();
                 PlayerPlayedCards.Clear();
+                PlayerTossedCards.Clear();
                 OpponentPlayedCards.Clear();
                 PlayerTracker.Reset();
                 OpponentTracker.Reset();
                 GameWasAnnounced = false;
                 Callback.OnPlayerDrawnSetUpdated(PlayerDrawnCards);
                 Callback.OnPlayerPlayedSetUpdated(PlayerPlayedCards);
+                Callback.OnPlayerTossedSetUpdated(PlayerTossedCards);
                 Callback.OnOpponentPlayedSetUpdated(OpponentPlayedCards);
-                if (GameState.Equals("InProgress"))
+                if (GameState == "InProgress")
                 {
                     Log.Clear();
                 }
-                if (oldGameState.Equals("InProgress"))
+                if (oldGameState == "InProgress")
                 {
                     string json = Utilities.GetStringFromURL(Constants.GameResultURL());
-                    Dictionary<string, JsonElement> gameResult = JsonSerializer.Deserialize< Dictionary<string, JsonElement> >(json);
-                    Log.WriteLine("Game no. {0} Result: {1}", gameResult["GameID"].ToObject<int>(), 
-                        gameResult["LocalPlayerWon"].ToObject<bool>() ? "Win" : "Loss");
+                    if (json != null && Utilities.IsJsonStringValid(json))
+                    {
+                        Dictionary<string, JsonElement> gameResult = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(json);
+                        Log.WriteLine("Game no. {0} Result: {1}", gameResult["GameID"].ToObject<int>(),
+                            gameResult["LocalPlayerWon"].ToObject<bool>() ? "Win" : "Loss");
+                    }
                 }
             }
 
-            if (PlayerName != null && PlayerName.Length > 0 && OpponentName != null && OpponentName.Length > 0)
+            if (!string.IsNullOrEmpty(PlayerName) && !string.IsNullOrEmpty(OpponentName))
             {
-                if (!GameWasAnnounced && PlayerName.Length > 0)
+                if (!GameWasAnnounced && !string.IsNullOrEmpty(PlayerName))
                 {
                     Log.WriteLine("New Game: {0} vs {1}", PlayerName, OpponentName);
                     GameWasAnnounced = true;
                 }
                 List<string> cardsDrawn = new List<string>();
                 List<string> cardsPlayed = new List<string>();
+                List<string> cardsTossed = new List<string>();
                 List<string> opponentCardsPlayed = new List<string>();
-                PlayerTracker.Update(PlayerElements, ScreenWidth, ScreenHeight, cardsDrawn, cardsPlayed);
-                OpponentTracker.Update(OpponentElements, ScreenWidth, ScreenHeight, null, opponentCardsPlayed);
+                PlayerTracker.Update(PlayerElements, ScreenWidth, ScreenHeight, cardsDrawn, cardsPlayed, ShouldTrackTossedCards ? cardsTossed : null);
+                OpponentTracker.Update(OpponentElements, ScreenWidth, ScreenHeight, null, opponentCardsPlayed, null);
 
                 if (AddCardsToSet(PlayerDrawnCards, cardsDrawn))
                 {
@@ -486,6 +542,10 @@ namespace LoRSideTracker
                 if (AddCardsToSet(PlayerPlayedCards, cardsPlayed))
                 {
                     Callback.OnPlayerPlayedSetUpdated(Utilities.Clone(PlayerPlayedCards));
+                }
+                if (AddCardsToSet(PlayerTossedCards, cardsTossed))
+                {
+                    Callback.OnPlayerTossedSetUpdated(Utilities.Clone(PlayerTossedCards));
                 }
                 if (AddCardsToSet(OpponentPlayedCards, opponentCardsPlayed))
                 {

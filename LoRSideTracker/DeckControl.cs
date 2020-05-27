@@ -83,7 +83,7 @@ namespace LoRSideTracker
                 Cards.Add((CardWithCount)card.Clone());
                 Invalidate(GetCardRectangle(Cards.Count - 1));
             }
-            else if (!Cards[index].Code.Equals(card.Code))
+            else if (Cards[index].Code != card.Code)
             {
                 Cards[index] = (CardWithCount)card.Clone();
                 Invalidate(GetCardRectangle(index));
@@ -168,7 +168,7 @@ namespace LoRSideTracker
             // Create font
             TextRenderer.DrawText(g, card.Cost.ToString(), StatsFont, costRect, Color.LightGray, TextFormatFlags.VerticalCenter | TextFormatFlags.HorizontalCenter);
             TextRenderer.DrawText(g, card.Name, CardFont, cardRect, 
-                card.TheCard.SuperType.Equals("Champion") ? Color.Gold : Color.White, 
+                (card.TheCard.SuperType == "Champion") ? Color.Gold : Color.White, 
                 TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis);
             TextRenderer.DrawText(g, "x" + card.Count.ToString(), StatsFont, countRect, Color.LightGray, TextFormatFlags.VerticalCenter | TextFormatFlags.HorizontalCenter);
 
@@ -191,7 +191,7 @@ namespace LoRSideTracker
             Rectangle srcRect;
 
             img = card.CardBanner;
-            if (card.Type.Equals("Spell"))
+            if (card.Type == "Spell")
             {
                 double diagonal = Math.Sqrt(dstRect.Width * dstRect.Width + dstRect.Height * dstRect.Height);
                 double scale = img.Width / diagonal;
