@@ -132,7 +132,7 @@ namespace LoRSideTracker
                 IsActive = json["IsActive"].ToObject<bool>();
                 State = json["State"].ToString();
                 Record = json["Record"].ToObject<string[]>();
-                Cards = LoadDeckFromStringCodeList(json["Deck"].ToObject<string[]>());
+                Cards = Utilities.LoadDeckFromStringCodeList(json["Deck"].ToObject<string[]>());
                 NumberOfGames = json["Games"].ToObject<int>();
                 NumberOfWins = json["Wins"].ToObject<int>();
                 NumberOfLosses = json["Losses"].ToObject<int>();
@@ -158,34 +158,5 @@ namespace LoRSideTracker
             }
         }
 
-        /// <summary>
-        /// Load expedition deck from a string code list
-        /// </summary>
-        /// <param name="cardCodes">List of card codes</param>
-        /// <returns>Deck contents</returns>
-        private List<CardWithCount> LoadDeckFromStringCodeList(string[] cardCodes)
-        {
-            List<CardWithCount> cards = new List<CardWithCount>();
-            if (cardCodes == null)
-            {
-                return cards;
-            }
-            foreach (var cardCode in cardCodes)
-            {
-                int index = cards.FindIndex(item => item.Code.Equals(cardCode));
-                if (index >= 0)
-                {
-                    cards[index].Count++;
-                }
-                else
-                {
-                    Card card = CardLibrary.GetCard(cardCode);
-                    cards.Add(new CardWithCount(card, 1));
-                }
-            }
-            cards = cards.OrderBy(card => card.Cost).ThenBy(card => card.Name).ToList();
-
-            return cards;
-        }
     }
 }

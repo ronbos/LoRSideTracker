@@ -9,6 +9,7 @@ using System.IO.Compression;
 using System.Linq;
 using System.Net;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -32,12 +33,20 @@ namespace LoRSideTracker
         private DeckWindow PlayerPlayedCardsWindow;
         private DeckWindow OpponentPlayedCardsWindow;
 
+        private GameHistoryWindow GameHistory;
+
+        private GameRecord CurrentGameRecord = new GameRecord();
         /// <summary>
         /// Constructor
         /// </summary>
         public MainWindow()
         {
             InitializeComponent();
+
+            if (!Directory.Exists(Constants.GetLocalGamesPath()))
+            {
+                Directory.CreateDirectory(Constants.GetLocalGamesPath());
+            }
         }
 
         /// <summary>
@@ -76,8 +85,13 @@ namespace LoRSideTracker
             if (cards.Count > 0 &&
                 (CurrentExpedition == null || !AreDecksEqual(cards, CurrentExpedition.Cards)))
             {
-                PlayerActiveDeckWindow.Title = string.Format("Constructed Deck");
+                string title = "Constructed Deck";
+                PlayerActiveDeckWindow.Title = string.Format(title);
                 PlayerActiveDeckWindow.SetFullDeck(Utilities.Clone(cards));
+
+                CurrentGameRecord.MyDeck = Utilities.Clone(cards);
+                CurrentGameRecord.Notes = title;
+                CurrentGameRecord.Result = "-";
             }
             else
             {
@@ -98,13 +112,24 @@ namespace LoRSideTracker
                 {
                     bool isEliminationGame = (Array.FindLastIndex(CurrentExpedition.Record, item => item.Equals("win")) < Array.FindLastIndex(CurrentExpedition.Record, item => item.Equals("loss")))
                         || (CurrentExpedition.NumberOfWins == 6);
-                    PlayerActiveDeckWindow.Title = string.Format("Expedition {0}-{1}{2}", CurrentExpedition.NumberOfWins, CurrentExpedition.NumberOfLosses, isEliminationGame ? "*" : "");
+                    string title = string.Format("Expedition {0}-{1}{2}", CurrentExpedition.NumberOfWins, CurrentExpedition.NumberOfLosses, isEliminationGame ? "*" : "");
+                    PlayerActiveDeckWindow.Title = title;
                     PlayerActiveDeckWindow.SetFullDeck(Utilities.Clone(cards));
+
+                    CurrentGameRecord.MyDeck = Utilities.Clone(cards);
+                    CurrentGameRecord.Notes = title;
+                    CurrentGameRecord.Result = "-";
                 }
                 else
                 {
-                    PlayerActiveDeckWindow.Title = "No Active Deck";
+                    string title = "No Active Deck";
+                    PlayerActiveDeckWindow.Title = title;
                     PlayerActiveDeckWindow.SetFullDeck(new List<CardWithCount>());
+
+                    // Don't set game record here due to a race condition with saving
+                    //CurrentGameRecord.MyDeck = new List<CardWithCount>();
+                    //CurrentGameRecord.Notes = title;
+                    //CurrentGameRecord.Result = "-";
                 }
             }
         }
@@ -144,6 +169,48 @@ namespace LoRSideTracker
         public void OnOpponentPlayedSetUpdated(List<CardWithCount> cards)
         {
             OpponentPlayedCardsWindow.SetFullDeck(Utilities.Clone(cards));
+
+            CurrentGameRecord.OpponentDeck = Utilities.Clone(cards);
+            CurrentGameRecord.OpponentName = CurrentOverlay.OpponentName;
+        }
+
+        /// <summary>
+        /// Receives notification that game state was changed
+        /// </summary>
+        /// <param name="oldGameState"></param>
+        /// <param name="newGameState"></param>
+        public void OnGameStateChanged(string oldGameState, string newGameState)
+        {
+            Log.WriteLine("Game state changed from {0} to {1}", oldGameState, newGameState);
+            if (oldGameState == "InProgress")
+            {
+                // Game ended. Grab game result
+                string json = Utilities.GetStringFromURL(Constants.GameResultURL());
+                if (json != null && Utilities.IsJsonStringValid(json))
+                {
+                    Dictionary<string, JsonElement> gameResult = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(json);
+                    CurrentGameRecord.Result = gameResult["LocalPlayerWon"].ToObject<bool>() ? "Win" : "Loss";
+                    Log.WriteLine("Game no. {0} Result: {1}", gameResult["GameID"].ToObject<int>(), CurrentGameRecord.Result);
+                }
+                else
+                {
+                    CurrentGameRecord.Result = "unknown";
+                }
+
+                // Save game record to file
+                CurrentGameRecord.Timestamp = DateTime.Now;
+                string filePath = string.Format(@"{0}\{1}_{2}_{3}_{4}_{5}_{6}.txt", 
+                    Constants.GetLocalGamesPath(),
+                    CurrentGameRecord.Timestamp.Year, 
+                    CurrentGameRecord.Timestamp.Month, 
+                    CurrentGameRecord.Timestamp.Day,
+                    CurrentGameRecord.Timestamp.Hour, 
+                    CurrentGameRecord.Timestamp.Minute, 
+                    CurrentGameRecord.Timestamp.Second);
+                CurrentGameRecord.SaveToFile(filePath);
+                GameHistory.AddGameRecord(CurrentGameRecord);
+            }
+
         }
 
         private void MainWindow_Shown(object sender, EventArgs e)
@@ -161,7 +228,7 @@ namespace LoRSideTracker
             MissingSets = CardLibrary.FindMissingSets();
             if (MissingSets.Count > 0)
             {
-                long totalDownloadSize = MissingSets.Sum(x => x.Item1);
+                long totalDownloadSize = MissingSets.Sum(x => x.Item2);
                 var result = MessageBox.Show(
                     string.Format("Card sets have been updated. Download size is {0} MB. Download new sets?", totalDownloadSize / 1024 / 1024), 
                     "Sets Out of Date", 
@@ -202,7 +269,7 @@ namespace LoRSideTracker
             double bytesIn = double.Parse(e.BytesReceived.ToString());
             double totalBytes = double.Parse(e.TotalBytesToReceive.ToString());
             double percentage = bytesIn / totalBytes * 100;
-            string message = String.Format("Downloading card set {0} ({1}/{2})", MissingSets[CurrentDownloadIndex], CurrentDownloadIndex + 1, MissingSets.Count);
+            string message = String.Format("Downloading card set {0} ({1}/{2})", MissingSets[CurrentDownloadIndex].Item1, CurrentDownloadIndex + 1, MissingSets.Count);
             MyProgressDisplay.Update(message, percentage);
         }
 
@@ -290,6 +357,9 @@ namespace LoRSideTracker
 
             PlayerActiveDeckWindow.HideZeroCountCards = HideZeroCountCheckBox.Checked;
 
+            GameHistory = new GameHistoryWindow();
+            //GameHistory.Show();
+
             CurrentDeck = new StaticDeck(this);
             Thread.Sleep(500);
             CurrentExpedition = new Expedition(this);
@@ -300,6 +370,7 @@ namespace LoRSideTracker
 
             DeckOptionsGroupBox.Visible = true;
             SnapWindowsButton.Visible = true;
+            ShowHistoryButton.Visible = true;
             DebugLogsCheckBox.Visible = true;
             LogTextBox.Visible = true;
         }
@@ -487,6 +558,14 @@ namespace LoRSideTracker
                 PlayerActiveDeckWindow.HideZeroCountCards = HideZeroCountCheckBox.Checked;
                 PlayerActiveDeckWindow.RefreshDeck();
 
+            }
+        }
+
+        private void ShowHistoryButton_Click(object sender, EventArgs e)
+        {
+            if (GameHistory != null)
+            {
+                GameHistory.Show();
             }
         }
     }

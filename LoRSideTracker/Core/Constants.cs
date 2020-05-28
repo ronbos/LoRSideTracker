@@ -124,6 +124,15 @@ namespace LoRSideTracker
         }
 
         /// <summary>
+        /// Produce local games path
+        /// </summary>
+        /// <returns>Local games path</returns>
+        public static string GetLocalGamesPath()
+        {
+            return Application.LocalUserAppDataPath + @"\Games";
+        }
+
+        /// <summary>
         /// Accent color for LoR region
         /// </summary>
         /// <param name="region">region string</param>

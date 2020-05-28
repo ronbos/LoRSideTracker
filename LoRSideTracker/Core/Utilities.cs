@@ -218,5 +218,36 @@ namespace LoRSideTracker
             Bitmap bmpImage = new Bitmap(img);
             return bmpImage.Clone(cropArea, bmpImage.PixelFormat);
         }
+
+        /// <summary>
+        /// Load expedition deck from a string code list
+        /// </summary>
+        /// <param name="cardCodes">List of card codes</param>
+        /// <returns>Deck contents</returns>
+        public static List<CardWithCount> LoadDeckFromStringCodeList(string[] cardCodes)
+        {
+            List<CardWithCount> cards = new List<CardWithCount>();
+            if (cardCodes == null)
+            {
+                return cards;
+            }
+            foreach (var cardCode in cardCodes)
+            {
+                int index = cards.FindIndex(item => item.Code.Equals(cardCode));
+                if (index >= 0)
+                {
+                    cards[index].Count++;
+                }
+                else
+                {
+                    Card card = CardLibrary.GetCard(cardCode);
+                    cards.Add(new CardWithCount(card, 1));
+                }
+            }
+            cards = cards.OrderBy(card => card.Cost).ThenBy(card => card.Name).ToList();
+
+            return cards;
+        }
+
     }
 }

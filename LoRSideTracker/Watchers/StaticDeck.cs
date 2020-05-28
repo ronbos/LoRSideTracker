@@ -69,6 +69,10 @@ namespace LoRSideTracker
                         Cards = Cards.OrderBy(card => card.Cost).ThenBy(card => card.Name).ToList();
                     }
                 }
+                else
+                {
+                    Log.WriteLine("{0} is producing invalid data", Constants.StaticDeckURL());
+                }
             }
             if (Callback != null)
             {

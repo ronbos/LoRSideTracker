@@ -61,8 +61,8 @@ namespace LoRSideTracker
         private void SafeUpdate(string message, double percentage)
         {
             MyLabel.Text = message;
-            MyProgressBar.Increment((int)(0.5 + percentage) - MyProgressBar.Value);
-            //MyProgressBar.Value = 99;// (int)(0.5 + percentage);
+            //MyProgressBar.Increment((int)(0.5 + percentage) - MyProgressBar.Value);
+            //MyProgressBar.Value = (int)(0.5 + percentage);
             //MyProgressBar.Invalidate();
             PercentageLabel.Text = string.Format("{0}%", (int)(0.5 + percentage));
             Application.DoEvents();
