@@ -87,7 +87,7 @@ namespace LoRSideTracker
             {
                 string title = "Constructed Deck";
                 PlayerActiveDeckWindow.Title = string.Format(title);
-                PlayerActiveDeckWindow.SetFullDeck(Utilities.Clone(cards));
+                PlayerActiveDeckWindow.SetFullDeck(cards);
 
                 CurrentGameRecord.MyDeck = Utilities.Clone(cards);
                 CurrentGameRecord.MyDeckName = title;
@@ -188,33 +188,34 @@ namespace LoRSideTracker
             Log.WriteLine("Game state changed from {0} to {1}", oldGameState, newGameState);
             if (oldGameState == "InProgress")
             {
+                GameRecord gameRecord = (GameRecord)CurrentGameRecord.Clone();
                 // Game ended. Grab game result
                 string json = Utilities.GetStringFromURL(Constants.GameResultURL());
                 if (json != null && Utilities.IsJsonStringValid(json))
                 {
                     Dictionary<string, JsonElement> gameResult = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(json);
-                    CurrentGameRecord.Result = gameResult["LocalPlayerWon"].ToObject<bool>() ? "Win" : "Loss";
-                    Log.WriteLine("Game no. {0} Result: {1}", gameResult["GameID"].ToObject<int>(), CurrentGameRecord.Result);
+                    gameRecord.Result = gameResult["LocalPlayerWon"].ToObject<bool>() ? "Win" : "Loss";
+                    Log.WriteLine("Game no. {0} Result: {1}", gameResult["GameID"].ToObject<int>(), gameRecord.Result);
                 }
                 else
                 {
-                    CurrentGameRecord.Result = "unknown";
+                    gameRecord.Result = "unknown";
                 }
 
                 // Save game record to file
-                CurrentGameRecord.Timestamp = DateTime.Now;
+                gameRecord.Timestamp = DateTime.Now;
+                gameRecord.Log = Log.CurrentLogRtf;
                 string filePath = string.Format(@"{0}\{1}_{2}_{3}_{4}_{5}_{6}.txt", 
                     Constants.GetLocalGamesPath(),
-                    CurrentGameRecord.Timestamp.Year, 
-                    CurrentGameRecord.Timestamp.Month, 
-                    CurrentGameRecord.Timestamp.Day,
-                    CurrentGameRecord.Timestamp.Hour, 
-                    CurrentGameRecord.Timestamp.Minute, 
-                    CurrentGameRecord.Timestamp.Second);
-                CurrentGameRecord.SaveToFile(filePath);
-                GameHistory.AddGameRecord(CurrentGameRecord);
+                    gameRecord.Timestamp.Year,
+                    gameRecord.Timestamp.Month,
+                    gameRecord.Timestamp.Day,
+                    gameRecord.Timestamp.Hour,
+                    gameRecord.Timestamp.Minute,
+                    gameRecord.Timestamp.Second);
+                gameRecord.SaveToFile(filePath);
+                GameHistory.AddGameRecord(gameRecord);
             }
-
         }
 
         private void MainWindow_Shown(object sender, EventArgs e)
@@ -326,28 +327,28 @@ namespace LoRSideTracker
             MyProgressDisplay.Hide();
 
             PlayerActiveDeckWindow = new DeckWindow();
+            PlayerActiveDeckWindow.CreateControl();
             PlayerActiveDeckWindow.Title = "No Active Deck";
             PlayerActiveDeckWindow.ShouldShowDeckStats = DeckStatsCheckBox.Checked;
-            PlayerActiveDeckWindow.Show();
-            if (!PlayerDeckCheckBox.Checked) PlayerActiveDeckWindow.Hide();
+            if (PlayerDeckCheckBox.Checked) PlayerActiveDeckWindow.Show();
 
             PlayerDrawnCardsWindow = new DeckWindow();
+            PlayerDrawnCardsWindow.CreateControl();
             PlayerDrawnCardsWindow.Title = "Cards Drawn";
             PlayerDrawnCardsWindow.ShouldShowDeckStats = DeckStatsCheckBox.Checked;
-            PlayerDrawnCardsWindow.Show();
-            if (!PlayerDrawnCheckBox.Checked) PlayerDrawnCardsWindow.Hide();
+            if (PlayerDrawnCheckBox.Checked) PlayerDrawnCardsWindow.Show();
 
             PlayerPlayedCardsWindow = new DeckWindow();
+            PlayerPlayedCardsWindow.CreateControl();
             PlayerPlayedCardsWindow.Title = "You Played";
             PlayerPlayedCardsWindow.ShouldShowDeckStats = DeckStatsCheckBox.Checked;
-            PlayerPlayedCardsWindow.Show();
-            if (!PlayerPlayedCheckBox.Checked) PlayerPlayedCardsWindow.Hide();
+            if (PlayerPlayedCheckBox.Checked) PlayerPlayedCardsWindow.Show();
 
             OpponentPlayedCardsWindow = new DeckWindow();
+            OpponentPlayedCardsWindow.CreateControl();
             OpponentPlayedCardsWindow.Title = "Opponent Played";
             OpponentPlayedCardsWindow.ShouldShowDeckStats = DeckStatsCheckBox.Checked;
-            OpponentPlayedCardsWindow.Show();
-            if (!OpponentPlayedCheckBox.Checked) OpponentPlayedCardsWindow.Hide();
+            if (OpponentPlayedCheckBox.Checked) OpponentPlayedCardsWindow.Show();
 
             PlayerActiveDeckWindow.SetBounds(Properties.Settings.Default.PlayerDeckLocation.X, Properties.Settings.Default.PlayerDeckLocation.Y, 0, 0, BoundsSpecified.Location);
             PlayerDrawnCardsWindow.SetBounds(Properties.Settings.Default.PlayerDrawnCardsLocation.X, Properties.Settings.Default.PlayerDrawnCardsLocation.Y, 0, 0, BoundsSpecified.Location);
@@ -362,6 +363,7 @@ namespace LoRSideTracker
             PlayerActiveDeckWindow.HideZeroCountCards = HideZeroCountCheckBox.Checked;
 
             GameHistory = new GameHistoryWindow();
+            GameHistory.CreateControl();
             if (Properties.Settings.Default.GameHistoryWindowBounds.Width > 0)
             {
                 GameHistory.StartPosition = FormStartPosition.Manual;

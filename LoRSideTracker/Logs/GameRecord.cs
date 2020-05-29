@@ -22,6 +22,7 @@ namespace LoRSideTracker
         public string Result { get; set; }
         public string Notes { get; set; }
         public DateTime Timestamp { get; set; }
+        public string Log { get; set; }
 
         public GameRecord()
         {
@@ -52,6 +53,7 @@ namespace LoRSideTracker
             result.Result = gameRecord["Result"].ToString();
             result.Notes = gameRecord["Notes"].ToString();
             result.Timestamp = gameRecord["Timestamp"].ToObject<DateTime>();
+            result.Log = gameRecord["Log"].ToString();
             return result;
         }
 
@@ -67,6 +69,7 @@ namespace LoRSideTracker
         /// <param name="result"></param>
         /// <param name="notes"></param>
         /// <param name="timestamp"></param>
+        /// <param name="log"></param>
         public static void SaveToFile(
             string path,
             string myDeckName,
@@ -76,7 +79,8 @@ namespace LoRSideTracker
             List<CardWithCount> opponentDeck, 
             string result, 
             string notes,
-            DateTime timestamp)
+            DateTime timestamp,
+            string log)
         {
             int myDeckSize = myDeck.Sum(x => x.Count);
             int opponentDeckSize = opponentDeck.Sum(x => x.Count);
@@ -110,7 +114,8 @@ namespace LoRSideTracker
                 OpponentDeck = opponentDeckList,
                 Result = result,
                 Notes = notes,
-                Timestamp = timestamp
+                Timestamp = timestamp,
+                Log = log
             });
             File.WriteAllText(path, json);
         }
@@ -126,7 +131,7 @@ namespace LoRSideTracker
         /// <param name="path">file path</param>
         public void SaveToFile(string path)
         {
-            GameRecord.SaveToFile(path, MyDeckName, MyDeckCode, MyDeck, OpponentName, OpponentDeck, Result, Notes, Timestamp);
+            GameRecord.SaveToFile(path, MyDeckName, MyDeckCode, MyDeck, OpponentName, OpponentDeck, Result, Notes, Timestamp, Log);
         }
 
         /// <summary>
@@ -159,6 +164,10 @@ namespace LoRSideTracker
             if (propertyName == "Timestamp")
             {
                 return Timestamp.ToLocalTime().ToString();
+            }
+            if (propertyName == "Log")
+            {
+                return Log;
             }
 
             return string.Empty;

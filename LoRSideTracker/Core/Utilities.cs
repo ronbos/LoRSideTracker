@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text.Json;
+using System.Threading;
 using System.Windows.Forms;
 
 namespace LoRSideTracker
@@ -249,5 +250,21 @@ namespace LoRSideTracker
             return cards;
         }
 
+        public static void CallActionSafelyAndWait(Control control, Action action)
+        {
+            if (control.InvokeRequired)
+            {
+                bool done = false;
+                control.Invoke(new Action(() => { action.Invoke(); done = true; }));
+                while (!done)
+                {
+                    Thread.Yield();
+                }
+            }
+            else
+            {
+                action.Invoke();
+            }
+        }
     }
 }

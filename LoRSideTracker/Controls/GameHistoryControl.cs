@@ -99,6 +99,27 @@ namespace LoRSideTracker
             GameTextRectangles.Add(titleTextRects);
 
             InitializeComponent();
+
+            // Load all games
+            Games = new List<GameRecord>();
+            if (Directory.Exists(Constants.GetLocalGamesPath()))
+            {
+                DirectoryInfo dirInfo = new DirectoryInfo(Constants.GetLocalGamesPath());
+                FileInfo[] files = dirInfo.GetFiles();
+
+                foreach (FileInfo fi in files.OrderBy(x => x.CreationTime))
+                {
+                    try
+                    {
+                        AddGameRecord(GameRecord.LoadFromFile(fi.FullName), false);
+                    }
+                    catch
+                    {
+                        // Skip bad records
+                    }
+                }
+            }
+
         }
 
         /// <summary>
@@ -137,25 +158,6 @@ namespace LoRSideTracker
         /// <param name="e"></param>
         private void GameHistoryControl_Load(object sender, EventArgs e)
         {
-            // Load all games
-            Games = new List<GameRecord>();
-            if (Directory.Exists(Constants.GetLocalGamesPath()))
-            {
-                DirectoryInfo dirInfo = new DirectoryInfo(Constants.GetLocalGamesPath());
-                FileInfo[] files = dirInfo.GetFiles();
-                
-                foreach (FileInfo fi in files.OrderBy(x => x.CreationTime))
-                {
-                    try
-                    {
-                        AddGameRecord(GameRecord.LoadFromFile(fi.FullName), false);
-                    }
-                    catch
-                    {
-                        // Skip bad records
-                    }
-                }
-            }
             PopupDeckWindow = new DeckWindow();
             PopupDeckWindow.ShouldHideOnMouseLeave = true;
             PopupDeckWindow.StartPosition = FormStartPosition.Manual;

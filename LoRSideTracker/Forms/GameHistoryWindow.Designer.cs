@@ -35,7 +35,7 @@
             // 
             this.MyGameHistoryControl.Location = new System.Drawing.Point(0, 0);
             this.MyGameHistoryControl.Name = "MyGameHistoryControl";
-            this.MyGameHistoryControl.Size = new System.Drawing.Size(780, 331);
+            this.MyGameHistoryControl.Size = new System.Drawing.Size(686, 331);
             this.MyGameHistoryControl.TabIndex = 0;
             // 
             // GameHistoryWindow

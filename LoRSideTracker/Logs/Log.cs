@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -35,6 +36,24 @@ namespace LoRSideTracker
         public static bool ShowDebugLog { get; set; } = false;
 
         public static bool IgnoreDebugVerboseLog { get; set; } = false;
+
+        public static string CurrentLogText
+        {
+            get { return LogTextBox == null ? string.Empty : LogTextBox.Text; }
+        }
+
+        public static string CurrentLogRtf
+        {
+            get
+            {
+                string result = string.Empty;
+                if (LogTextBox != null)
+                {
+                    Utilities.CallActionSafelyAndWait(LogTextBox, new Action(() => { result = LogTextBox.Rtf; }));
+                }
+                return result;
+            }
+        }
 
         /// <summary>
         /// Set the RichTextBox to use for logging

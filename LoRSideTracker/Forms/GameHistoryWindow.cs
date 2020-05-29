@@ -22,7 +22,15 @@ namespace LoRSideTracker
         public void AddGameRecord(GameRecord gr)
         {
             MyGameHistoryControl.AddGameRecord(gr);
-            this.Invoke(new Action(() =>{ MyGameHistoryControl.SetBounds(0, 0, MyGameHistoryControl.BestWidth, MyGameHistoryControl.BestHeight); }));
+            if (MyGameHistoryControl.InvokeRequired)
+            {
+                MyGameHistoryControl.Invoke(new Action(() => { MyGameHistoryControl.SetBounds(0, 0, MyGameHistoryControl.BestWidth, MyGameHistoryControl.BestHeight); }));
+            }
+            else
+            {
+                MyGameHistoryControl.SetBounds(0, 0, MyGameHistoryControl.BestWidth, MyGameHistoryControl.BestHeight);
+
+            }
         }
 
         private void GameHistory_Load(object sender, EventArgs e)

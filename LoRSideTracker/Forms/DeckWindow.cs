@@ -20,8 +20,6 @@ namespace LoRSideTracker
         private List<CardWithCount> TossedCards = new List<CardWithCount>();
         private List<CardWithCount> RemainingCards = new List<CardWithCount>();
 
-        private delegate void UpdateDeckSafeDelegate(List<CardWithCount> allCards, List<CardWithCount> drawnCards, List<CardWithCount> tossedCards);
-
         /// <summary>Are cards with zero count shown?</summary>
         public bool HideZeroCountCards { get; set; } = false;
 
@@ -51,15 +49,8 @@ namespace LoRSideTracker
         /// <param name="allCards">Deck contents</param>
         public void SetFullDeck(List<CardWithCount> allCards)
         {
-            if (this.InvokeRequired)
-            {
-                var d = new UpdateDeckSafeDelegate(UpdateDeckSafe);
-                this.Invoke(d, new object[] { Utilities.Clone(allCards), Utilities.Clone(DrawnCards), Utilities.Clone(TossedCards) });
-            }
-            else
-            {
-                UpdateDeckSafe(allCards, DrawnCards, TossedCards);
-            }
+            AllCards = Utilities.Clone(allCards);
+            UpdateDeck();
         }
 
         /// <summary>
@@ -68,15 +59,8 @@ namespace LoRSideTracker
         /// <param name="drawnCards">Set of drawn cards</param>
         public void SetDrawnCards(List<CardWithCount> drawnCards)
         {
-            if (this.InvokeRequired)
-            {
-                var d = new UpdateDeckSafeDelegate(UpdateDeckSafe);
-                this.Invoke(d, new object[] { Utilities.Clone(AllCards), Utilities.Clone(drawnCards) , Utilities.Clone(TossedCards)});
-            }
-            else
-            {
-                UpdateDeckSafe(AllCards, Utilities.Clone(drawnCards), TossedCards);
-            }
+            DrawnCards = Utilities.Clone(drawnCards);
+            UpdateDeck();
         }
 
         /// <summary>
@@ -85,15 +69,8 @@ namespace LoRSideTracker
         /// <param name="tossedCards">Set of drawn cards</param>
         public void SetTossedCards(List<CardWithCount> tossedCards)
         {
-            if (this.InvokeRequired)
-            {
-                var d = new UpdateDeckSafeDelegate(UpdateDeckSafe);
-                this.Invoke(d, new object[] { Utilities.Clone(AllCards), Utilities.Clone(DrawnCards), Utilities.Clone(tossedCards) });
-            }
-            else
-            {
-                UpdateDeckSafe(AllCards, DrawnCards, Utilities.Clone(tossedCards));
-            }
+            TossedCards = Utilities.Clone(tossedCards);
+            UpdateDeck();
         }
 
         /// <summary>
@@ -103,50 +80,48 @@ namespace LoRSideTracker
         {
             if (this.InvokeRequired)
             {
-                var d = new UpdateDeckSafeDelegate(UpdateDeckSafe);
-                this.Invoke(d, new object[] { Utilities.Clone(AllCards), Utilities.Clone(DrawnCards), Utilities.Clone(TossedCards) });
+                Invoke(new Action(() => { RefreshDeckSafe(); }));
             }
             else
             {
-                UpdateDeckSafe(AllCards, DrawnCards, TossedCards);
+                RefreshDeckSafe();
             }
+        }
+
+        private void UpdateDeck()
+        {
+            List<CardWithCount> remainingCards = Utilities.Clone(AllCards);
+            foreach (var card in DrawnCards)
+            {
+                int index = remainingCards.FindIndex(item => item.Code.Equals(card.Code));
+                if (index >= 0)
+                {
+                    remainingCards[index].Count -= card.Count;
+                }
+            }
+            foreach (var card in TossedCards)
+            {
+                int index = remainingCards.FindIndex(item => item.Code.Equals(card.Code));
+                if (index >= 0)
+                {
+                    remainingCards[index].Count -= card.Count;
+                }
+            }
+
+            RemainingCards = Utilities.Clone(remainingCards);
+
+            RefreshDeck();
         }
 
         /// <summary>
         /// Safely update full deck and drawn cards contents, and redraw the set of displayed cards
         /// </summary>
-        /// <param name="allCards"></param>
-        /// <param name="drawnCards"></param>
-        /// <param name="tossedCards"></param>
-        private void UpdateDeckSafe(List<CardWithCount> allCards, List<CardWithCount> drawnCards, List<CardWithCount> tossedCards)
+        private void RefreshDeckSafe()
         {
-            List<CardWithCount> remainingCards = Utilities.Clone(allCards);
-            foreach (var card in drawnCards)
-            {
-                int index = remainingCards.FindIndex(item => item.Code.Equals(card.Code));
-                if (index >= 0)
-                {
-                    remainingCards[index].Count -= card.Count;
-                }
-            }
-            foreach (var card in tossedCards)
-            {
-                int index = remainingCards.FindIndex(item => item.Code.Equals(card.Code));
-                if (index >= 0)
-                {
-                    remainingCards[index].Count -= card.Count;
-                }
-            }
-
             if (AllCards.Count == 0)
             {
                 MyDeckControl.IsMinimized = false;
             }
-
-            AllCards = Utilities.Clone(allCards);
-            DrawnCards = Utilities.Clone(drawnCards);
-            TossedCards = Utilities.Clone(tossedCards);
-            RemainingCards = Utilities.Clone(remainingCards);
 
             MyDeckControl.ClearDeck();
             int nextCard = 0;
