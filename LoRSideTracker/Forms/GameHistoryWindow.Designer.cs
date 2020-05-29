@@ -46,7 +46,9 @@
             this.BackColor = System.Drawing.Color.White;
             this.ClientSize = new System.Drawing.Size(687, 450);
             this.Controls.Add(this.MyGameHistoryControl);
+            this.MinimumSize = new System.Drawing.Size(400, 200);
             this.Name = "GameHistoryWindow";
+            this.ShowIcon = false;
             this.Text = "Game History";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.GameHistoryWindow_FormClosing);
             this.Load += new System.EventHandler(this.GameHistory_Load);

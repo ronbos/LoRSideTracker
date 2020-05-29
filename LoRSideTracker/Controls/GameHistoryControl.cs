@@ -143,7 +143,8 @@ namespace LoRSideTracker
             {
                 DirectoryInfo dirInfo = new DirectoryInfo(Constants.GetLocalGamesPath());
                 FileInfo[] files = dirInfo.GetFiles();
-                foreach (FileInfo fi in files)
+                
+                foreach (FileInfo fi in files.OrderBy(x => x.CreationTime))
                 {
                     try
                     {
@@ -156,11 +157,9 @@ namespace LoRSideTracker
                 }
             }
             PopupDeckWindow = new DeckWindow();
-            //PopupDeckWindow.TopMost = false;
             PopupDeckWindow.ShouldHideOnMouseLeave = true;
-            PopupDeckWindow.SetBounds(0, 0, 0, 0);
-            PopupDeckWindow.Show();
-            PopupDeckWindow.Hide();
+            PopupDeckWindow.StartPosition = FormStartPosition.Manual;
+
         }
 
         private void GameHistoryControl_Paint(object sender, PaintEventArgs e)

@@ -40,8 +40,8 @@
             this.HideZeroCountCheckBox = new System.Windows.Forms.CheckBox();
             this.PlayerDrawnCheckBox = new System.Windows.Forms.CheckBox();
             this.PlayerDeckCheckBox = new System.Windows.Forms.CheckBox();
-            this.MyProgressDisplay = new LoRSideTracker.ProgressDisplayControl();
             this.ShowHistoryButton = new System.Windows.Forms.Button();
+            this.MyProgressDisplay = new LoRSideTracker.ProgressDisplayControl();
             this.DeckOptionsGroupBox.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.TransparencyTrackBar)).BeginInit();
             this.SuspendLayout();
@@ -51,6 +51,7 @@
             this.LogTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.LogTextBox.BackColor = System.Drawing.Color.White;
             this.LogTextBox.Location = new System.Drawing.Point(12, 12);
             this.LogTextBox.Name = "LogTextBox";
             this.LogTextBox.ReadOnly = true;
@@ -186,17 +187,6 @@
             this.PlayerDeckCheckBox.UseVisualStyleBackColor = true;
             this.PlayerDeckCheckBox.CheckedChanged += new System.EventHandler(this.PlayerDeckCheckBox_CheckedChanged);
             // 
-            // MyProgressDisplay
-            // 
-            this.MyProgressDisplay.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.MyProgressDisplay.Location = new System.Drawing.Point(135, 53);
-            this.MyProgressDisplay.MaximumSize = new System.Drawing.Size(360, 120);
-            this.MyProgressDisplay.MinimumSize = new System.Drawing.Size(360, 120);
-            this.MyProgressDisplay.Name = "MyProgressDisplay";
-            this.MyProgressDisplay.Size = new System.Drawing.Size(360, 120);
-            this.MyProgressDisplay.TabIndex = 1;
-            this.MyProgressDisplay.Visible = false;
-            // 
             // ShowHistoryButton
             // 
             this.ShowHistoryButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
@@ -209,10 +199,22 @@
             this.ShowHistoryButton.Visible = false;
             this.ShowHistoryButton.Click += new System.EventHandler(this.ShowHistoryButton_Click);
             // 
+            // MyProgressDisplay
+            // 
+            this.MyProgressDisplay.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.MyProgressDisplay.Location = new System.Drawing.Point(135, 53);
+            this.MyProgressDisplay.MaximumSize = new System.Drawing.Size(360, 120);
+            this.MyProgressDisplay.MinimumSize = new System.Drawing.Size(360, 120);
+            this.MyProgressDisplay.Name = "MyProgressDisplay";
+            this.MyProgressDisplay.Size = new System.Drawing.Size(360, 120);
+            this.MyProgressDisplay.TabIndex = 1;
+            this.MyProgressDisplay.Visible = false;
+            // 
             // MainWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.BackColor = System.Drawing.Color.White;
             this.ClientSize = new System.Drawing.Size(728, 279);
             this.Controls.Add(this.MyProgressDisplay);
             this.Controls.Add(this.DeckOptionsGroupBox);
