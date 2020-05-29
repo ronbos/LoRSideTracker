@@ -37,6 +37,8 @@
             this.Name = "GameHistoryControl";
             this.Load += new System.EventHandler(this.GameHistoryControl_Load);
             this.Paint += new System.Windows.Forms.PaintEventHandler(this.GameHistoryControl_Paint);
+            this.MouseLeave += new System.EventHandler(this.GameHistoryControl_MouseLeave);
+            this.MouseMove += new System.Windows.Forms.MouseEventHandler(this.GameHistoryControl_MouseMove);
             this.ResumeLayout(false);
 
         }

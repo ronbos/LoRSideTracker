@@ -202,5 +202,17 @@ namespace LoRSideTracker.Properties {
                 this["HideZeroCountInDeck"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0, 0, 0, 0")]
+        public global::System.Drawing.Rectangle GameHistoryWindowBounds {
+            get {
+                return ((global::System.Drawing.Rectangle)(this["GameHistoryWindowBounds"]));
+            }
+            set {
+                this["GameHistoryWindowBounds"] = value;
+            }
+        }
     }
 }

@@ -46,7 +46,7 @@ namespace LoRSideTracker
         /// Receives updates that expedition deck changed
         /// </summary>
         /// <param name="Cards"></param>
-        void OnExpeditionDeckUpdated(List<CardWithCount> Cards);
+        void OnExpeditionDeckUpdated(List<CardWithCount> Cards, string deckCode);
     }
 
     /// <summary>
@@ -154,7 +154,7 @@ namespace LoRSideTracker
 
             if (Callback != null)
             {
-                Callback.OnExpeditionDeckUpdated(Cards);
+                Callback.OnExpeditionDeckUpdated(Cards, "");
             }
         }
 

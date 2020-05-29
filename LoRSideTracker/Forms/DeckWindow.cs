@@ -22,9 +22,6 @@ namespace LoRSideTracker
 
         private delegate void UpdateDeckSafeDelegate(List<CardWithCount> allCards, List<CardWithCount> drawnCards, List<CardWithCount> tossedCards);
 
-        /// <summary>If true, window is hidden when empty</summary>
-        public bool ShouldHideWhenEmpty { get; set; } = false;
-
         /// <summary>Are cards with zero count shown?</summary>
         public bool HideZeroCountCards { get; set; } = false;
 
@@ -36,6 +33,9 @@ namespace LoRSideTracker
             get { return MyDeckControl != null ? MyDeckControl.Title : string.Empty; }
             set { MyDeckControl.Title = value; MyDeckControl.Invalidate(new Rectangle(0, 0, MyDeckControl.Width, MyDeckControl.TopBorderSize));  }
         }
+
+        public bool ShouldHideOnMouseLeave { get; set; } = false;
+
 
         /// <summary>
         /// Constructor
@@ -161,12 +161,6 @@ namespace LoRSideTracker
             MyDeckStatsDisplay.TheDeck = RemainingCards;
             MyDeckStatsDisplay.Invalidate();
             FixMySize();
-
-            if (RemainingCards.Count == 0)
-            {
-                if (ShouldHideWhenEmpty) Hide();
-                return;
-            }
         }
 
         /// <summary>
@@ -268,6 +262,23 @@ namespace LoRSideTracker
                     ReleaseCapture();
                     SendMessage(Handle, WM_NCLBUTTONDOWN, HT_CAPTION, 0);
                 }
+            }
+        }
+
+        private void DeckWindow_MouseLeave(object sender, EventArgs e)
+        {
+            if (ShouldHideOnMouseLeave)
+            {
+                Hide();
+            }
+        }
+
+        private void MyDeckControl_MouseLeave(object sender, EventArgs e)
+        {
+            //MyDeckControl.HighlightCard(-1);
+            if (ShouldHideOnMouseLeave)
+            {
+                Hide();
             }
         }
     }

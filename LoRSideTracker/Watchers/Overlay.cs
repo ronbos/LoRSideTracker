@@ -521,7 +521,7 @@ namespace LoRSideTracker
                 PlayerName = currentOverlay["PlayerName"].GetString();
                 OpponentName = currentOverlay["OpponentName"].GetString();
                 GameState = currentOverlay["GameState"].GetString();
-                if (GameState == null) GameState = "Unknown";
+                if (GameState == null) GameState = oldGameState;
                 PlayerElements = new List<OverlayElement>();
                 OpponentElements = new List<OverlayElement>();
 

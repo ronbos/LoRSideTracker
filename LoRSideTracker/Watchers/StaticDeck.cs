@@ -15,7 +15,7 @@ namespace LoRSideTracker
         /// Callback called when static deck has changed
         /// </summary>
         /// <param name="Cards">Updated set</param>
-        void OnDeckUpdated(List<CardWithCount> Cards);
+        void OnDeckUpdated(List<CardWithCount> Cards, string deckCode);
     }
 
     /// <summary>
@@ -50,12 +50,14 @@ namespace LoRSideTracker
         public void OnWebStringUpdated(string newValue)
         {
             Cards = new List<CardWithCount>();
+            string deckCode = "";
             if (Utilities.IsJsonStringValid(newValue))
             {
                 // Load deck from JSON
                 Dictionary<string, JsonElement> deck = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(newValue);
                 if (deck != null)
                 {
+                    deckCode = deck["DeckCode"].ToString();
                     var deckList = deck["CardsInDeck"].ToObject<Dictionary<string, JsonElement>>();
                     if (deckList != null)
                     {
@@ -76,7 +78,7 @@ namespace LoRSideTracker
             }
             if (Callback != null)
             {
-                Callback.OnDeckUpdated(Cards);
+                Callback.OnDeckUpdated(Cards, deckCode);
             }
         }
     }

@@ -44,7 +44,7 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoScroll = true;
             this.BackColor = System.Drawing.Color.White;
-            this.ClientSize = new System.Drawing.Size(800, 450);
+            this.ClientSize = new System.Drawing.Size(687, 450);
             this.Controls.Add(this.MyGameHistoryControl);
             this.Name = "GameHistoryWindow";
             this.Text = "Game History";

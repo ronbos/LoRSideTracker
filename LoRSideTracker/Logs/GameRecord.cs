@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -13,14 +14,14 @@ namespace LoRSideTracker
     /// </summary>
     public class GameRecord : ICloneable
     {
-        public string MyDeckName;
-        public string MyDeckCode;
+        public string MyDeckName { get; set; }
+        public string MyDeckCode { get; set; }
         public List<CardWithCount> MyDeck = new List<CardWithCount>();
-        public string OpponentName;
+        public string OpponentName { get; set; }
         public List<CardWithCount> OpponentDeck = new List<CardWithCount>();
-        public string Result;
-        public string Notes;
-        public DateTime Timestamp;
+        public string Result { get; set; }
+        public string Notes { get; set; }
+        public DateTime Timestamp { get; set; }
 
         public GameRecord()
         {
@@ -126,6 +127,41 @@ namespace LoRSideTracker
         public void SaveToFile(string path)
         {
             GameRecord.SaveToFile(path, MyDeckName, MyDeckCode, MyDeck, OpponentName, OpponentDeck, Result, Notes, Timestamp);
+        }
+
+        /// <summary>
+        /// Read property display string
+        /// </summary>
+        /// <param name="propertyName">Propert name</param>
+        /// <returns></returns>
+        public string ReadPropertyAsString(string propertyName)
+        {
+            if (propertyName == "MyDeckName")
+            {
+                return MyDeckName;
+            }
+            if (propertyName == "TimeMyDeckCodestamp")
+            {
+                return MyDeckCode;
+            }
+            if (propertyName == "OpponentName")
+            {
+                return OpponentName;
+            }
+            if (propertyName == "Result")
+            {
+                return Result;
+            }
+            if (propertyName == "Notes")
+            {
+                return Notes;
+            }
+            if (propertyName == "Timestamp")
+            {
+                return Timestamp.ToLocalTime().ToString();
+            }
+
+            return string.Empty;
         }
     }
 }

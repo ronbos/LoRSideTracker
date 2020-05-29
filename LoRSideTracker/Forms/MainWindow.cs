@@ -80,7 +80,7 @@ namespace LoRSideTracker
         /// Receives notification that static deck was updated
         /// </summary>
         /// <param name="cards">Updated set</param>
-        public void OnDeckUpdated(List<CardWithCount> cards)
+        public void OnDeckUpdated(List<CardWithCount> cards, string deckCode)
         {
             if (cards.Count > 0 &&
                 (CurrentExpedition == null || !AreDecksEqual(cards, CurrentExpedition.Cards)))
@@ -90,13 +90,15 @@ namespace LoRSideTracker
                 PlayerActiveDeckWindow.SetFullDeck(Utilities.Clone(cards));
 
                 CurrentGameRecord.MyDeck = Utilities.Clone(cards);
-                CurrentGameRecord.Notes = title;
+                CurrentGameRecord.MyDeckName = title;
+                CurrentGameRecord.MyDeckCode = deckCode;
+                CurrentGameRecord.Notes = "";
                 CurrentGameRecord.Result = "-";
             }
             else
             {
                 // No active static deck -- show expedition deck or no deck
-                OnExpeditionDeckUpdated((CurrentExpedition != null) ? CurrentExpedition.Cards : new List<CardWithCount>());
+                OnExpeditionDeckUpdated((CurrentExpedition != null) ? CurrentExpedition.Cards : new List<CardWithCount>(), "");
             }
         }
 
@@ -104,7 +106,7 @@ namespace LoRSideTracker
         /// Receives notification that expedition deck was updated
         /// </summary>
         /// <param name="cards">Updated set</param>
-        public void OnExpeditionDeckUpdated(List<CardWithCount> cards)
+        public void OnExpeditionDeckUpdated(List<CardWithCount> cards, string deckCode)
         {
             if (CurrentDeck.Cards.Count == 0 || AreDecksEqual(CurrentDeck.Cards, cards))
             {
@@ -117,7 +119,9 @@ namespace LoRSideTracker
                     PlayerActiveDeckWindow.SetFullDeck(Utilities.Clone(cards));
 
                     CurrentGameRecord.MyDeck = Utilities.Clone(cards);
-                    CurrentGameRecord.Notes = title;
+                    CurrentGameRecord.MyDeckName = title;
+                    CurrentGameRecord.MyDeckCode = deckCode;
+                    CurrentGameRecord.Notes = "";
                     CurrentGameRecord.Result = "-";
                 }
                 else
@@ -358,7 +362,16 @@ namespace LoRSideTracker
             PlayerActiveDeckWindow.HideZeroCountCards = HideZeroCountCheckBox.Checked;
 
             GameHistory = new GameHistoryWindow();
-            //GameHistory.Show();
+            if (Properties.Settings.Default.GameHistoryWindowBounds.Width > 0)
+            {
+                GameHistory.StartPosition = FormStartPosition.Manual;
+                GameHistory.SetBounds(
+                    Properties.Settings.Default.GameHistoryWindowBounds.X,
+                    Properties.Settings.Default.GameHistoryWindowBounds.Y,
+                    Properties.Settings.Default.GameHistoryWindowBounds.Width,
+                    Properties.Settings.Default.GameHistoryWindowBounds.Height,
+                    BoundsSpecified.All);
+            }
 
             CurrentDeck = new StaticDeck(this);
             Thread.Sleep(500);
@@ -465,6 +478,16 @@ namespace LoRSideTracker
             Properties.Settings.Default.ShowDeckStats = DeckStatsCheckBox.Checked;
             Properties.Settings.Default.DeckTransparency = TransparencyTrackBar.Value;
 
+            if (GameHistory.WindowState == FormWindowState.Normal)
+            {
+                // save location and size if the state is normal
+                Properties.Settings.Default.GameHistoryWindowBounds = GameHistory.Bounds;
+            }
+            else
+            {
+                // save the RestoreBounds if the form is minimized or maximized!
+                Properties.Settings.Default.GameHistoryWindowBounds = GameHistory.RestoreBounds;
+            }
             if (PlayerActiveDeckWindow != null) Properties.Settings.Default.PlayerDeckLocation = PlayerActiveDeckWindow.Location;
             if (PlayerDrawnCardsWindow != null) Properties.Settings.Default.PlayerDrawnCardsLocation = PlayerDrawnCardsWindow.Location;
             if (PlayerPlayedCardsWindow != null) Properties.Settings.Default.PlayerPlayedCardsLocation = PlayerPlayedCardsWindow.Location;

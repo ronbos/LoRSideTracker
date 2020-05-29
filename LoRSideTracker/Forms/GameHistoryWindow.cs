@@ -16,12 +16,13 @@ namespace LoRSideTracker
         public GameHistoryWindow()
         {
             InitializeComponent();
+
         }
 
         public void AddGameRecord(GameRecord gr)
         {
             MyGameHistoryControl.AddGameRecord(gr);
-            MyGameHistoryControl.SetBounds(0, 0, MyGameHistoryControl.BestWidth, MyGameHistoryControl.BestHeight);
+            this.Invoke(new Action(() =>{ MyGameHistoryControl.SetBounds(0, 0, MyGameHistoryControl.BestWidth, MyGameHistoryControl.BestHeight); }));
         }
 
         private void GameHistory_Load(object sender, EventArgs e)
@@ -40,6 +41,19 @@ namespace LoRSideTracker
                 e.Cancel = true;
                 Hide();
             }
+        }
+
+        /// <summary>
+        /// Code from here: https://nickstips.wordpress.com/2010/03/03/c-panel-resets-scroll-position-after-focus-is-lost-and-regained/
+        /// To prevent scrollbar from snapping back to position zero
+        /// </summary>
+        /// <param name="activeControl"></param>
+        /// <returns></returns>
+        protected override System.Drawing.Point ScrollToControl(System.Windows.Forms.Control activeControl)
+        {
+            // Returning the current location prevents the panel from
+            // scrolling to the active control when the panel loses and regains focus
+            return this.DisplayRectangle.Location;
         }
     }
 }

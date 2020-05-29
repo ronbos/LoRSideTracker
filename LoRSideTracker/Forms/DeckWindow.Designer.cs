@@ -28,9 +28,22 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.MyDeckControl = new LoRSideTracker.DeckControl();
             this.MyDeckStatsDisplay = new LoRSideTracker.DeckStatsDisplay();
+            this.MyDeckControl = new LoRSideTracker.DeckControl();
             this.SuspendLayout();
+            // 
+            // MyDeckStatsDisplay
+            // 
+            this.MyDeckStatsDisplay.BlockHeight = 4;
+            this.MyDeckStatsDisplay.BlockWidth = 7;
+            this.MyDeckStatsDisplay.Location = new System.Drawing.Point(0, 156);
+            this.MyDeckStatsDisplay.Name = "MyDeckStatsDisplay";
+            this.MyDeckStatsDisplay.Size = new System.Drawing.Size(150, 150);
+            this.MyDeckStatsDisplay.SpellColor = System.Drawing.Color.MediumSeaGreen;
+            this.MyDeckStatsDisplay.TabIndex = 1;
+            this.MyDeckStatsDisplay.TextColor = System.Drawing.Color.White;
+            this.MyDeckStatsDisplay.TheDeck = null;
+            this.MyDeckStatsDisplay.UnitColor = System.Drawing.Color.RoyalBlue;
             // 
             // MyDeckControl
             // 
@@ -41,14 +54,7 @@
             this.MyDeckControl.TabIndex = 0;
             this.MyDeckControl.Title = null;
             this.MyDeckControl.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MyDeckControl_MouseDown);
-            // 
-            // MyDeckStatsDisplay
-            // 
-            this.MyDeckStatsDisplay.Location = new System.Drawing.Point(0, 156);
-            this.MyDeckStatsDisplay.Name = "MyDeckStatsDisplay";
-            this.MyDeckStatsDisplay.Size = new System.Drawing.Size(150, 150);
-            this.MyDeckStatsDisplay.TabIndex = 1;
-            this.MyDeckStatsDisplay.TheDeck = null;
+            this.MyDeckControl.MouseLeave += new System.EventHandler(this.MyDeckControl_MouseLeave);
             // 
             // DeckWindow
             // 
@@ -59,9 +65,11 @@
             this.Controls.Add(this.MyDeckControl);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
             this.Name = "DeckWindow";
+            this.ShowInTaskbar = false;
             this.Text = "Deck Window";
             this.TopMost = true;
             this.Load += new System.EventHandler(this.DeckWindow_Load);
+            this.MouseLeave += new System.EventHandler(this.DeckWindow_MouseLeave);
             this.ResumeLayout(false);
 
         }

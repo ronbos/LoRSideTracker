@@ -126,7 +126,8 @@ namespace LoRSideTracker
         /// <returns></returns>
         public Size GetBestSize()
         {
-            Size result = new Size(2 * SideBorderSize + CardSize.Width, TopBorderSize);
+            int topBorderSize = string.IsNullOrEmpty(this.Title) ? BottomBorderSize : TopBorderSize;
+            Size result = new Size(2 * SideBorderSize + CardSize.Width, topBorderSize);
             if (!IsMinimized) result.Height += BottomBorderSize + CardSize.Height * Cards.Count + SpacingSize * (Cards.Count - 1) + BottomBorderSize;
             return result;
         }
@@ -134,10 +135,15 @@ namespace LoRSideTracker
         private void DeckControl_Paint(object sender, PaintEventArgs e)
         {
             e.Graphics.FillRectangle(new SolidBrush(Color.Black), Bounds);
-            Rectangle titleRect = new Rectangle(1, 1, Bounds.Width - 2, TopBorderSize - 2);
-            TextRenderer.DrawText(e.Graphics, this.Title, TitleFont, titleRect, Color.White, TextFormatFlags.VerticalCenter | TextFormatFlags.HorizontalCenter);
+            int topBorderSize = string.IsNullOrEmpty(this.Title) ? BottomBorderSize : TopBorderSize;
 
-            Rectangle cardRect = new Rectangle(SideBorderSize, TopBorderSize, this.Bounds.Width - 2 * SideBorderSize, CardSize.Height);
+            Rectangle cardRect = new Rectangle(SideBorderSize, topBorderSize, this.Bounds.Width - 2 * SideBorderSize, CardSize.Height);
+            if (!string.IsNullOrEmpty(this.Title))
+            {
+                Rectangle titleRect = new Rectangle(1, 1, Bounds.Width - 2, topBorderSize - 2);
+                TextRenderer.DrawText(e.Graphics, this.Title, TitleFont, titleRect, Color.White, TextFormatFlags.VerticalCenter | TextFormatFlags.HorizontalCenter);
+            }
+
             for (int i = 0; i < Cards.Count; i++)
             {
                 DrawCard(e.Graphics, Cards[i], cardRect, i == HighlightedCard);
@@ -234,9 +240,14 @@ namespace LoRSideTracker
         private void DeckControl_MouseLeave(object sender, EventArgs e)
         {
             HighlightCard(-1);
+            //if (ShouldHideOnMouseLeave()) Hide();
         }
 
-        private void HighlightCard(int index)
+        /// <summary>
+        /// Highlight specific card and show full art
+        /// </summary>
+        /// <param name="index">Index or -1 to remove highlight</param>
+        public void HighlightCard(int index)
         {
             if (index == HighlightedCard)
             {
@@ -270,13 +281,15 @@ namespace LoRSideTracker
 
         private Rectangle GetCardRectangle(int index)
         {
-            return new Rectangle(SideBorderSize, TopBorderSize + index * (CardSize.Height + SpacingSize), this.ClientRectangle.Width - 2 * SideBorderSize, CardSize.Height);
+            int topBorderSize = string.IsNullOrEmpty(this.Title) ? BottomBorderSize : TopBorderSize;
+            return new Rectangle(SideBorderSize, topBorderSize + index * (CardSize.Height + SpacingSize), this.ClientRectangle.Width - 2 * SideBorderSize, CardSize.Height);
         }
 
         private void DeckControl_MouseMove(object sender, MouseEventArgs e)
         {
-            int index = (e.Y - TopBorderSize) / (CardSize.Height + SpacingSize);
-            if (e.Y >= TopBorderSize && index >= 0 && index < Cards.Count)
+            int topBorderSize = string.IsNullOrEmpty(this.Title) ? BottomBorderSize : TopBorderSize;
+            int index = (e.Y - topBorderSize) / (CardSize.Height + SpacingSize);
+            if (e.Y >= topBorderSize && index >= 0 && index < Cards.Count)
             {
                 HighlightCard(index);
             }

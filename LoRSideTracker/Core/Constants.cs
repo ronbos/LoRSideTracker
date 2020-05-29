@@ -144,7 +144,7 @@ namespace LoRSideTracker
             if (region == "Freljord") { return Color.DodgerBlue; }
             if (region == "Ionia") { return Color.HotPink; }
             if (region == "Noxus") { return Color.Crimson; }
-            if (region == "PiltoverZaun") { return Color.OrangeRed; }
+            if (region == "PiltoverZaun") { return Color.Orange; }
             if (region == "ShadowIsles") { return Color.Teal; }
             return Color.Gray;
         }
