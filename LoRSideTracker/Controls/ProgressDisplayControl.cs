@@ -29,8 +29,6 @@ namespace LoRSideTracker
     /// </summary>
     public partial class ProgressDisplayControl : UserControl, ProgressDisplay
     {
-        private delegate void UpdateDelegate(string message, double percentage);
-
         /// <summary>
         /// Constructor
         /// </summary>
@@ -47,25 +45,19 @@ namespace LoRSideTracker
         public void Update(string message, double percentage)
         {
             // Make sure update is done on the UI thread
-            if (this.InvokeRequired)
+            if (InvokeRequired)
             {
-                var d = new UpdateDelegate(SafeUpdate);
-                this.Invoke(d, new object[] { message, percentage });
+                Invoke(new Action(() => 
+                {
+                    MyLabel.Text = message;
+                    PercentageLabel.Text = string.Format("{0}%", (int)(0.5 + percentage));
+                }));
             }
             else
             {
-                SafeUpdate(message, percentage);
+                MyLabel.Text = message;
+                PercentageLabel.Text = string.Format("{0}%", (int)(0.5 + percentage));
             }
-        }
-
-        private void SafeUpdate(string message, double percentage)
-        {
-            MyLabel.Text = message;
-            //MyProgressBar.Increment((int)(0.5 + percentage) - MyProgressBar.Value);
-            //MyProgressBar.Value = (int)(0.5 + percentage);
-            //MyProgressBar.Invalidate();
-            PercentageLabel.Text = string.Format("{0}%", (int)(0.5 + percentage));
-            Application.DoEvents();
         }
     }
 }
