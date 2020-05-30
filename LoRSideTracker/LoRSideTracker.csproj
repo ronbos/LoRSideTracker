@@ -53,10 +53,11 @@
     <ApplicationIcon>Resources\AppIcon.ico</ApplicationIcon>
   </PropertyGroup>
   <PropertyGroup>
-    <ManifestCertificateThumbprint>5DBC437025F001150DEB7C9F28BE2BFD62FCF173</ManifestCertificateThumbprint>
+    <ManifestCertificateThumbprint>A1F645F5B164AB4E759253CBA47D2CB064F69209</ManifestCertificateThumbprint>
   </PropertyGroup>
   <PropertyGroup>
-    <ManifestKeyFile>LoRSideTracker_TemporaryKey.pfx</ManifestKeyFile>
+    <ManifestKeyFile>
+    </ManifestKeyFile>
   </PropertyGroup>
   <PropertyGroup>
     <GenerateManifests>true</GenerateManifests>

@@ -593,5 +593,14 @@ namespace LoRSideTracker
                 GameHistory.Show();
             }
         }
+
+        private void MainWindow_SizeChanged(object sender, EventArgs e)
+        {
+            Rectangle progressRect = MyProgressDisplay.Bounds;
+            progressRect.Offset(
+                ClientRectangle.Width / 2 - (progressRect.Left + progressRect.Right) / 2,
+                ClientRectangle.Height / 2 - (progressRect.Top + progressRect.Bottom) / 2);
+            MyProgressDisplay.SetBounds(progressRect.X, progressRect.Y, progressRect.Width, progressRect.Height);
+        }
     }
 }

@@ -229,6 +229,7 @@
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainWindow_FormClosing);
             this.Load += new System.EventHandler(this.MainWindow_Load);
             this.Shown += new System.EventHandler(this.MainWindow_Shown);
+            this.SizeChanged += new System.EventHandler(this.MainWindow_SizeChanged);
             this.DeckOptionsGroupBox.ResumeLayout(false);
             this.DeckOptionsGroupBox.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.TransparencyTrackBar)).EndInit();
