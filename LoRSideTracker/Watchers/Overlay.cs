@@ -98,6 +98,42 @@ namespace LoRSideTracker
             IncomingSet.Clear();
         }
 
+        private void RemoveCyclical(List<string> incomingSet, List<string> outgoingSet)
+        {
+            bool done = false;
+            while (!done)
+            {
+                done = true;
+                for (int i = 0; i < incomingSet.Count && done; i++)
+                {
+                    Card cardA = CardLibrary.GetCard(incomingSet[i]);
+                    for (int j = 0; j < outgoingSet.Count && done; j++)
+                    {
+                        if (incomingSet[i] == outgoingSet[j])
+                        {
+                            done = false;
+                        }
+
+                        // Check for transformed cards
+                        for (int k = 0; k < cardA.AssociatedCardCodes.Length && done; k++)
+                        {
+                            if (cardA.AssociatedCardCodes[k] == outgoingSet[j])
+                            {
+                                done = false;
+                            }
+                        }
+
+                        if (!done)
+                        {
+                            Log.WriteLine(LogType.Debug, "TRANSFORMED: {0} -> {1}", cardA.Name, CardLibrary.GetCard(outgoingSet[j]));
+                            incomingSet.RemoveAt(i);
+                            outgoingSet.RemoveAt(j);
+                        }
+                    }
+                }
+            }
+        }
+
         public void SetNextState(List<string> nextSet, LogType logType = LogType.Debug, string logFormatUnit = null, string logFormatSpell = null)
         {
             // Aggregate existing outgoing sets
@@ -110,6 +146,8 @@ namespace LoRSideTracker
             // Cancel looped transactions
             IncomingSet = GetDifference(nextSet, GetDifference(CurrentSet, outgoingSet));
             outgoingSet = GetDifference(GetDifference(CurrentSet, outgoingSet), nextSet);
+
+            RemoveCyclical(IncomingSet, outgoingSet);
 
             // If incoming has any elements that are queued for outgoing, cancel them out
             for (int i = OutgoingSets.Length - 1; i >= 0 && IncomingSet.Count > 0; i--)
@@ -266,6 +304,7 @@ namespace LoRSideTracker
         public OverlayZone StageZone;
         public OverlayZone ZoomZone;
         public OverlayZone TossingZone;
+        public OverlayZone CastZone;
 
         public OverlayZone FieldEther = new OverlayZone();
 
@@ -279,10 +318,11 @@ namespace LoRSideTracker
 
             // When dragging a unit, it may momentarily disappear from overlay
             // To account for this, we add a single frame of delay to Field zone
-            FieldZone = new OverlayZone(logType == LogType.Player ? 3 : 0);
+            FieldZone = new OverlayZone(2);// logType == LogType.Player ? 3 : 0);
             StageZone = new OverlayZone();
             ZoomZone = new OverlayZone();
             TossingZone = new OverlayZone();
+            CastZone = new OverlayZone();
         }
 
         public void Reset()
@@ -292,6 +332,7 @@ namespace LoRSideTracker
             StageZone.Clear();
             ZoomZone.Clear();
             TossingZone.Clear();
+            CastZone.Clear();
             FieldEther.Clear();
             IsInitialDraw = true;
         }
@@ -308,6 +349,7 @@ namespace LoRSideTracker
             List<string> newZoom = new List<string>();
             List<string> newField = new List<string>();
             List<string> newTossing = new List<string>();
+            List<string> newCast = new List<string>();
             int numProcessedElements = 0;
 
             foreach (OverlayElement element in elements)
@@ -339,10 +381,13 @@ namespace LoRSideTracker
                 {
                     newHand.Add(element.CardCode);
                 }
+                else if (element.NormalizedBoundingBox.Height < 0.115f)
+                {
+                    newCast.Add(element.CardCode);
+                }
                 else if (element.NormalizedBoundingBox.Height < 0.17f)
                 {
                     newField.Add(element.CardCode);
-
                 }
                 else
                 {
@@ -362,6 +407,7 @@ namespace LoRSideTracker
             StageZone.SetNextState(newStage);
             ZoomZone.SetNextState(newZoom);
             TossingZone.SetNextState(newTossing);
+            CastZone.SetNextState(newCast);
 
             ZoomZone.AcceptFromAnywhere(LogType.Debug, "[XZ] Drawing: {0}");
             var movedFromZoomToHand = ZoomZone.ReleaseTo(HandZone, MyLogType, "[ZH] Drawn: {0}");
@@ -377,19 +423,24 @@ namespace LoRSideTracker
 
             var movedToHand = HandZone.AcceptFromAnywhere(MyLogType, "[XH] Added to Hand: {0}");
 
+            var movedFromStageToCast = CastZone.AcceptFrom(StageZone, LogType.Debug, "[SC] Played???: {0}", "[SC] Cast: {0}");
+            var movedFromHandToCast = CastZone.AcceptFrom(HandZone, LogType.Debug, "[HC] Played???: {0}", "[HC] Cast: {0}");
+
+            var movedFromCastToField = FieldZone.AcceptFrom(CastZone, MyLogType, "[CF] Played???: {0}", "[CF] Cast???: {0}");
             var movedFromHandToField = FieldZone.AcceptFrom(HandZone, MyLogType, "[HF] Played: {0}", "[HF] Cast: {0}");
-            var movedFromStageToField = FieldZone.AcceptFrom(StageZone, MyLogType, "[XF] Played: {0}", "[HF] Cast: {0}");
-            var movedToField = FieldZone.AcceptFromAnywhere(MyLogType, "[XF] Summoned: {0}", "[HF] Invoked: {0}");
+            var movedFromStageToField = FieldZone.AcceptFrom(StageZone, MyLogType, "[SF] Played: {0}", "[SF] Cast: {0}");
+            var movedFromTossingToField = FieldZone.AcceptFrom(TossingZone, MyLogType, "[TF] Summoned: {0}");
+            var movedToField = FieldZone.AcceptFromAnywhere(MyLogType, "[XF] Summoned: {0}", "[XF] Invoked: {0}");
             var removedFromField = FieldEther.ReleaseToAnywhere(MyLogType, "[FX] Removed from Battlefield: {0}", "[FX] Resolved: {0}");
 
-            StageZone.AcceptFrom(HandZone, MyLogType, "[HF] Playing: {0}", "[HF] Casting: {0}");
-            StageZone.AcceptFromAnywhere(IsInitialDraw ? MyLogType : LogType.Debug, "[XS] Presented: {0}");
+            var movedFromHandToStage = StageZone.AcceptFrom(HandZone, MyLogType, "[HS] Playing: {0}", "[HS] Casting: {0}");
+            var movedToStage = StageZone.AcceptFromAnywhere(LogType.Debug, "[XS] Presented: {0}");
             if (StageZone.CurrentSet.Count > 4)
             {
                 // This is for the mulligan stage. Since there is a delay between cards
                 // disappearing from stage and showing in hand, we only discard when we know
                 // we have more than 4 cards
-                StageZone.ReleaseToAnywhere(MyLogType, "[SX] Mulliganed: {0}");
+                StageZone.ReleaseToAnywhere(LogType.Debug, "[SX] Returned: {0}");
             }
             StageZone.CancelOutgoing();
 
@@ -397,6 +448,9 @@ namespace LoRSideTracker
             // We work around this by preventing cards to leave hand except when we know where.
             // This breaks logic for cards that are discarded, but that's preferable to other problems
             HandZone.CancelOutgoing();
+
+            var movedToCast = CastZone.AcceptFromAnywhere(LogType.Debug, "[XC] Played???: {0}", "[XC] Cast: {0}");
+            var removedFromCast = CastZone.ReleaseToAnywhere(LogType.Debug, "[CX] Played???: {0}", "[CX] Resolved: {0}");
 
             if (cardsDrawn != null)
             {
@@ -411,9 +465,21 @@ namespace LoRSideTracker
             }
             if (cardsPlayed != null)
             {
-                cardsPlayed.AddRange(movedFromStageToField);
-                cardsPlayed.AddRange(movedFromHandToField);
-                cardsPlayed.AddRange(movedToField);
+                if (MyLogType == LogType.Player)
+                {
+                    // Played units go hand to stage
+                    cardsPlayed.AddRange(movedFromHandToStage);
+
+                    // Played spells go from hand to cast
+                    cardsPlayed.AddRange(movedFromHandToCast);
+                }
+                else
+                {
+                    // Played units go from stage to field
+                    cardsPlayed.AddRange(movedFromStageToField);
+                    // Played spells go from cast to cast
+                    cardsPlayed.AddRange(removedFromCast);
+                }
             }
 
             TossingZone.ReleaseTo(ZoomZone, LogType.Debug, "[TZ] Not Tossed, Drawing: {0}");
@@ -485,7 +551,7 @@ namespace LoRSideTracker
             OpponentTracker = new PlayerOverlay(LogType.Opponent);
             GameState = "Unknown";
 
-            WebString = new AutoUpdatingWebString(Constants.OverlayStateURL(), 66, this);
+            WebString = new AutoUpdatingWebString(Constants.OverlayStateURL(), 66, this, 100);
         }
 
         /// <summary>

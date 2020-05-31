@@ -14,8 +14,9 @@ namespace LoRSideTracker
         /// <summary>
         /// Callback called when static deck has changed
         /// </summary>
-        /// <param name="Cards">Updated set</param>
-        void OnDeckUpdated(List<CardWithCount> Cards, string deckCode);
+        /// <param name="cards">Updated set</param>
+        /// <param name="deckCode">Deck code</param>
+        void OnDeckUpdated(List<CardWithCount> cards, string deckCode);
     }
 
     /// <summary>

@@ -31,7 +31,7 @@ namespace LoRSideTracker
     /// </summary>
     static class Log
     {
-        static RichTextBox LogTextBox = null;
+        static LogWindow ActiveLogWindow = null;
 
         public static bool ShowDebugLog { get; set; } = false;
 
@@ -39,47 +39,37 @@ namespace LoRSideTracker
 
         public static string CurrentLogText
         {
-            get { return LogTextBox == null ? string.Empty : LogTextBox.Text; }
+            get { return ActiveLogWindow.DebugText; }
         }
 
         public static string CurrentLogRtf
         {
             get
             {
-                string result = string.Empty;
-                if (LogTextBox != null)
-                {
-                    Utilities.CallActionSafelyAndWait(LogTextBox, new Action(() => { result = LogTextBox.Rtf; }));
-                }
-                return result;
+                return ActiveLogWindow.DebugTextRtf;
             }
         }
 
         /// <summary>
-        /// Set the RichTextBox to use for logging
+        /// Set the log window to use for logging
         /// </summary>
-        /// <param name="obj">RichTextBox to use</param>
-        public static void SetTextBox(RichTextBox obj)
+        /// <param name="obj">Log window to use</param>
+        public static void SetLogWindow(LogWindow obj)
         {
-            LogTextBox = obj;
+            ActiveLogWindow = obj;
         }
 
         /// <summary>
-        /// Clear the log RichTextBox, if specified
+        /// Clear the log
         /// </summary>
         public static void Clear()
         {
-            if (LogTextBox != null)
+            if (ActiveLogWindow != null)
             {
-                if (LogTextBox.InvokeRequired)
+                Utilities.CallActionSafelyAndWait(ActiveLogWindow, new Action(() => 
                 {
-                    LogTextBox.Invoke(new Action(() => { LogTextBox.Clear(); LogTextBox.ScrollToCaret(); }));
-                }
-                else
-                {
-                    LogTextBox.Clear();
-                    LogTextBox.ScrollToCaret();
-                }
+                    ActiveLogWindow.Clear();
+                }));
             }
         }
 
@@ -113,51 +103,9 @@ namespace LoRSideTracker
             string text = String.Format(format, arg);
             Console.WriteLine(text);
 
-            if (LogTextBox != null && (type != LogType.Debug || ShowDebugLog))
+            if (ActiveLogWindow != null)
             {
-                string frontText, backText;
-                int index = text.IndexOf(':');
-                if (index >= 0)
-                {
-                    frontText = text.Substring(0, index + 1);
-                    backText = text.Substring(index + 1) + "\r\n";
-                }
-                else
-                {
-                    frontText = string.Empty;
-                    backText = text + "\r\n";
-                }
-                Color textColor = Color.Black;
-                switch (type)
-                {
-                    case LogType.Player:
-                        textColor = Color.Blue;
-                        break;
-                    case LogType.Opponent:
-                        textColor = Color.Red;
-                        break;
-                    case LogType.Debug:
-                    case LogType.DebugVerbose:
-                        textColor = Color.Gray;
-                        break;
-                    default:
-                        break;
-                }
-
-                if (LogTextBox.InvokeRequired)
-                {
-                    LogTextBox.Invoke(new Action(() => {
-                        if (!string.IsNullOrEmpty(frontText)) LogTextBox.AppendText(frontText, textColor, true);
-                        LogTextBox.AppendText(backText, textColor, false);
-                        LogTextBox.ScrollToCaret();
-                    }));
-                }
-                else
-                {
-                    if (!string.IsNullOrEmpty(frontText)) LogTextBox.AppendText(frontText, textColor, true);
-                    LogTextBox.AppendText(backText, textColor, false);
-                    LogTextBox.ScrollToCaret();
-                }
+                ActiveLogWindow.WriteLine(type, format, arg);
             }
         }
     }

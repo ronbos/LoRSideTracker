@@ -45,8 +45,8 @@ namespace LoRSideTracker
         /// <summary>
         /// Receives updates that expedition deck changed
         /// </summary>
-        /// <param name="Cards"></param>
-        void OnExpeditionDeckUpdated(List<CardWithCount> Cards, string deckCode);
+        /// <param name="cards"></param>
+        void OnExpeditionDeckUpdated(List<CardWithCount> cards);
     }
 
     /// <summary>
@@ -114,6 +114,10 @@ namespace LoRSideTracker
             else
             {
                 Clear();
+                if (Callback != null)
+                {
+                    Callback.OnExpeditionDeckUpdated(Cards);
+                }
             }
         }
 
@@ -123,39 +127,54 @@ namespace LoRSideTracker
         /// <param name="json">JSON string</param>
         public void LoadFromJson(Dictionary<string, JsonElement> json)
         {
-            if (json == null)
+            IsActive = json["IsActive"].ToObject<bool>();
+            State = json["State"].ToString();
+            Record = json["Record"].ToObject<string[]>();
+            Cards = Utilities.LoadDeckFromStringCodeList(json["Deck"].ToObject<string[]>());
+            NumberOfGames = json["Games"].ToObject<int>();
+            NumberOfWins = json["Wins"].ToObject<int>();
+            NumberOfLosses = json["Losses"].ToObject<int>();
+
+            var expeditionPicks = json["DraftPicks"].ToObject<Dictionary<string, JsonElement>[]>();
+            if (expeditionPicks != null)
             {
-                Clear();
+                DraftPicks = new ExpeditionPick[expeditionPicks.Length];
+                for (int i = 0; i < expeditionPicks.Length; i++)
+                {
+                    DraftPicks[i] = new ExpeditionPick(expeditionPicks[i]);
+                }
             }
             else
             {
-                IsActive = json["IsActive"].ToObject<bool>();
-                State = json["State"].ToString();
-                Record = json["Record"].ToObject<string[]>();
-                Cards = Utilities.LoadDeckFromStringCodeList(json["Deck"].ToObject<string[]>());
-                NumberOfGames = json["Games"].ToObject<int>();
-                NumberOfWins = json["Wins"].ToObject<int>();
-                NumberOfLosses = json["Losses"].ToObject<int>();
-
-                var expeditionPicks = json["DraftPicks"].ToObject<Dictionary<string, JsonElement>[]>();
-                if (expeditionPicks != null)
-                {
-                    DraftPicks = new ExpeditionPick[expeditionPicks.Length];
-                    for (int i = 0; i < expeditionPicks.Length; i++)
-                    {
-                        DraftPicks[i] = new ExpeditionPick(expeditionPicks[i]);
-                    }
-                }
-                else
-                {
-                    DraftPicks = null;
-                }
+                DraftPicks = null;
             }
 
             if (Callback != null)
             {
-                Callback.OnExpeditionDeckUpdated(Cards, "");
+                Callback.OnExpeditionDeckUpdated(Cards);
             }
+        }
+
+        /// <summary>
+        /// Return a singature string used to match all games of a single expedition run
+        /// </summary>
+        /// <returns>string with all drafted cards</returns>
+        public string GetSignature()
+        {
+            string result = "";
+            for (int i = 0; i < DraftPicks.Length && i < 15; i++)
+            {
+                if (DraftPicks[i].DraftPicks != null)
+                {
+                    result += string.Join("", DraftPicks[i].DraftPicks);
+                }
+                else
+                {
+                    result += string.Join("", DraftPicks[i].SwappedIn);
+                    result += string.Join("", DraftPicks[i].SwappedOut);
+                }
+            }
+            return result;
         }
 
     }

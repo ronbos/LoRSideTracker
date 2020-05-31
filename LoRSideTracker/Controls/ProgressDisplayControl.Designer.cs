@@ -29,7 +29,6 @@
         private void InitializeComponent()
         {
             this.MyLabel = new System.Windows.Forms.Label();
-            this.MyProgressBar = new System.Windows.Forms.ProgressBar();
             this.PercentageLabel = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
@@ -41,15 +40,6 @@
             this.MyLabel.Size = new System.Drawing.Size(330, 50);
             this.MyLabel.TabIndex = 4;
             this.MyLabel.TextAlign = System.Drawing.ContentAlignment.TopCenter;
-            // 
-            // MyProgressBar
-            // 
-            this.MyProgressBar.Location = new System.Drawing.Point(50, 80);
-            this.MyProgressBar.Name = "MyProgressBar";
-            this.MyProgressBar.Size = new System.Drawing.Size(260, 23);
-            this.MyProgressBar.Step = 1;
-            this.MyProgressBar.Style = System.Windows.Forms.ProgressBarStyle.Continuous;
-            this.MyProgressBar.TabIndex = 3;
             // 
             // PercentageLabel
             // 
@@ -64,14 +54,12 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.Controls.Add(this.PercentageLabel);
             this.Controls.Add(this.MyLabel);
-            this.Controls.Add(this.MyProgressBar);
             this.MaximumSize = new System.Drawing.Size(360, 120);
             this.MinimumSize = new System.Drawing.Size(360, 120);
             this.Name = "ProgressDisplayControl";
-            this.Size = new System.Drawing.Size(358, 118);
+            this.Size = new System.Drawing.Size(360, 120);
             this.ResumeLayout(false);
 
         }
@@ -79,7 +67,6 @@
         #endregion
 
         private System.Windows.Forms.Label MyLabel;
-        private System.Windows.Forms.ProgressBar MyProgressBar;
         private System.Windows.Forms.Label PercentageLabel;
     }
 }

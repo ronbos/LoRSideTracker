@@ -270,7 +270,7 @@ namespace LoRSideTracker
                 Invalidate(GetCardRectangle(HighlightedCard));
                 if (!CardPopup.Visible)
                 {
-                    CardPopup.Show();
+                    Utilities.ShowInactiveTopmost(CardPopup);
                 }
             }
             else
@@ -298,13 +298,10 @@ namespace LoRSideTracker
                 HighlightCard(-1);
             }
         }
-        /// <summary>
-        /// Override OnPaintBackground() to reduce flicker
-        /// </summary>
-        /// <param name="e"></param>
-        protected override void OnPaintBackground(PaintEventArgs e)
-        {
+
+        //protected override void OnPaintBackground(PaintEventArgs e)
+        //{
             //empty implementation
-        }
+        //}
     }
 }

@@ -115,11 +115,29 @@
     <Compile Include="Controls\GameHistoryControl.Designer.cs">
       <DependentUpon>GameHistoryControl.cs</DependentUpon>
     </Compile>
+    <Compile Include="Controls\GameLogControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Controls\GameLogControl.Designer.cs">
+      <DependentUpon>GameLogControl.cs</DependentUpon>
+    </Compile>
     <Compile Include="Forms\GameHistoryWindow.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Forms\GameHistoryWindow.Designer.cs">
       <DependentUpon>GameHistoryWindow.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\LogWindow.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\LogWindow.Designer.cs">
+      <DependentUpon>LogWindow.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\OptionsWindow.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\OptionsWindow.Designer.cs">
+      <DependentUpon>OptionsWindow.cs</DependentUpon>
     </Compile>
     <Compile Include="Logs\GameRecord.cs" />
     <Compile Include="Watchers\AutoUpdatingObject.cs" />
@@ -176,6 +194,9 @@
     <EmbeddedResource Include="Controls\GameHistoryControl.resx">
       <DependentUpon>GameHistoryControl.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Controls\GameLogControl.resx">
+      <DependentUpon>GameLogControl.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Forms\GameHistoryWindow.resx">
       <DependentUpon>GameHistoryWindow.cs</DependentUpon>
     </EmbeddedResource>
@@ -191,11 +212,17 @@
     <EmbeddedResource Include="Forms\DeckWindow.resx">
       <DependentUpon>DeckWindow.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Forms\LogWindow.resx">
+      <DependentUpon>LogWindow.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Forms\MainWindow.resx">
       <DependentUpon>MainWindow.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Controls\ProgressDisplayControl.resx">
       <DependentUpon>ProgressDisplayControl.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\OptionsWindow.resx">
+      <DependentUpon>OptionsWindow.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
@@ -207,6 +234,7 @@
       <DependentUpon>Resources.resx</DependentUpon>
       <DesignTime>True</DesignTime>
     </Compile>
+    <None Include="app.config" />
     <None Include="Properties\packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>

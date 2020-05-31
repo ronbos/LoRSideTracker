@@ -11,7 +11,10 @@ using System.IO;
 
 namespace LoRSideTracker
 {
-    public partial class GameHistoryControl : UserControl
+    /// <summary>
+    /// Game log control
+    /// </summary>
+    public partial class GameLogControl : UserControl
     {
         class GameHistoryColumn
         {
@@ -40,10 +43,10 @@ namespace LoRSideTracker
         private Font ListFont = new Font("Calibri", 9, FontStyle.Regular);
 
         private GameHistoryColumn[] Columns = new GameHistoryColumn[] {
-            new GameHistoryColumn("Game End Time", 150, "Timestamp", Color.Black, TextFormatFlags.VerticalCenter | TextFormatFlags.HorizontalCenter),
-            new GameHistoryColumn("My Deck", 200, "MyDeckName", Color.Black, TextFormatFlags.VerticalCenter | TextFormatFlags.Left, true),
-            new GameHistoryColumn("Opponent", 200, "OpponentName", Color.Black, TextFormatFlags.VerticalCenter | TextFormatFlags.Left, true),
-            new GameHistoryColumn("Result", 120, "Result", Color.Black, TextFormatFlags.VerticalCenter | TextFormatFlags.HorizontalCenter),
+            new GameHistoryColumn("Game End Time", 150, "Timestamp", Color.Black, TextFormatFlags.VerticalCenter | TextFormatFlags.Left),
+            new GameHistoryColumn("My Deck", 150, "MyDeckName", Color.Black, TextFormatFlags.VerticalCenter | TextFormatFlags.Left, true),
+            new GameHistoryColumn("Opponent", 150, "OpponentName", Color.Black, TextFormatFlags.VerticalCenter | TextFormatFlags.Left, true),
+            new GameHistoryColumn("Result", 80, "Result", Color.Black, TextFormatFlags.VerticalCenter | TextFormatFlags.HorizontalCenter),
         };
 
         private int CellMargin = 2;
@@ -70,10 +73,11 @@ namespace LoRSideTracker
             get { return (CellHeight + CellMargin) * (Games == null ? 1 : (1 + Games.Count)); }
         }
 
+
         /// <summary>
         /// Constructor
         /// </summary>
-        public GameHistoryControl()
+        public GameLogControl()
         {
             GameTextRectangles = new List<Rectangle[]>();
             CellRectangles = new Rectangle[Columns.Length];
@@ -97,13 +101,24 @@ namespace LoRSideTracker
                 }
             }
             GameTextRectangles.Add(titleTextRects);
+            Games = new List<GameRecord>();
 
             InitializeComponent();
+        }
 
-            // Load all games
-            Games = new List<GameRecord>();
-            if (Directory.Exists(Constants.GetLocalGamesPath()))
+        /// <summary>
+        /// Load games matching deck signature
+        /// </summary>
+        /// <param name="deckSignature"></param>
+        public void LoadGames(string deckSignature)
+        {
+            Utilities.CallActionSafelyAndWait(this, new Action(() =>
             {
+                // Load all games
+                Games = new List<GameRecord>();
+                GameTextRectangles.RemoveRange(1, GameTextRectangles.Count - 1);
+
+
                 DirectoryInfo dirInfo = new DirectoryInfo(Constants.GetLocalGamesPath());
                 FileInfo[] files = dirInfo.GetFiles();
 
@@ -111,15 +126,19 @@ namespace LoRSideTracker
                 {
                     try
                     {
-                        AddGameRecord(GameRecord.LoadFromFile(fi.FullName), false);
+                        GameRecord gr = GameRecord.LoadFromFile(fi.FullName, deckSignature);
+                        if (gr != null)
+                        {
+                            AddGameRecord(gr, false);
+                        }
                     }
                     catch
                     {
                         // Skip bad records
                     }
                 }
-            }
-
+            }));
+            Invalidate();
         }
 
         /// <summary>
@@ -161,12 +180,8 @@ namespace LoRSideTracker
             if (shouldInvalidate) Invalidate();
         }
 
-        /// <summary>
-        /// Load all existing game records
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void GameHistoryControl_Load(object sender, EventArgs e)
+
+        private void GameLogControl_Load(object sender, EventArgs e)
         {
             PopupDeckWindow = new DeckWindow();
             PopupDeckWindow.ShouldHideOnMouseLeave = true;
@@ -174,7 +189,7 @@ namespace LoRSideTracker
 
         }
 
-        private void GameHistoryControl_Paint(object sender, PaintEventArgs e)
+        private void GameLogControl_Paint(object sender, PaintEventArgs e)
         {
             int top = CellMargin;
             Rectangle currentRect = new Rectangle(0, top, 0, top + CellHeight);
@@ -200,10 +215,10 @@ namespace LoRSideTracker
                     currentRect.Width = col.Width;
                     string text = game.ReadPropertyAsString(col.PropertyName);
 
-                    TextRenderer.DrawText(e.Graphics, text, 
-                        ListFont, 
+                    TextRenderer.DrawText(e.Graphics, text,
+                        ListFont,
                         currentRect,
-                        (i == HighlightedCell.Y && j == HighlightedCell.X) ? Color.Blue : col.TextColor, 
+                        (i == HighlightedCell.Y && j == HighlightedCell.X) ? Color.Blue : col.TextColor,
                         col.TextFormat);
                 }
             }
@@ -216,7 +231,7 @@ namespace LoRSideTracker
             return rect;
         }
 
-        private void GameHistoryControl_MouseMove(object sender, MouseEventArgs e)
+        private void GameLogControl_MouseMove(object sender, MouseEventArgs e)
         {
             // Find the column
             int column = -1, row = -1;
@@ -289,14 +304,14 @@ namespace LoRSideTracker
                         }
                         Point pos = PointToScreen(new Point(cellRectangle.Right, cellRectangle.Top));
                         PopupDeckWindow.SetBounds(pos.X, pos.Y, 0, 0);
-                        PopupDeckWindow.Show();
+                        Utilities.ShowInactiveTopmost(PopupDeckWindow);
                         PopupDeckWindow.UpdateSize();
                     }
                 }
             }
         }
 
-        private void GameHistoryControl_MouseLeave(object sender, EventArgs e)
+        private void GameLogControl_MouseLeave(object sender, EventArgs e)
         {
             //MouseEventArgs me = (MouseEventArgs) e;
             if (!PopupDeckWindow.Visible || !PopupDeckWindow.DesktopBounds.Contains(MousePosition))

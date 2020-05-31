@@ -26,6 +26,8 @@ namespace LoRSideTracker
     {
         private string URL;
         private string Value = string.Empty;
+        private DateTime LastUpdateTimestamp;
+        private TimeSpan ForceUpdateInterval;
 
         AutoUpdatingWebStringCallback CallbackObject;
 
@@ -35,10 +37,16 @@ namespace LoRSideTracker
         /// <param name="url">URL to query</param>
         /// <param name="intervalMs">Interval in ms between queries</param>
         /// <param name="callbackObject">Object to receive OnWebStringUpdated() notifications</param>
-        public AutoUpdatingWebString(string url, int intervalMs = 1000, AutoUpdatingWebStringCallback callbackObject = null)
+        /// <param name="forceUpdateInterval">If > 0, mnumber of milliseconds when next update is forced even with the same string</param>
+        public AutoUpdatingWebString(string url, 
+            int intervalMs = 1000, 
+            AutoUpdatingWebStringCallback callbackObject = null,
+            int forceUpdateInterval = 0)
         {
             URL = url;
             CallbackObject = callbackObject;
+            ForceUpdateInterval = TimeSpan.FromMilliseconds(forceUpdateInterval);
+            LastUpdateTimestamp = DateTime.Now - ForceUpdateInterval;
             Start(intervalMs);
         }
 
@@ -49,14 +57,17 @@ namespace LoRSideTracker
         public override void AutoUpdate()
         {
             string newValue = Utilities.GetStringFromURL(URL);
+            DateTime now = DateTime.Now;
 
-            if (Value != newValue)
+            if (Value != newValue || (ForceUpdateInterval.TotalMilliseconds > 0 && 
+                now > LastUpdateTimestamp + ForceUpdateInterval))
             {
                 Value = newValue;
                 if (CallbackObject != null)
                 {
                     CallbackObject.OnWebStringUpdated(newValue);
                 }
+                LastUpdateTimestamp = now;
             }
         }
     }

@@ -214,5 +214,29 @@ namespace LoRSideTracker.Properties {
                 this["GameHistoryWindowBounds"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0, 0")]
+        public global::System.Drawing.Point OptionsWindowLocation {
+            get {
+                return ((global::System.Drawing.Point)(this["OptionsWindowLocation"]));
+            }
+            set {
+                this["OptionsWindowLocation"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0, 0, 0, 0")]
+        public global::System.Drawing.Rectangle ActiveLogWindowBounds {
+            get {
+                return ((global::System.Drawing.Rectangle)(this["ActiveLogWindowBounds"]));
+            }
+            set {
+                this["ActiveLogWindowBounds"] = value;
+            }
+        }
     }
 }

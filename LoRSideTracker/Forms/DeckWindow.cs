@@ -32,6 +32,7 @@ namespace LoRSideTracker
             set { MyDeckControl.Title = value; MyDeckControl.Invalidate(new Rectangle(0, 0, MyDeckControl.Width, MyDeckControl.TopBorderSize));  }
         }
 
+        /// <summary>Should window hide when mouse leaves?</summary>
         public bool ShouldHideOnMouseLeave { get; set; } = false;
 
 
