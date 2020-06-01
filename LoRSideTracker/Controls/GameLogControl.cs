@@ -121,9 +121,24 @@ namespace LoRSideTracker
                 {
                     AddGameRecord(gr, false);
                 }
+                Invalidate();
             }));
-            Invalidate();
         }
+
+        /// <summary>
+        /// Clear the contents
+        /// </summary>
+        public void Clear()
+        {
+            Utilities.CallActionSafelyAndWait(this, new Action(() =>
+            {
+                // Load all games
+                Games = new List<GameRecord>();
+                GameTextRectangles.RemoveRange(1, GameTextRectangles.Count - 1);
+                Invalidate();
+            }));
+        }
+
 
         /// <summary>
         /// Adda game to history
@@ -180,9 +195,9 @@ namespace LoRSideTracker
             {
                 currentRect.X = currentRect.Right + CellMargin;
                 currentRect.Width = col.Width;
-                TextRenderer.DrawText(e.Graphics, col.Title, TitleFont, currentRect, Color.Black, col.TextFormat);
+                TextRenderer.DrawText(e.Graphics, col.Title, TitleFont, currentRect, ForeColor, col.TextFormat);
             }
-            e.Graphics.DrawLine(new Pen(Color.Black, 1), new Point(CellMargin, currentRect.Bottom), new Point(currentRect.Right, currentRect.Bottom));
+            e.Graphics.DrawLine(new Pen(ForeColor, 1), new Point(CellMargin, currentRect.Bottom), new Point(currentRect.Right, currentRect.Bottom));
 
             currentRect = new Rectangle(0, top, 0, top + CellHeight);
             for (int i = 0; i < Games.Count; i++)
@@ -201,7 +216,7 @@ namespace LoRSideTracker
                     TextRenderer.DrawText(e.Graphics, text,
                         ListFont,
                         currentRect,
-                        (i == HighlightedCell.Y && j == HighlightedCell.X) ? Color.Blue : col.TextColor,
+                        (i == HighlightedCell.Y && j == HighlightedCell.X) ? Color.Blue : ForeColor,
                         col.TextFormat);
                 }
             }

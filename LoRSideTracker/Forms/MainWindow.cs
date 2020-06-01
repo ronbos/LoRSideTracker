@@ -416,42 +416,29 @@ namespace LoRSideTracker
             LogButton.Visible = true;
             DecksListBox.Visible = true;
             DeckPanel.Visible = true;
-            DecksLabel.Visible = true;
+            DecksButton.Visible = true;
+            ExpeditionsButton.Visible = true;
 
-            // Load all games
-            if (Directory.Exists(Constants.GetLocalGamesPath()))
+            // Load all games. We do this in reverse as AddDeckToList expects them
+            // in chronological order
+            for (int i = GameHistory.Games.Count - 1; i >= 0; i--)
             {
-                DirectoryInfo dirInfo = new DirectoryInfo(Constants.GetLocalGamesPath());
-                FileInfo[] files = dirInfo.GetFiles();
-
-                foreach (FileInfo fi in files.OrderBy(x => x.CreationTime))
-                {
-                    try
-                    {
-                        GameRecord gr = GameRecord.LoadFromFile(fi.FullName);
-                        AddToDeckList(gr);
-                    }
-                    catch
-                    {
-                        // Skip bad records
-                    }
-                }
-
-                if (DecksListBox.Items.Count > 0)
-                {
-                    DecksListBox.SelectedIndex = 0;
-                }
+                AddToDeckList(GameHistory.Games[i]);
             }
+
+            SwitchDeckView(ExpeditionsListBox, ExpeditionsButton, DecksListBox, DecksButton);
+
         }
 
         private int AddToDeckList(GameRecord gr)
         {
+            ListBox lb = gr.IsExpedition() ? ExpeditionsListBox : DecksListBox;
             string grSig = gr.GetDeckSignature();
             int index = -1;
             string deckName = gr.IsExpedition() ? string.Format("Expedition #{0}", ExpeditionsCount + 1) : gr.MyDeckName;
-            for (int i = 0; i < DecksListBox.Items.Count; i++)
+            for (int i = 0; i < lb.Items.Count; i++)
             {
-                GameRecord gr2 = (GameRecord)DecksListBox.Items[i];
+                GameRecord gr2 = (GameRecord)lb.Items[i];
                 if (grSig == gr2.GetDeckSignature())
                 {
                     deckName = gr2.DisplayString;
@@ -462,7 +449,7 @@ namespace LoRSideTracker
 
             if (index != -1)
             {
-                DecksListBox.Items.RemoveAt(index);
+                lb.Items.RemoveAt(index);
             }
             else if (gr.IsExpedition())
             {
@@ -476,7 +463,7 @@ namespace LoRSideTracker
             catch { }
 
             gr.DisplayString = deckName;
-            DecksListBox.Items.Insert(0, gr);
+            lb.Items.Insert(0, gr);
             index = 0;
 
             return index;
@@ -604,7 +591,47 @@ namespace LoRSideTracker
         private void DecksListBox_SelectedIndexChanged(object sender, EventArgs e)
         {
             GameRecord gr = (GameRecord)DecksListBox.SelectedItem;
-            if (gr == null) gr = (GameRecord)DecksListBox.Items[0];
+            if (gr == null)
+            {
+                if (DecksListBox.Items.Count > 0)
+                {
+                    gr = (GameRecord)DecksListBox.Items[0];
+                }
+                else
+                {
+                    HighlightedGameLogControl.Clear();
+                    HighlightedDeckControl.ClearDeck();
+                    HighlightedDeckStatsDisplay.Visible = false;
+                    return;
+                }
+            }
+
+            HighlightDeck(gr);
+        }
+
+        private void ExpeditionsListBox_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            GameRecord gr = (GameRecord)ExpeditionsListBox.SelectedItem;
+            if (gr == null)
+            {
+                if (ExpeditionsListBox.Items.Count > 0)
+                {
+                    gr = (GameRecord)ExpeditionsListBox.Items[0];
+                }
+                else
+                {
+                    HighlightedGameLogControl.Clear();
+                    HighlightedDeckControl.ClearDeck();
+                    HighlightedDeckStatsDisplay.Visible = false;
+                    return;
+                }
+            }
+
+            HighlightDeck(gr);
+        }
+
+        private void HighlightDeck(GameRecord gr)
+        {
             HighlightedGameLogControl.LoadGames(gr.GetDeckSignature());
 
             // Update deck
@@ -653,6 +680,76 @@ namespace LoRSideTracker
                     GameHistory.SetDeckName(gr.GetDeckSignature(), result);
                 }
             }
+        }
+        private void ExpeditionsListBox_DoubleClick(object sender, EventArgs e)
+        {
+            int index = ExpeditionsListBox.SelectedIndex;
+            if (index >= 0)
+            {
+                GameRecord gr = (GameRecord)((GameRecord)ExpeditionsListBox.Items[index]).Clone();
+                string result = Microsoft.VisualBasic.Interaction.InputBox("Name:", "Change Deck Name", gr.DisplayString);
+                if (!string.IsNullOrEmpty(result))
+                {
+                    gr.DisplayString = result;
+                    ExpeditionsListBox.Items[index] = gr;
+                    ExpeditionsListBox.Refresh();
+
+                    GameHistory.SetDeckName(gr.GetDeckSignature(), result);
+                }
+            }
+        }
+
+        private void DecksButton_Click(object sender, EventArgs e)
+        {
+            SwitchDeckView(ExpeditionsListBox, ExpeditionsButton, DecksListBox, DecksButton);
+        }
+
+        private void ExpeditionsButton_Click(object sender, EventArgs e)
+        {
+            SwitchDeckView(DecksListBox, DecksButton, ExpeditionsListBox, ExpeditionsButton);
+        }
+
+        private void SwitchDeckView(ListBox fromListBox, Button fromButton, ListBox toListBox, Button toButton)
+        {
+            toButton.BackColor = BackColor;
+            fromButton.BackColor = Color.FromArgb(BackColor.R * 2, BackColor.G * 2, BackColor.B * 2);
+            fromButton.FlatAppearance.MouseOverBackColor = toButton.FlatAppearance.MouseOverBackColor;
+            fromButton.FlatAppearance.MouseDownBackColor = toButton.FlatAppearance.MouseDownBackColor;
+            toButton.FlatAppearance.MouseOverBackColor = BackColor;
+            toButton.FlatAppearance.MouseDownBackColor = BackColor;
+            toButton.FlatAppearance.BorderSize = 1;
+            fromListBox.Visible = false;
+            fromListBox.SelectedIndex = -1;
+            if (toListBox.Items.Count > 0)
+            {
+                toListBox.SelectedIndex = 0;
+            }
+            else
+            {
+                // Clear selection
+            }
+            toListBox.Visible = true;
+        }
+
+        private void DecksListBox_DrawItem(object sender, DrawItemEventArgs e)
+        {
+            GameRecord gr = (GameRecord)DecksListBox.Items[e.Index];
+            Rectangle rect = e.Bounds;
+            rect.Height--;
+            e.Graphics.FillRectangle(new SolidBrush(e.ForeColor), rect);
+            rect.Inflate(-1, -1);
+            e.Graphics.FillRectangle(new SolidBrush(e.BackColor), rect);
+            TextRenderer.DrawText(e.Graphics, gr.ToString(), e.Font, rect, ForeColor, TextFormatFlags.Left | TextFormatFlags.VerticalCenter);
+        }
+        private void ExpeditionsListBox_DrawItem(object sender, DrawItemEventArgs e)
+        {
+            GameRecord gr = (GameRecord)ExpeditionsListBox.Items[e.Index];
+            Rectangle rect = e.Bounds;
+            rect.Height--;
+            e.Graphics.FillRectangle(new SolidBrush(e.ForeColor), rect);
+            rect.Inflate(-1, -1);
+            e.Graphics.FillRectangle(new SolidBrush(e.BackColor), rect);
+            TextRenderer.DrawText(e.Graphics, gr.ToString(), e.Font, rect, ForeColor, TextFormatFlags.Left | TextFormatFlags.VerticalCenter);
         }
     }
 }
