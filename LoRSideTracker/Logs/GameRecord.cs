@@ -14,6 +14,17 @@ namespace LoRSideTracker
     /// </summary>
     public class GameRecord : ICloneable
     {
+        private static Dictionary<string, string> AIDeckNames = new Dictionary<string, string>()
+        {
+            //{ "decks_badstuns_name", "No idea (AI)" },
+            { "decks_easybraum_name", "Stay Warm (AI)" },
+            { "decks_easyteemo_name", "Scout's Honor (AI)" },
+            { "deckname_kinkou_keepers", "Stealthy Strikes (AI)" },
+            { "decks_mediumelise_name", "Spider Swarm (AI)" },
+            { "decks_mediumdraven_name", "The Main Event (AI)" },
+            { "decks_mediumzed_name", "Shadow and Blades (AI)" }
+        };
+
         /// <summary>Player Deck Name</summary>
         public string MyDeckName { get; set; }
         /// <summary>Player Deck Code</summary>
@@ -97,6 +108,7 @@ namespace LoRSideTracker
             result.MyDeckName = gameRecord["MyDeckName"].ToString();
             result.MyDeck = Utilities.LoadDeckFromStringCodeList(gameRecord["MyDeck"].ToObject<string[]>());
             result.OpponentName = gameRecord["OpponentName"].ToString();
+            try { result.OpponentName = AIDeckNames[result.OpponentName]; } catch { }
             result.OpponentDeck = Utilities.LoadDeckFromStringCodeList(gameRecord["OpponentDeck"].ToObject<string[]>());
             result.Result = gameRecord["Result"].ToString();
             result.Notes = gameRecord["Notes"].ToString();
@@ -123,10 +135,10 @@ namespace LoRSideTracker
             string path,
             string myDeckName,
             string myDeckCode,
-            List<CardWithCount> myDeck, 
-            string opponentName, 
-            List<CardWithCount> opponentDeck, 
-            string result, 
+            List<CardWithCount> myDeck,
+            string opponentName,
+            List<CardWithCount> opponentDeck,
+            string result,
             string notes,
             DateTime timestamp,
             string log,
@@ -135,7 +147,7 @@ namespace LoRSideTracker
             int myDeckSize = myDeck.Sum(x => x.Count);
             int opponentDeckSize = opponentDeck.Sum(x => x.Count);
 
-            string [] myDeckList = new string[myDeckSize];
+            string[] myDeckList = new string[myDeckSize];
             int i = 0;
             foreach (var card in myDeck)
             {
@@ -155,7 +167,7 @@ namespace LoRSideTracker
                 }
             }
 
-            var json = JsonSerializer.Serialize(new 
+            var json = JsonSerializer.Serialize(new
             {
                 MyDeckName = myDeckName,
                 MyDeckCode = myDeckCode,
@@ -231,5 +243,6 @@ namespace LoRSideTracker
 
             return string.Empty;
         }
+
     }
 }

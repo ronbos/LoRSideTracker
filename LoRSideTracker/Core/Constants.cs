@@ -139,12 +139,12 @@ namespace LoRSideTracker
         /// <returns>Accent color</returns>
         public static Color GetRegionAccentColor(string region)
         {
-            if (region == "Bilgewater") { return Color.Chocolate; }
-            if (region == "Demacia") { return Color.Goldenrod; }
+            if (region == "Bilgewater") { return Color.DarkRed; }
+            if (region == "Demacia") { return Color.LightYellow; }
             if (region == "Freljord") { return Color.DodgerBlue; }
             if (region == "Ionia") { return Color.HotPink; }
             if (region == "Noxus") { return Color.Crimson; }
-            if (region == "PiltoverZaun") { return Color.Orange; }
+            if (region == "PiltoverZaun") { return Color.LightSalmon; }
             if (region == "ShadowIsles") { return Color.Teal; }
             return Color.Gray;
         }

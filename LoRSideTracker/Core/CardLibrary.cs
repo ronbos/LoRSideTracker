@@ -167,7 +167,14 @@ namespace LoRSideTracker
         /// <returns>Corresponding Card object</returns>
         public static Card GetCard(string cardCode)
         {
-            return m_cards[cardCode];
+            try
+            {
+                return m_cards[cardCode];
+            }
+            catch
+            {
+                return Card.UnknownCard;
+            }
         }
     }
 }

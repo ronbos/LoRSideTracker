@@ -48,6 +48,41 @@ namespace LoRSideTracker
         /// <summary>Card Banner Image</summary>
         public Image CardBanner { get; private set; }
 
+        /// <summary>Unknown Card Stub</summary>
+        static public Card UnknownCard = new Card();
+
+        /// <summary>
+        /// Constructor for default unknown card
+        /// </summary>
+        private Card()
+        {
+            Name = "Unknown Card";
+            Code = "UNKNOWN";
+            Type = "Unit";
+            SuperType = "";
+            Cost = 0;
+            Region = "";
+            Rarity = "";
+            FlavorText = "";
+            IsCollectible = false;
+
+            // Unit info
+            Attack = 0;
+            Health = 0;
+
+            // Load images
+            Bitmap bmp = new Bitmap(128, 128);
+            using (Graphics g = Graphics.FromImage(bmp)) { g.Clear(Color.DarkGray); }
+            CardArt = (Image) bmp;
+            CardBanner = (Image)bmp;
+
+            // Spell info
+            SpellSpeed = "";
+
+            // Spell info
+            AssociatedCardCodes = new string[0];
+        }
+
         /// <summary>
         /// Constructor
         /// </summary>

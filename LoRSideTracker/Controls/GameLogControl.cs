@@ -115,27 +115,11 @@ namespace LoRSideTracker
             Utilities.CallActionSafelyAndWait(this, new Action(() =>
             {
                 // Load all games
-                Games = new List<GameRecord>();
+                Games = GameHistory.GetGames(deckSignature);
                 GameTextRectangles.RemoveRange(1, GameTextRectangles.Count - 1);
-
-
-                DirectoryInfo dirInfo = new DirectoryInfo(Constants.GetLocalGamesPath());
-                FileInfo[] files = dirInfo.GetFiles();
-
-                foreach (FileInfo fi in files.OrderBy(x => x.CreationTime))
+                foreach (var gr in Games)
                 {
-                    try
-                    {
-                        GameRecord gr = GameRecord.LoadFromFile(fi.FullName, deckSignature);
-                        if (gr != null)
-                        {
-                            AddGameRecord(gr, false);
-                        }
-                    }
-                    catch
-                    {
-                        // Skip bad records
-                    }
+                    AddGameRecord(gr, false);
                 }
             }));
             Invalidate();
@@ -148,7 +132,6 @@ namespace LoRSideTracker
         /// <param name="shouldInvalidate">Should window be redrawn</param>
         public void AddGameRecord(GameRecord gr, bool shouldInvalidate = true)
         {
-            Games.Insert(0, (GameRecord)gr.Clone());
             GameTextRectangles.Insert(1, new Rectangle[Columns.Length]);
             // Move all existing rectangles down
             for (int i = 2; i < GameTextRectangles.Count; i++)

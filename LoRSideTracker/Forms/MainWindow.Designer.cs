@@ -30,17 +30,16 @@
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainWindow));
             this.SnapWindowsButton = new System.Windows.Forms.Button();
-            this.ShowHistoryButton = new System.Windows.Forms.Button();
             this.OptionsButton = new System.Windows.Forms.Button();
             this.LogButton = new System.Windows.Forms.Button();
             this.DecksListBox = new System.Windows.Forms.ListBox();
             this.DeckPanel = new System.Windows.Forms.Panel();
             this.DecksLabel = new System.Windows.Forms.Label();
             this.HighlightedDeckPanel = new System.Windows.Forms.Panel();
+            this.MyProgressDisplay = new LoRSideTracker.ProgressDisplayControl();
             this.HighlightedDeckStatsDisplay = new LoRSideTracker.DeckStatsDisplay();
             this.HighlightedDeckControl = new LoRSideTracker.DeckControl();
             this.HighlightedGameLogControl = new LoRSideTracker.GameLogControl();
-            this.MyProgressDisplay = new LoRSideTracker.ProgressDisplayControl();
             this.DeckPanel.SuspendLayout();
             this.HighlightedDeckPanel.SuspendLayout();
             this.SuspendLayout();
@@ -57,22 +56,10 @@
             this.SnapWindowsButton.Visible = false;
             this.SnapWindowsButton.Click += new System.EventHandler(this.SnapWindowsButton_Click);
             // 
-            // ShowHistoryButton
-            // 
-            this.ShowHistoryButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.ShowHistoryButton.Location = new System.Drawing.Point(911, 39);
-            this.ShowHistoryButton.Name = "ShowHistoryButton";
-            this.ShowHistoryButton.Size = new System.Drawing.Size(85, 23);
-            this.ShowHistoryButton.TabIndex = 3;
-            this.ShowHistoryButton.Text = "History";
-            this.ShowHistoryButton.UseVisualStyleBackColor = true;
-            this.ShowHistoryButton.Visible = false;
-            this.ShowHistoryButton.Click += new System.EventHandler(this.ShowHistoryButton_Click);
-            // 
             // OptionsButton
             // 
             this.OptionsButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.OptionsButton.Location = new System.Drawing.Point(911, 68);
+            this.OptionsButton.Location = new System.Drawing.Point(911, 39);
             this.OptionsButton.Name = "OptionsButton";
             this.OptionsButton.Size = new System.Drawing.Size(85, 23);
             this.OptionsButton.TabIndex = 3;
@@ -84,7 +71,7 @@
             // LogButton
             // 
             this.LogButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.LogButton.Location = new System.Drawing.Point(911, 97);
+            this.LogButton.Location = new System.Drawing.Point(911, 68);
             this.LogButton.Name = "LogButton";
             this.LogButton.Size = new System.Drawing.Size(85, 23);
             this.LogButton.TabIndex = 3;
@@ -148,13 +135,23 @@
             this.HighlightedDeckPanel.TabIndex = 7;
             this.HighlightedDeckPanel.Visible = false;
             // 
+            // MyProgressDisplay
+            // 
+            this.MyProgressDisplay.Location = new System.Drawing.Point(925, 405);
+            this.MyProgressDisplay.MaximumSize = new System.Drawing.Size(360, 120);
+            this.MyProgressDisplay.MinimumSize = new System.Drawing.Size(360, 120);
+            this.MyProgressDisplay.Name = "MyProgressDisplay";
+            this.MyProgressDisplay.Size = new System.Drawing.Size(360, 120);
+            this.MyProgressDisplay.TabIndex = 9;
+            this.MyProgressDisplay.TabStop = false;
+            // 
             // HighlightedDeckStatsDisplay
             // 
             this.HighlightedDeckStatsDisplay.BlockHeight = 4;
             this.HighlightedDeckStatsDisplay.BlockWidth = 7;
             this.HighlightedDeckStatsDisplay.Location = new System.Drawing.Point(0, 156);
             this.HighlightedDeckStatsDisplay.Name = "HighlightedDeckStatsDisplay";
-            this.HighlightedDeckStatsDisplay.Size = new System.Drawing.Size(177, 150);
+            this.HighlightedDeckStatsDisplay.Size = new System.Drawing.Size(177, 65);
             this.HighlightedDeckStatsDisplay.SpellColor = System.Drawing.Color.MediumSeaGreen;
             this.HighlightedDeckStatsDisplay.TabIndex = 4;
             this.HighlightedDeckStatsDisplay.TextColor = System.Drawing.Color.White;
@@ -178,16 +175,6 @@
             this.HighlightedGameLogControl.Size = new System.Drawing.Size(546, 249);
             this.HighlightedGameLogControl.TabIndex = 2;
             // 
-            // MyProgressDisplay
-            // 
-            this.MyProgressDisplay.Location = new System.Drawing.Point(925, 405);
-            this.MyProgressDisplay.MaximumSize = new System.Drawing.Size(360, 120);
-            this.MyProgressDisplay.MinimumSize = new System.Drawing.Size(360, 120);
-            this.MyProgressDisplay.Name = "MyProgressDisplay";
-            this.MyProgressDisplay.Size = new System.Drawing.Size(360, 120);
-            this.MyProgressDisplay.TabIndex = 9;
-            this.MyProgressDisplay.TabStop = false;
-            // 
             // MainWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -200,7 +187,6 @@
             this.Controls.Add(this.DecksListBox);
             this.Controls.Add(this.LogButton);
             this.Controls.Add(this.OptionsButton);
-            this.Controls.Add(this.ShowHistoryButton);
             this.Controls.Add(this.SnapWindowsButton);
             this.Controls.Add(this.DeckPanel);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
@@ -220,7 +206,6 @@
 
         #endregion
         private System.Windows.Forms.Button SnapWindowsButton;
-        private System.Windows.Forms.Button ShowHistoryButton;
         private System.Windows.Forms.Button OptionsButton;
         private System.Windows.Forms.Button LogButton;
         private System.Windows.Forms.ListBox DecksListBox;

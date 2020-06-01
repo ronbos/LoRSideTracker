@@ -33,7 +33,6 @@ namespace LoRSideTracker
         private DeckWindow PlayerPlayedCardsWindow;
         private DeckWindow OpponentPlayedCardsWindow;
 
-        private GameHistoryWindow GameHistory;
         private LogWindow ActiveLogWindow;
         private int ExpeditionsCount = 0;
 
@@ -349,6 +348,7 @@ namespace LoRSideTracker
         private async void OnAllSetsDownloaded()
         {
             await Task.Run(() => CardLibrary.LoadAllCards(MyProgressDisplay));
+            GameHistory.LoadAllGames();
 
             MyProgressDisplay.Hide();
 
@@ -389,20 +389,6 @@ namespace LoRSideTracker
 
             PlayerActiveDeckWindow.HideZeroCountCards = Properties.Settings.Default.HideZeroCountInDeck;
 
-            //Utilities.CallActionSafelyAndWait(this, new Action(() => { GameHistory.CreateControl(); }));
-            GameHistory = new GameHistoryWindow();
-            GameHistory.CreateControl();
-            if (Properties.Settings.Default.GameHistoryWindowBounds.Width > 0)
-            {
-                GameHistory.StartPosition = FormStartPosition.Manual;
-                GameHistory.SetBounds(
-                    Properties.Settings.Default.GameHistoryWindowBounds.X,
-                    Properties.Settings.Default.GameHistoryWindowBounds.Y,
-                    Properties.Settings.Default.GameHistoryWindowBounds.Width,
-                    Properties.Settings.Default.GameHistoryWindowBounds.Height,
-                    BoundsSpecified.All);
-            }
-
             ActiveLogWindow = new LogWindow();
             ActiveLogWindow.CreateControl();
             if (Properties.Settings.Default.ActiveLogWindowBounds.Width > 0)
@@ -426,7 +412,6 @@ namespace LoRSideTracker
             CurrentOverlay = new Overlay(this);
 
             SnapWindowsButton.Visible = true;
-            ShowHistoryButton.Visible = true;
             OptionsButton.Visible = true;
             LogButton.Visible = true;
             DecksListBox.Visible = true;
@@ -560,17 +545,6 @@ namespace LoRSideTracker
                 Properties.Settings.Default.MainWindowBounds = this.RestoreBounds;
             }
 
-            if (GameHistory.WindowState == FormWindowState.Normal)
-            {
-                // save location and size if the state is normal
-                Properties.Settings.Default.GameHistoryWindowBounds = GameHistory.Bounds;
-            }
-            else
-            {
-                // save the RestoreBounds if the form is minimized or maximized!
-                Properties.Settings.Default.GameHistoryWindowBounds = GameHistory.RestoreBounds;
-            }
-
             if (ActiveLogWindow.WindowState == FormWindowState.Normal)
             {
                 // save location and size if the state is normal
@@ -588,21 +562,6 @@ namespace LoRSideTracker
 
             // Save the settings
             Properties.Settings.Default.Save();
-        }
-
-        private void ShowHistoryButton_Click(object sender, EventArgs e)
-        {
-            if (GameHistory != null)
-            {
-                if (GameHistory.Visible)
-                {
-                    GameHistory.Hide();
-                }
-                else
-                {
-                    GameHistory.Show();
-                }
-            }
         }
 
         private void MainWindow_SizeChanged(object sender, EventArgs e)
