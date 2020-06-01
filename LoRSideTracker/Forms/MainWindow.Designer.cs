@@ -104,7 +104,7 @@
             this.DecksListBox.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.DecksListBox.CausesValidation = false;
             this.DecksListBox.DrawMode = System.Windows.Forms.DrawMode.OwnerDrawFixed;
-            this.DecksListBox.Font = new System.Drawing.Font("Calibri", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.DecksListBox.Font = new System.Drawing.Font("Calibri", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.DecksListBox.ForeColor = System.Drawing.Color.LightYellow;
             this.DecksListBox.IntegralHeight = false;
             this.DecksListBox.ItemHeight = 30;
@@ -232,7 +232,7 @@
             this.ExpeditionsListBox.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.ExpeditionsListBox.CausesValidation = false;
             this.ExpeditionsListBox.DrawMode = System.Windows.Forms.DrawMode.OwnerDrawFixed;
-            this.ExpeditionsListBox.Font = new System.Drawing.Font("Calibri", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.ExpeditionsListBox.Font = new System.Drawing.Font("Calibri", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.ExpeditionsListBox.ForeColor = System.Drawing.Color.LightYellow;
             this.ExpeditionsListBox.IntegralHeight = false;
             this.ExpeditionsListBox.ItemHeight = 30;

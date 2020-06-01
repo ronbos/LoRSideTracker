@@ -641,7 +641,7 @@ namespace LoRSideTracker
                 HighlightedDeckControl.SetCard(i, gr.MyDeck[i]);
             }
 
-            //HighlightedDeckControl.Title = "Deck";
+            HighlightedDeckControl.Title = gr.ToString();
             Size bestDeckSize = HighlightedDeckControl.GetBestSize();
             HighlightedDeckControl.SetBounds(0, 0, bestDeckSize.Width, bestDeckSize.Height, BoundsSpecified.Size);
             HighlightedDeckStatsDisplay.TheDeck = gr.MyDeck;
@@ -733,29 +733,57 @@ namespace LoRSideTracker
 
         private void DecksListBox_DrawItem(object sender, DrawItemEventArgs e)
         {
-            Rectangle rect = e.Bounds;
-            e.Graphics.FillRectangle(new SolidBrush(BackColor), rect);
-            rect.Height--;
-            if (e.Index >= 0)
-            {
-                GameRecord gr = (GameRecord)DecksListBox.Items[e.Index];
-                e.Graphics.FillRectangle(new SolidBrush(e.ForeColor), rect);
-                rect.Inflate(-1, -1);
-                e.Graphics.FillRectangle(new SolidBrush(e.BackColor), rect);
-                TextRenderer.DrawText(e.Graphics, gr.ToString(), e.Font, rect, ForeColor, TextFormatFlags.Left | TextFormatFlags.VerticalCenter);
-            }
+            DrawListBoxItem(DecksListBox, e);
         }
         private void ExpeditionsListBox_DrawItem(object sender, DrawItemEventArgs e)
         {
+            DrawListBoxItem(ExpeditionsListBox, e);
+        }
+
+        private void DrawListBoxItem(ListBox listBox, DrawItemEventArgs e)
+        {
             Rectangle rect = e.Bounds;
             e.Graphics.FillRectangle(new SolidBrush(BackColor), rect);
+            e.Graphics.SetClip(rect);
             rect.Height--;
             if (e.Index >= 0)
             {
-                GameRecord gr = (GameRecord)ExpeditionsListBox.Items[e.Index];
-                e.Graphics.FillRectangle(new SolidBrush(e.ForeColor), rect);
+                Color borderColor = e.ForeColor;
+                if (!e.State.HasFlag(DrawItemState.Selected))
+                {
+                    borderColor = Color.FromArgb(
+                        (e.ForeColor.R + e.BackColor.R) / 2,
+                        (e.ForeColor.G + e.BackColor.G) / 2,
+                        (e.ForeColor.B + e.BackColor.B) / 2);
+                }
+                e.Graphics.FillRectangle(new SolidBrush(borderColor), rect);
                 rect.Inflate(-1, -1);
-                e.Graphics.FillRectangle(new SolidBrush(e.BackColor), rect);
+
+                GameRecord gr = (GameRecord)listBox.Items[e.Index];
+                // Find the card to use for art
+                int drawIndex = -1;
+                for (int i = gr.MyDeck.Count - 1; i >= 0; i--)
+                {
+                    if (gr.MyDeck[i].TheCard.SuperType == "Champion")
+                    {
+                        drawIndex = i;
+                        break;
+                    }
+                    else if (gr.MyDeck[i].TheCard.Type == "Unit" && drawIndex == -1)
+                    {
+                        drawIndex = i;
+                    }
+                }
+                if (drawIndex >= 0)
+                {
+                    gr.MyDeck[drawIndex].TheCard.DrawCardArt(e.Graphics, rect);
+                    e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb(
+                        e.State.HasFlag(DrawItemState.Selected) ? 128 : 192, Color.Black)), rect);
+                }
+                else
+                {
+                    e.Graphics.FillRectangle(new SolidBrush(e.BackColor), rect);
+                }
                 TextRenderer.DrawText(e.Graphics, gr.ToString(), e.Font, rect, ForeColor, TextFormatFlags.Left | TextFormatFlags.VerticalCenter);
             }
         }

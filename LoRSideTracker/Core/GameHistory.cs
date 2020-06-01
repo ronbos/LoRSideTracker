@@ -8,6 +8,9 @@ using System.Threading.Tasks;
 
 namespace LoRSideTracker
 {
+    /// <summary>
+    /// Persistent history of all the games played
+    /// </summary>
     public static class GameHistory
     {
         /// <summary></summary>
@@ -75,11 +78,6 @@ namespace LoRSideTracker
             Games.Insert(0, (GameRecord)gr.Clone());
         }
 
-        public static List<GameRecord> GetGames(string signature)
-        {
-            return Games.FindAll(x => signature == x.GetDeckSignature()).ToList();
-        }
-
         /// <summary>
         /// Set deck name
         /// </summary>
@@ -95,7 +93,7 @@ namespace LoRSideTracker
 
             if (File.Exists(Constants.GetLocalDeckNamesFilePath()))
             {
-                if (File.Exists(Constants.GetLocalDeckNamesFilePath()))
+                if (File.Exists(Constants.GetLocalDeckNamesFilePath() + ".backup"))
                 {
                     File.Delete(Constants.GetLocalDeckNamesFilePath() + ".backup");
                 }

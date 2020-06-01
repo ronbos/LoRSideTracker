@@ -115,7 +115,7 @@ namespace LoRSideTracker
             Utilities.CallActionSafelyAndWait(this, new Action(() =>
             {
                 // Load all games
-                Games = GameHistory.GetGames(deckSignature);
+                Games = GameHistory.Games.FindAll(x => deckSignature == x.GetDeckSignature()).ToList();
                 GameTextRectangles.RemoveRange(1, GameTextRectangles.Count - 1);
                 foreach (var gr in Games)
                 {
@@ -200,6 +200,10 @@ namespace LoRSideTracker
             e.Graphics.DrawLine(new Pen(ForeColor, 1), new Point(CellMargin, currentRect.Bottom), new Point(currentRect.Right, currentRect.Bottom));
 
             currentRect = new Rectangle(0, top, 0, top + CellHeight);
+            Color lineColor = Color.FromArgb(
+                (ForeColor.R + 3 * BackColor.R) / 4,
+                (ForeColor.G + 3 * BackColor.G) / 4,
+                (ForeColor.B + 3 * BackColor.B) / 4);
             for (int i = 0; i < Games.Count; i++)
             {
                 GameRecord game = Games[i];
@@ -219,6 +223,7 @@ namespace LoRSideTracker
                         ForeColor,
                         col.TextFormat);
                 }
+                e.Graphics.DrawLine(new Pen(lineColor, 1), new Point(CellMargin, currentRect.Bottom), new Point(currentRect.Right, currentRect.Bottom));
             }
         }
 

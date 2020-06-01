@@ -168,7 +168,7 @@ namespace LoRSideTracker
             countRect.X = cardRect.X + cardRect.Width;
 
             // Draw the card and a translucent layer to make the tile darker
-            DrawCardArt(g, card.TheCard, paintRect);
+            card.TheCard.DrawCardArt(g, paintRect);
             g.FillRectangle(new SolidBrush(Color.FromArgb(96, Color.Black)), paintRect);
 
             // Create font
@@ -189,52 +189,6 @@ namespace LoRSideTracker
             {
                 g.FillRectangle(new SolidBrush(Color.FromArgb(128, Color.Black)), paintRect);
             }
-        }
-
-        private void DrawCardArt(Graphics g, Card card, Rectangle dstRect)
-        {
-            Image img;
-            Rectangle srcRect;
-
-            img = card.CardBanner;
-            if (card.Type == "Spell")
-            {
-                double diagonal = Math.Sqrt(dstRect.Width * dstRect.Width + dstRect.Height * dstRect.Height);
-                double scale = img.Width / diagonal;
-                int newWidth = (int)(dstRect.Width * scale);
-                int newHeight = (int)(dstRect.Height * scale);
-                srcRect = new Rectangle((img.Width - newWidth) / 2, (img.Height - newHeight) / 2, newWidth, newHeight);
-            }
-            else
-            {
-                srcRect = new Rectangle(0, 0, img.Width, img.Height);
-                // Crop vertically to preserve aspect ratio
-                if (dstRect.Width * srcRect.Height > srcRect.Width * dstRect.Height)
-                {
-                    int newHeight = srcRect.Width * dstRect.Height / dstRect.Width;
-                    int newCenter = img.Height * 4 / 10;
-                    int newY = Math.Max(newCenter - newHeight / 2, 0);
-                    srcRect.Y = newY;
-                    srcRect.Height = newHeight;
-                }
-                else
-                {
-                    int newWidth = srcRect.Height * dstRect.Width / dstRect.Height;
-                    srcRect.X += (srcRect.Width - newWidth) / 2;
-                    srcRect.Width = newWidth;
-                }
-            }
-
-            g.DrawImage(img, dstRect, srcRect, GraphicsUnit.Pixel);
-
-            Color regionColor = Constants.GetRegionAccentColor(card.Region);
-            //dstRect.Width /= 2;
-            LinearGradientBrush linGrBrush = new LinearGradientBrush(
-               new Point(dstRect.X, 10),
-               new Point(dstRect.X + dstRect.Width / 2, 10),
-               Color.FromArgb(160, regionColor),
-               Color.FromArgb(0, regionColor));
-            g.FillRectangle(linGrBrush, dstRect.X, dstRect.Y, dstRect.Width / 2, dstRect.Height);
         }
 
         private void DeckControl_MouseLeave(object sender, EventArgs e)
