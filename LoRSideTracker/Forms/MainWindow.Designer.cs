@@ -97,6 +97,7 @@
             this.DecksListBox.TabIndex = 4;
             this.DecksListBox.Visible = false;
             this.DecksListBox.SelectedIndexChanged += new System.EventHandler(this.DecksListBox_SelectedIndexChanged);
+            this.DecksListBox.DoubleClick += new System.EventHandler(this.DecksListBox_DoubleClick);
             // 
             // DeckPanel
             // 

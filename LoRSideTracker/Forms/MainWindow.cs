@@ -469,6 +469,12 @@ namespace LoRSideTracker
                 ExpeditionsCount++;
             }
 
+            try
+            {
+                deckName = GameHistory.DeckNames[gr.GetDeckSignature()];
+            }
+            catch { }
+
             gr.DisplayString = deckName;
             DecksListBox.Items.Insert(0, gr);
             index = 0;
@@ -629,6 +635,24 @@ namespace LoRSideTracker
             // Returning the current location prevents the panel from
             // scrolling to the active control when the panel loses and regains focus
             return this.DisplayRectangle.Location;
+        }
+
+        private void DecksListBox_DoubleClick(object sender, EventArgs e)
+        {
+            int index = DecksListBox.SelectedIndex;
+            if (index >= 0)
+            {
+                GameRecord gr = (GameRecord)((GameRecord)DecksListBox.Items[index]).Clone();
+                string result = Microsoft.VisualBasic.Interaction.InputBox("Name:", "Change Deck Name", gr.DisplayString);
+                if (!string.IsNullOrEmpty(result))
+                {
+                    gr.DisplayString = result;
+                    DecksListBox.Items[index] = gr;
+                    DecksListBox.Refresh();
+
+                    GameHistory.SetDeckName(gr.GetDeckSignature(), result);
+                }
+            }
         }
     }
 }

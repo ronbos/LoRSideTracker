@@ -133,6 +133,15 @@ namespace LoRSideTracker
         }
 
         /// <summary>
+        /// Produce local deck names file path
+        /// </summary>
+        /// <returns>Deck names file path</returns>
+        public static string GetLocalDeckNamesFilePath()
+        {
+            return Application.LocalUserAppDataPath + @"\DeckNames.json";
+        }
+
+        /// <summary>
         /// Accent color for LoR region
         /// </summary>
         /// <param name="region">region string</param>
