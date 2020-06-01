@@ -733,23 +733,31 @@ namespace LoRSideTracker
 
         private void DecksListBox_DrawItem(object sender, DrawItemEventArgs e)
         {
-            GameRecord gr = (GameRecord)DecksListBox.Items[e.Index];
             Rectangle rect = e.Bounds;
+            e.Graphics.FillRectangle(new SolidBrush(BackColor), rect);
             rect.Height--;
-            e.Graphics.FillRectangle(new SolidBrush(e.ForeColor), rect);
-            rect.Inflate(-1, -1);
-            e.Graphics.FillRectangle(new SolidBrush(e.BackColor), rect);
-            TextRenderer.DrawText(e.Graphics, gr.ToString(), e.Font, rect, ForeColor, TextFormatFlags.Left | TextFormatFlags.VerticalCenter);
+            if (e.Index >= 0)
+            {
+                GameRecord gr = (GameRecord)DecksListBox.Items[e.Index];
+                e.Graphics.FillRectangle(new SolidBrush(e.ForeColor), rect);
+                rect.Inflate(-1, -1);
+                e.Graphics.FillRectangle(new SolidBrush(e.BackColor), rect);
+                TextRenderer.DrawText(e.Graphics, gr.ToString(), e.Font, rect, ForeColor, TextFormatFlags.Left | TextFormatFlags.VerticalCenter);
+            }
         }
         private void ExpeditionsListBox_DrawItem(object sender, DrawItemEventArgs e)
         {
-            GameRecord gr = (GameRecord)ExpeditionsListBox.Items[e.Index];
             Rectangle rect = e.Bounds;
+            e.Graphics.FillRectangle(new SolidBrush(BackColor), rect);
             rect.Height--;
-            e.Graphics.FillRectangle(new SolidBrush(e.ForeColor), rect);
-            rect.Inflate(-1, -1);
-            e.Graphics.FillRectangle(new SolidBrush(e.BackColor), rect);
-            TextRenderer.DrawText(e.Graphics, gr.ToString(), e.Font, rect, ForeColor, TextFormatFlags.Left | TextFormatFlags.VerticalCenter);
+            if (e.Index >= 0)
+            {
+                GameRecord gr = (GameRecord)ExpeditionsListBox.Items[e.Index];
+                e.Graphics.FillRectangle(new SolidBrush(e.ForeColor), rect);
+                rect.Inflate(-1, -1);
+                e.Graphics.FillRectangle(new SolidBrush(e.BackColor), rect);
+                TextRenderer.DrawText(e.Graphics, gr.ToString(), e.Font, rect, ForeColor, TextFormatFlags.Left | TextFormatFlags.VerticalCenter);
+            }
         }
     }
 }

@@ -216,7 +216,7 @@ namespace LoRSideTracker
                     TextRenderer.DrawText(e.Graphics, text,
                         ListFont,
                         currentRect,
-                        (i == HighlightedCell.Y && j == HighlightedCell.X) ? Color.Blue : ForeColor,
+                        ForeColor,
                         col.TextFormat);
                 }
             }

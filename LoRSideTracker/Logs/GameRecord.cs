@@ -22,7 +22,8 @@ namespace LoRSideTracker
             { "deckname_kinkou_keepers", "Stealthy Strikes (AI)" },
             { "decks_mediumelise_name", "Spider Swarm (AI)" },
             { "decks_mediumdraven_name", "The Main Event (AI)" },
-            { "decks_mediumzed_name", "Shadow and Blades (AI)" }
+            { "decks_mediumzed_name", "Shadow and Blades (AI)" },
+            { "front_five_game_one", "Poro Trouble (AI)" }
         };
 
         /// <summary>Player Deck Name</summary>
