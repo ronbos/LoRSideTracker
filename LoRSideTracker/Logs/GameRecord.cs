@@ -16,7 +16,7 @@ namespace LoRSideTracker
     {
         private static Dictionary<string, string> AIDeckNames = new Dictionary<string, string>()
         {
-            //{ "decks_badstuns_name", "No idea (AI)" },
+            { "decks_badstuns_name", "Flash of Steel (AI)" },
             { "decks_easybraum_name", "Stay Warm (AI)" },
             { "decks_easyteemo_name", "Scout's Honor (AI)" },
             { "deckname_kinkou_keepers", "Stealthy Strikes (AI)" },

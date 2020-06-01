@@ -46,15 +46,42 @@ namespace LoRSideTracker
         /// <param name="oldGameState">Previous game state</param>
         /// <param name="newGameState">New game state</param>
         void OnGameStateChanged(string oldGameState, string newGameState);
+
+        /// <summary>
+        /// Callback for when elements have been updated
+        /// </summary>
+        /// <param name="playerElements"></param>
+        /// <param name="opponentElements"></param>
+        /// <param name="screenWidth"></param>
+        /// <param name="screenHeight"></param>
+        void OnElementsUpdate(List<OverlayElement> playerElements, List<OverlayElement> opponentElements, int screenWidth, int screenHeight);
     }
 
-    class OverlayElement
+    public class OverlayElement : ICloneable
     {
-        public Card TheCard { get; }
-        public string CardCode { get; }
-        public Rectangle BoundingBox { get; }
-        public RectangleF NormalizedBoundingBox { get; }
-        public PointF NormalizedCenter { get; }
+        /// <summary></summary>
+        public Card TheCard { get; private set; }
+        /// <summary></summary>
+        public string CardCode { get; private set; }
+        /// <summary></summary>
+        public Rectangle BoundingBox { get; private set; }
+        /// <summary></summary>
+        public RectangleF NormalizedBoundingBox { get; private set; }
+        /// <summary></summary>
+        public PointF NormalizedCenter { get; private set; }
+
+        private OverlayElement()
+        {
+
+        }
+
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="dict"></param>
+        /// <param name="screenWidth"></param>
+        /// <param name="screenHeight"></param>
+        /// <param name="screenHeightForNormalized"></param>
         public OverlayElement(Dictionary<string, JsonElement> dict, int screenWidth, int screenHeight, int screenHeightForNormalized)
         {
             CardCode = dict["CardCode"].GetString();
@@ -71,6 +98,17 @@ namespace LoRSideTracker
             float bottom = (float)(BoundingBox.Bottom) / (float)screenHeightForNormalized;
             NormalizedBoundingBox = new RectangleF(left, top, right - left, bottom - top);
             NormalizedCenter = new PointF((left + right) / 2, (top + bottom) / 2);
+        }
+
+        public object Clone()
+        {
+            OverlayElement result = new OverlayElement();
+            result.TheCard = TheCard;
+            result.CardCode = CardCode;
+            result.BoundingBox = BoundingBox;
+            result.NormalizedBoundingBox = NormalizedBoundingBox;
+            result.NormalizedCenter = NormalizedCenter;
+            return result;
         }
     }
 
@@ -625,6 +663,8 @@ namespace LoRSideTracker
                     int Width = dict["Width"].GetInt32();
                     int Height = dict["Height"].GetInt32();
                 }
+
+                Callback.OnElementsUpdate(PlayerElements, OpponentElements, ScreenWidth, ScreenHeight);
             }
             else
             {

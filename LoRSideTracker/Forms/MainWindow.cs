@@ -13,6 +13,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Windows.Input;
 
 namespace LoRSideTracker
 {
@@ -34,6 +35,7 @@ namespace LoRSideTracker
         private DeckWindow OpponentPlayedCardsWindow;
 
         private LogWindow ActiveLogWindow;
+        private OverlayWatchWindow OverlayWindow;
         private int ExpeditionsCount = 0;
 
         private GameRecord CurrentGameRecord = new GameRecord();
@@ -43,6 +45,7 @@ namespace LoRSideTracker
         public MainWindow()
         {
             InitializeComponent();
+            this.ResizeRedraw = true;
 
             if (!Directory.Exists(Constants.GetLocalGamesPath()))
             {
@@ -245,6 +248,21 @@ namespace LoRSideTracker
             }
         }
 
+        /// <summary>
+        /// Callback for when elements have been updated
+        /// </summary>
+        /// <param name="playerElements"></param>
+        /// <param name="opponentElements"></param>
+        /// <param name="screenWidth"></param>
+        /// <param name="screenHeight"></param>
+        public void OnElementsUpdate(List<OverlayElement> playerElements, List<OverlayElement> opponentElements, int screenWidth, int screenHeight)
+        {
+            if (OverlayWindow != null)
+            {
+                OverlayWindow.Update(playerElements, opponentElements, screenWidth, screenHeight);
+            }
+        }
+
         private void MainWindow_Shown(object sender, EventArgs e)
         {
             Rectangle progressRect = MyProgressDisplay.Bounds;
@@ -404,6 +422,12 @@ namespace LoRSideTracker
             ActiveLogWindow.Show();
             ActiveLogWindow.Hide();
             Log.SetLogWindow(ActiveLogWindow);
+
+            if (Keyboard.IsKeyDown(Key.D))
+            {
+                OverlayWindow = new OverlayWatchWindow();
+                OverlayWindow.Show();
+            }
 
             CurrentDeck = new StaticDeck(this);
             Thread.Sleep(500);
