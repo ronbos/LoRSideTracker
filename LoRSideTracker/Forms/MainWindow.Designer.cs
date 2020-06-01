@@ -34,14 +34,14 @@
             this.LogButton = new System.Windows.Forms.Button();
             this.DecksListBox = new System.Windows.Forms.ListBox();
             this.DeckPanel = new System.Windows.Forms.Panel();
-            this.HighlightedGameLogControl = new LoRSideTracker.GameLogControl();
             this.HighlightedDeckPanel = new System.Windows.Forms.Panel();
-            this.HighlightedDeckStatsDisplay = new LoRSideTracker.DeckStatsDisplay();
-            this.HighlightedDeckControl = new LoRSideTracker.DeckControl();
-            this.MyProgressDisplay = new LoRSideTracker.ProgressDisplayControl();
             this.DecksButton = new System.Windows.Forms.Button();
             this.ExpeditionsButton = new System.Windows.Forms.Button();
             this.ExpeditionsListBox = new System.Windows.Forms.ListBox();
+            this.MyProgressDisplay = new LoRSideTracker.ProgressDisplayControl();
+            this.HighlightedDeckStatsDisplay = new LoRSideTracker.DeckStatsDisplay();
+            this.HighlightedDeckControl = new LoRSideTracker.DeckControl();
+            this.HighlightedGameLogControl = new LoRSideTracker.GameLogControl();
             this.DeckPanel.SuspendLayout();
             this.HighlightedDeckPanel.SuspendLayout();
             this.SuspendLayout();
@@ -114,10 +114,12 @@
             this.DecksListBox.Name = "DecksListBox";
             this.DecksListBox.Size = new System.Drawing.Size(198, 512);
             this.DecksListBox.TabIndex = 4;
+            this.DecksListBox.TabStop = false;
             this.DecksListBox.Visible = false;
-            this.DecksListBox.DrawItem += new System.Windows.Forms.DrawItemEventHandler(this.DecksListBox_DrawItem);
+            this.DecksListBox.DrawItem += new System.Windows.Forms.DrawItemEventHandler(this.ListBox_DrawItem);
             this.DecksListBox.SelectedIndexChanged += new System.EventHandler(this.DecksListBox_SelectedIndexChanged);
             this.DecksListBox.DoubleClick += new System.EventHandler(this.DecksListBox_DoubleClick);
+            this.DecksListBox.SizeChanged += new System.EventHandler(this.ListBox_SizeChanged);
             // 
             // DeckPanel
             // 
@@ -130,14 +132,6 @@
             this.DeckPanel.Size = new System.Drawing.Size(554, 543);
             this.DeckPanel.TabIndex = 5;
             this.DeckPanel.Visible = false;
-            // 
-            // HighlightedGameLogControl
-            // 
-            this.HighlightedGameLogControl.ForeColor = System.Drawing.Color.LightYellow;
-            this.HighlightedGameLogControl.Location = new System.Drawing.Point(0, 0);
-            this.HighlightedGameLogControl.Name = "HighlightedGameLogControl";
-            this.HighlightedGameLogControl.Size = new System.Drawing.Size(546, 249);
-            this.HighlightedGameLogControl.TabIndex = 2;
             // 
             // HighlightedDeckPanel
             // 
@@ -153,39 +147,6 @@
             this.HighlightedDeckPanel.TabIndex = 7;
             this.HighlightedDeckPanel.Visible = false;
             // 
-            // HighlightedDeckStatsDisplay
-            // 
-            this.HighlightedDeckStatsDisplay.BlockHeight = 4;
-            this.HighlightedDeckStatsDisplay.BlockWidth = 7;
-            this.HighlightedDeckStatsDisplay.Location = new System.Drawing.Point(0, 156);
-            this.HighlightedDeckStatsDisplay.Name = "HighlightedDeckStatsDisplay";
-            this.HighlightedDeckStatsDisplay.Size = new System.Drawing.Size(177, 65);
-            this.HighlightedDeckStatsDisplay.SpellColor = System.Drawing.Color.MediumSeaGreen;
-            this.HighlightedDeckStatsDisplay.TabIndex = 4;
-            this.HighlightedDeckStatsDisplay.TextColor = System.Drawing.Color.White;
-            this.HighlightedDeckStatsDisplay.TheDeck = null;
-            this.HighlightedDeckStatsDisplay.UnitColor = System.Drawing.Color.RoyalBlue;
-            // 
-            // HighlightedDeckControl
-            // 
-            this.HighlightedDeckControl.BackColor = System.Drawing.Color.Black;
-            this.HighlightedDeckControl.IsMinimized = false;
-            this.HighlightedDeckControl.Location = new System.Drawing.Point(0, 0);
-            this.HighlightedDeckControl.Name = "HighlightedDeckControl";
-            this.HighlightedDeckControl.Size = new System.Drawing.Size(180, 150);
-            this.HighlightedDeckControl.TabIndex = 2;
-            this.HighlightedDeckControl.Title = null;
-            // 
-            // MyProgressDisplay
-            // 
-            this.MyProgressDisplay.Location = new System.Drawing.Point(925, 405);
-            this.MyProgressDisplay.MaximumSize = new System.Drawing.Size(360, 120);
-            this.MyProgressDisplay.MinimumSize = new System.Drawing.Size(360, 120);
-            this.MyProgressDisplay.Name = "MyProgressDisplay";
-            this.MyProgressDisplay.Size = new System.Drawing.Size(360, 120);
-            this.MyProgressDisplay.TabIndex = 9;
-            this.MyProgressDisplay.TabStop = false;
-            // 
             // DecksButton
             // 
             this.DecksButton.FlatAppearance.BorderColor = System.Drawing.Color.LightYellow;
@@ -198,6 +159,7 @@
             this.DecksButton.Name = "DecksButton";
             this.DecksButton.Size = new System.Drawing.Size(100, 23);
             this.DecksButton.TabIndex = 11;
+            this.DecksButton.TabStop = false;
             this.DecksButton.Text = "Decks";
             this.DecksButton.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             this.DecksButton.UseVisualStyleBackColor = true;
@@ -217,6 +179,7 @@
             this.ExpeditionsButton.Name = "ExpeditionsButton";
             this.ExpeditionsButton.Size = new System.Drawing.Size(100, 23);
             this.ExpeditionsButton.TabIndex = 12;
+            this.ExpeditionsButton.TabStop = false;
             this.ExpeditionsButton.Text = "Expeditions";
             this.ExpeditionsButton.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             this.ExpeditionsButton.UseVisualStyleBackColor = false;
@@ -242,9 +205,55 @@
             this.ExpeditionsListBox.Name = "ExpeditionsListBox";
             this.ExpeditionsListBox.Size = new System.Drawing.Size(198, 512);
             this.ExpeditionsListBox.TabIndex = 13;
+            this.ExpeditionsListBox.TabStop = false;
             this.ExpeditionsListBox.Visible = false;
-            this.ExpeditionsListBox.DrawItem += new System.Windows.Forms.DrawItemEventHandler(this.ExpeditionsListBox_DrawItem);
+            this.ExpeditionsListBox.DrawItem += new System.Windows.Forms.DrawItemEventHandler(this.ListBox_DrawItem);
             this.ExpeditionsListBox.SelectedIndexChanged += new System.EventHandler(this.ExpeditionsListBox_SelectedIndexChanged);
+            this.ExpeditionsListBox.SizeChanged += new System.EventHandler(this.ListBox_SizeChanged);
+            // 
+            // MyProgressDisplay
+            // 
+            this.MyProgressDisplay.Location = new System.Drawing.Point(925, 405);
+            this.MyProgressDisplay.MaximumSize = new System.Drawing.Size(360, 120);
+            this.MyProgressDisplay.MinimumSize = new System.Drawing.Size(360, 120);
+            this.MyProgressDisplay.Name = "MyProgressDisplay";
+            this.MyProgressDisplay.Size = new System.Drawing.Size(360, 120);
+            this.MyProgressDisplay.TabIndex = 9;
+            this.MyProgressDisplay.TabStop = false;
+            // 
+            // HighlightedDeckStatsDisplay
+            // 
+            this.HighlightedDeckStatsDisplay.BlockHeight = 4;
+            this.HighlightedDeckStatsDisplay.BlockWidth = 7;
+            this.HighlightedDeckStatsDisplay.Location = new System.Drawing.Point(0, 156);
+            this.HighlightedDeckStatsDisplay.Name = "HighlightedDeckStatsDisplay";
+            this.HighlightedDeckStatsDisplay.Size = new System.Drawing.Size(177, 65);
+            this.HighlightedDeckStatsDisplay.SpellColor = System.Drawing.Color.MediumSeaGreen;
+            this.HighlightedDeckStatsDisplay.TabIndex = 4;
+            this.HighlightedDeckStatsDisplay.TabStop = false;
+            this.HighlightedDeckStatsDisplay.TextColor = System.Drawing.Color.White;
+            this.HighlightedDeckStatsDisplay.TheDeck = null;
+            this.HighlightedDeckStatsDisplay.UnitColor = System.Drawing.Color.RoyalBlue;
+            // 
+            // HighlightedDeckControl
+            // 
+            this.HighlightedDeckControl.BackColor = System.Drawing.Color.Black;
+            this.HighlightedDeckControl.IsMinimized = false;
+            this.HighlightedDeckControl.Location = new System.Drawing.Point(0, 0);
+            this.HighlightedDeckControl.Name = "HighlightedDeckControl";
+            this.HighlightedDeckControl.Size = new System.Drawing.Size(180, 150);
+            this.HighlightedDeckControl.TabIndex = 2;
+            this.HighlightedDeckControl.TabStop = false;
+            this.HighlightedDeckControl.Title = null;
+            // 
+            // HighlightedGameLogControl
+            // 
+            this.HighlightedGameLogControl.ForeColor = System.Drawing.Color.LightYellow;
+            this.HighlightedGameLogControl.Location = new System.Drawing.Point(0, 0);
+            this.HighlightedGameLogControl.Name = "HighlightedGameLogControl";
+            this.HighlightedGameLogControl.Size = new System.Drawing.Size(546, 249);
+            this.HighlightedGameLogControl.TabIndex = 2;
+            this.HighlightedGameLogControl.TabStop = false;
             // 
             // MainWindow
             // 

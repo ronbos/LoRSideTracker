@@ -711,12 +711,12 @@ namespace LoRSideTracker
 
         private void SwitchDeckView(ListBox fromListBox, Button fromButton, ListBox toListBox, Button toButton)
         {
-            toButton.BackColor = BackColor;
-            fromButton.BackColor = Color.FromArgb(BackColor.R * 2, BackColor.G * 2, BackColor.B * 2);
+            fromButton.BackColor = BackColor;
             fromButton.FlatAppearance.MouseOverBackColor = toButton.FlatAppearance.MouseOverBackColor;
             fromButton.FlatAppearance.MouseDownBackColor = toButton.FlatAppearance.MouseDownBackColor;
-            toButton.FlatAppearance.MouseOverBackColor = BackColor;
-            toButton.FlatAppearance.MouseDownBackColor = BackColor;
+            toButton.BackColor = Color.FromArgb(BackColor.R * 2, BackColor.G * 2, BackColor.B * 2);
+            toButton.FlatAppearance.MouseOverBackColor = toButton.BackColor;
+            toButton.FlatAppearance.MouseDownBackColor = toButton.BackColor;
             toButton.FlatAppearance.BorderSize = 1;
             fromListBox.Visible = false;
             fromListBox.SelectedIndex = -1;
@@ -731,20 +731,11 @@ namespace LoRSideTracker
             toListBox.Visible = true;
         }
 
-        private void DecksListBox_DrawItem(object sender, DrawItemEventArgs e)
+        private void ListBox_DrawItem(object sender, DrawItemEventArgs e)
         {
-            DrawListBoxItem(DecksListBox, e);
-        }
-        private void ExpeditionsListBox_DrawItem(object sender, DrawItemEventArgs e)
-        {
-            DrawListBoxItem(ExpeditionsListBox, e);
-        }
-
-        private void DrawListBoxItem(ListBox listBox, DrawItemEventArgs e)
-        {
+            ListBox listBox = (ListBox)sender;
+            e.DrawBackground() ;
             Rectangle rect = e.Bounds;
-            e.Graphics.FillRectangle(new SolidBrush(BackColor), rect);
-            e.Graphics.SetClip(rect);
             rect.Height--;
             if (e.Index >= 0)
             {
@@ -786,6 +777,16 @@ namespace LoRSideTracker
                 }
                 TextRenderer.DrawText(e.Graphics, gr.ToString(), e.Font, rect, ForeColor, TextFormatFlags.Left | TextFormatFlags.VerticalCenter);
             }
+        }
+
+        /// <summary>
+        /// Added to fix some of the redraw issues when resizing
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void ListBox_SizeChanged(object sender, EventArgs e)
+        {
+            ((ListBox)sender).Invalidate();
         }
     }
 }
