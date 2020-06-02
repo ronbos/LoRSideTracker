@@ -243,7 +243,28 @@ namespace LoRSideTracker
                 Utilities.CallActionSafelyAndWait(DecksListBox, new Action (() => 
                 {
                     int index = AddToDeckList(gameRecord);
-                    DecksListBox.SetSelected(index, true);
+                    if (gameRecord.IsExpedition() != ExpeditionsListBox.Visible)
+                    {
+                        if (gameRecord.IsExpedition())
+                        {
+                            SwitchDeckView(DecksListBox, DecksButton, ExpeditionsListBox, ExpeditionsButton);
+                        }
+                        else
+                        {
+                            SwitchDeckView(ExpeditionsListBox, ExpeditionsButton, DecksListBox, DecksButton);
+                        }
+                    }
+                    else
+                    {
+                        if (gameRecord.IsExpedition())
+                        {
+                            ExpeditionsListBox.SetSelected(index, true);
+                        }
+                        else
+                        {
+                            DecksListBox.SetSelected(index, true);
+                        }
+                    }
                 }));
             }
         }
@@ -370,27 +391,41 @@ namespace LoRSideTracker
 
             MyProgressDisplay.Hide();
 
+            DeckControl.DeckScale deckScale = DeckControl.DeckScale.Medium;
+            if (Properties.Settings.Default.DeckDrawSize == 0)
+            {
+                deckScale = DeckControl.DeckScale.Small;
+            }
+            if (Properties.Settings.Default.DeckDrawSize == 2)
+            {
+                deckScale = DeckControl.DeckScale.Large;
+            }
+
             PlayerActiveDeckWindow = new DeckWindow();
             PlayerActiveDeckWindow.CreateControl();
             PlayerActiveDeckWindow.Title = "No Active Deck";
+            PlayerActiveDeckWindow.CustomDeckScale = deckScale;
             PlayerActiveDeckWindow.ShouldShowDeckStats = Properties.Settings.Default.ShowDeckStats;
             if (Properties.Settings.Default.ShowPlayerDeck) PlayerActiveDeckWindow.Show();
 
             PlayerDrawnCardsWindow = new DeckWindow();
             PlayerDrawnCardsWindow.CreateControl();
             PlayerDrawnCardsWindow.Title = "Cards Drawn";
+            PlayerDrawnCardsWindow.CustomDeckScale = deckScale;
             PlayerDrawnCardsWindow.ShouldShowDeckStats = Properties.Settings.Default.ShowDeckStats;
             if (Properties.Settings.Default.ShowPlayerDrawnCards) PlayerDrawnCardsWindow.Show();
 
             PlayerPlayedCardsWindow = new DeckWindow();
             PlayerPlayedCardsWindow.CreateControl();
             PlayerPlayedCardsWindow.Title = "You Played";
+            PlayerPlayedCardsWindow.CustomDeckScale = deckScale;
             PlayerPlayedCardsWindow.ShouldShowDeckStats = Properties.Settings.Default.ShowDeckStats;
             if (Properties.Settings.Default.ShowPlayerPlayedCards) PlayerPlayedCardsWindow.Show();
 
             OpponentPlayedCardsWindow = new DeckWindow();
             OpponentPlayedCardsWindow.CreateControl();
             OpponentPlayedCardsWindow.Title = "Opponent Played";
+            OpponentPlayedCardsWindow.CustomDeckScale = deckScale;
             OpponentPlayedCardsWindow.ShouldShowDeckStats = Properties.Settings.Default.ShowDeckStats;
             if (Properties.Settings.Default.ShowOpponentPlayedCards) OpponentPlayedCardsWindow.Show();
 
@@ -438,7 +473,7 @@ namespace LoRSideTracker
             SnapWindowsButton.Visible = true;
             OptionsButton.Visible = true;
             LogButton.Visible = true;
-            DecksListBox.Visible = true;
+            DecksListBox.Visible = false;
             DeckPanel.Visible = true;
             DecksButton.Visible = true;
             ExpeditionsButton.Visible = true;
@@ -688,18 +723,19 @@ namespace LoRSideTracker
             return this.DisplayRectangle.Location;
         }
 
-        private void DecksListBox_DoubleClick(object sender, EventArgs e)
+        private void ListBox_DoubleClick(object sender, EventArgs e)
         {
-            int index = DecksListBox.SelectedIndex;
+            ListBox listBox = (ListBox)sender;
+            int index = listBox.SelectedIndex;
             if (index >= 0)
             {
-                GameRecord gr = (GameRecord)((GameRecord)DecksListBox.Items[index]).Clone();
+                GameRecord gr = (GameRecord)((GameRecord)listBox.Items[index]).Clone();
                 string result = Microsoft.VisualBasic.Interaction.InputBox("Name:", "Change Deck Name", gr.DisplayString);
                 if (!string.IsNullOrEmpty(result))
                 {
                     gr.DisplayString = result;
-                    DecksListBox.Items[index] = gr;
-                    DecksListBox.Refresh();
+                    listBox.Items[index] = gr;
+                    listBox.Refresh();
 
                     GameHistory.SetDeckName(gr.GetDeckSignature(), result);
                 }
@@ -777,12 +813,13 @@ namespace LoRSideTracker
                 GameRecord gr = (GameRecord)listBox.Items[e.Index];
                 // Find the card to use for art
                 int drawIndex = -1;
+                int championCount = 0;
                 for (int i = gr.MyDeck.Count - 1; i >= 0; i--)
                 {
-                    if (gr.MyDeck[i].TheCard.SuperType == "Champion")
+                    if (gr.MyDeck[i].TheCard.SuperType == "Champion" && gr.MyDeck[i].Count > championCount)
                     {
                         drawIndex = i;
-                        break;
+                        championCount = gr.MyDeck[i].Count;
                     }
                     else if (gr.MyDeck[i].TheCard.Type == "Unit" && drawIndex == -1)
                     {
@@ -799,6 +836,31 @@ namespace LoRSideTracker
                 {
                     e.Graphics.FillRectangle(new SolidBrush(e.BackColor), rect);
                 }
+
+                // Determine deck regions
+                Dictionary<string, int> regions = new Dictionary<string, int>();
+                foreach (var c in gr.MyDeck)
+                {
+                    int currentCount = 0;
+                    regions.TryGetValue(c.TheCard.Region, out currentCount);
+                    regions[c.TheCard.Region] = currentCount + 1;
+                }
+
+                // Sort the regions from lowest to highest
+                var regionsInReverseOrder = regions.OrderBy(i => i.Value).ToList();
+
+                // Draw all regions from right to left
+                int right = rect.Right;
+                for (int i = 0; i < regionsInReverseOrder.Count; i++)
+                {
+                    Image img = CardLibrary.GetRegion(regionsInReverseOrder[i].Key).Banner;
+                    int width = img.Width * rect.Height / img.Height * 7 / 8;
+                    int height = width * img.Height / img.Height;
+                    Rectangle imgRect = new Rectangle(right - width, rect.Top, width, height);
+                    e.Graphics.DrawImage(img, imgRect, new Rectangle(0, 0, img.Width, img.Height), GraphicsUnit.Pixel);
+                    right -= width * 7 / 8;
+                }
+
                 TextRenderer.DrawText(e.Graphics, gr.ToString(), e.Font, rect, ForeColor, TextFormatFlags.Left | TextFormatFlags.VerticalCenter);
             }
         }

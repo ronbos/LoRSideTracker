@@ -16,27 +16,47 @@ namespace LoRSideTracker
     /// </summary>
     public partial class DeckControl : UserControl
     {
+        /// <summary>Drawing size of deck</summary>
+        public class DeckScale
+        {
+            /// <summary>Title Heght</summary>
+            public int TitleHeight { get; private set; }
+            /// <summary>Title Font</summary>
+            public Font TitleFont { get; private set; }
+            /// <summary>Card Font</summary>
+            public Font CardFont { get; private set; }
+            /// <summary>Card Size</summary>
+            public Size CardSize { get; private set; }
+
+            /// <summary>Small scale deck</summary>
+            public static readonly DeckScale Small = new DeckScale(19, "Calibri", 11, 10, 140, 19);
+            /// <summary>Medium scale deck</summary>
+            public static readonly DeckScale Medium = new DeckScale(27, "Calibri", 13, 11, 180, 25);
+            /// <summary>Large scale deck</summary>
+            public static readonly DeckScale Large = new DeckScale(35, "Calibri", 16, 14, 220, 31);
+
+            private DeckScale(int titleHeight, string fontName, int titleFontSize, int cardFontSize, int cardWidth, int cardHeight)
+            {
+                TitleHeight = titleHeight;
+                TitleFont = new Font(fontName, titleFontSize, FontStyle.Bold);
+                CardFont = new Font(fontName, cardFontSize, FontStyle.Regular);
+                CardSize = new Size(cardWidth, cardHeight);
+            }
+        }
+
+        /// <summary>Drawing size of deck</summary>
+        public DeckScale CustomDeckScale { get; set; } = DeckScale.Medium;
+
         /// <summary>Deck contents</summary>
         public List<CardWithCount> Cards;
 
-        /// <summary>Top border size (including title)</summary>
-        public int TopBorderSize { get; private set; } = 30;
-        /// <summary>Bottom border size</summary>
-        public int BottomBorderSize { get; private set; } = 1;
-        /// <summary>Side border size</summary>
-        public int SideBorderSize { get; private set; } = 1;
+        /// <summary>Border size</summary>
+        public int BorderSize { get; private set; } = 1;
         /// <summary>Size of spacing between cards</summary>
         public int SpacingSize { get; private set; } = 1;
 
         /// <summary>If true, only title is shown</summary>
         public bool IsMinimized { get; set; } = false;
-
-        /// <summary>Default card size</summary>
-        public Size CardSize { get; private set; } = new Size(180, 25);
-
-        private Font TitleFont = new Font("Calibri", 12, FontStyle.Bold);
-        private Font CardFont = new Font("Calibri", 10, FontStyle.Regular);
-        private Font StatsFont = new Font("Calibri", 12, FontStyle.Bold);
 
         /// <summary>Window Title</summary>
         public string Title { get; set; }
@@ -126,28 +146,41 @@ namespace LoRSideTracker
         /// <returns></returns>
         public Size GetBestSize()
         {
-            int topBorderSize = string.IsNullOrEmpty(this.Title) ? BottomBorderSize : TopBorderSize;
-            Size result = new Size(2 * SideBorderSize + CardSize.Width, topBorderSize);
-            if (!IsMinimized) result.Height += BottomBorderSize + CardSize.Height * Cards.Count + SpacingSize * (Cards.Count - 1) + BottomBorderSize;
+            int topBorderSize = BorderSize;
+            if (!string.IsNullOrEmpty(this.Title))
+            {
+                topBorderSize += CustomDeckScale.TitleHeight;
+            }
+            Size result = new Size(2 * BorderSize + CustomDeckScale.CardSize.Width, topBorderSize);
+            if (!IsMinimized)
+            {
+                result.Height += BorderSize + CustomDeckScale.CardSize.Height * Cards.Count 
+                    + SpacingSize * (Cards.Count - 1) + BorderSize;
+            }
             return result;
         }
 
         private void DeckControl_Paint(object sender, PaintEventArgs e)
         {
             e.Graphics.FillRectangle(new SolidBrush(Color.Black), Bounds);
-            int topBorderSize = string.IsNullOrEmpty(this.Title) ? BottomBorderSize : TopBorderSize;
+            int topBorderSize = BorderSize;
+            if (!string.IsNullOrEmpty(this.Title))
+            {
+                topBorderSize += CustomDeckScale.TitleHeight;
+            }
 
-            Rectangle cardRect = new Rectangle(SideBorderSize, topBorderSize, this.Bounds.Width - 2 * SideBorderSize, CardSize.Height);
+            Rectangle cardRect = new Rectangle(BorderSize, topBorderSize, 
+                this.Bounds.Width - 2 * BorderSize, CustomDeckScale.CardSize.Height);
             if (!string.IsNullOrEmpty(this.Title))
             {
                 Rectangle titleRect = new Rectangle(1, 1, Bounds.Width - 2, topBorderSize - 2);
-                TextRenderer.DrawText(e.Graphics, this.Title, TitleFont, titleRect, Color.White, TextFormatFlags.VerticalCenter | TextFormatFlags.HorizontalCenter);
+                TextRenderer.DrawText(e.Graphics, this.Title, CustomDeckScale.TitleFont, titleRect, Color.White, TextFormatFlags.VerticalCenter | TextFormatFlags.HorizontalCenter);
             }
 
             for (int i = 0; i < Cards.Count; i++)
             {
                 DrawCard(e.Graphics, Cards[i], cardRect, i == HighlightedCard);
-                cardRect.Y += CardSize.Height + SpacingSize;
+                cardRect.Y += CustomDeckScale.CardSize.Height + SpacingSize;
             }
         }
         private void DrawCard(Graphics g, CardWithCount card, Rectangle paintRect, bool isHighlighted)
@@ -172,11 +205,11 @@ namespace LoRSideTracker
             g.FillRectangle(new SolidBrush(Color.FromArgb(96, Color.Black)), paintRect);
 
             // Create font
-            TextRenderer.DrawText(g, card.Cost.ToString(), StatsFont, costRect, Color.LightGray, TextFormatFlags.VerticalCenter | TextFormatFlags.HorizontalCenter);
-            TextRenderer.DrawText(g, card.Name, CardFont, cardRect, 
+            TextRenderer.DrawText(g, card.Cost.ToString(), CustomDeckScale.TitleFont, costRect, Color.LightGray, TextFormatFlags.VerticalCenter | TextFormatFlags.HorizontalCenter);
+            TextRenderer.DrawText(g, card.Name, CustomDeckScale.CardFont, cardRect, 
                 (card.TheCard.SuperType == "Champion") ? Color.Gold : Color.White, 
                 TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis);
-            TextRenderer.DrawText(g, "x" + card.Count.ToString(), StatsFont, countRect, Color.LightGray, TextFormatFlags.VerticalCenter | TextFormatFlags.HorizontalCenter);
+            TextRenderer.DrawText(g, "x" + card.Count.ToString(), CustomDeckScale.TitleFont, countRect, Color.LightGray, TextFormatFlags.VerticalCenter | TextFormatFlags.HorizontalCenter);
 
             // Highlight
             Rectangle frameRect = new Rectangle(paintRect.X - 5, paintRect.Y, paintRect.Width + 10, paintRect.Height - 1);
@@ -235,14 +268,23 @@ namespace LoRSideTracker
 
         private Rectangle GetCardRectangle(int index)
         {
-            int topBorderSize = string.IsNullOrEmpty(this.Title) ? BottomBorderSize : TopBorderSize;
-            return new Rectangle(SideBorderSize, topBorderSize + index * (CardSize.Height + SpacingSize), this.ClientRectangle.Width - 2 * SideBorderSize, CardSize.Height);
+            int topBorderSize = BorderSize;
+            if (!string.IsNullOrEmpty(this.Title))
+            {
+                topBorderSize += CustomDeckScale.TitleHeight;
+            }
+            return new Rectangle(BorderSize, topBorderSize + index * (CustomDeckScale.CardSize.Height + SpacingSize), 
+                this.ClientRectangle.Width - 2 * BorderSize, CustomDeckScale.CardSize.Height);
         }
 
         private void DeckControl_MouseMove(object sender, MouseEventArgs e)
         {
-            int topBorderSize = string.IsNullOrEmpty(this.Title) ? BottomBorderSize : TopBorderSize;
-            int index = (e.Y - topBorderSize) / (CardSize.Height + SpacingSize);
+            int topBorderSize = BorderSize;
+            if (!string.IsNullOrEmpty(this.Title))
+            {
+                topBorderSize += CustomDeckScale.TitleHeight;
+            }
+            int index = (e.Y - topBorderSize) / (CustomDeckScale.CardSize.Height + SpacingSize);
             if (e.Y >= topBorderSize && index >= 0 && index < Cards.Count)
             {
                 HighlightCard(index);
@@ -252,10 +294,5 @@ namespace LoRSideTracker
                 HighlightCard(-1);
             }
         }
-
-        //protected override void OnPaintBackground(PaintEventArgs e)
-        //{
-            //empty implementation
-        //}
     }
 }

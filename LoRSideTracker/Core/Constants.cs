@@ -81,10 +81,12 @@ namespace LoRSideTracker
         /// <summary>
         /// Produce localized set name
         /// </summary>
-        /// <returns>Localized set name</returns>
+        /// <param name="setNumber">Set number (0 for core set)</param>
+        /// <returns>Localized set name, or core set name if zero</returns>
         public static string GetSetName(int setNumber)
         {
-            return String.Format("set{0}-{1}", setNumber, Language);
+            return (setNumber == 0) ? String.Format("core-{0}", Language)
+                : String.Format("set{0}-{1}", setNumber, Language);
         }
 
         /// <summary>
@@ -93,7 +95,7 @@ namespace LoRSideTracker
         /// <returns>Local set path</returns>
         public static string GetSetPath(int setNumber)
         {
-            return String.Format("{0}\\{1}", GetLocalSetsPath(), GetSetName(setNumber));
+            return String.Format("{0}\\{1}\\{2}", GetLocalSetsPath(), GetSetName(setNumber), Language);
         }
 
         /// <summary>

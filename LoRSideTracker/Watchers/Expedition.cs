@@ -162,7 +162,7 @@ namespace LoRSideTracker
         public string GetSignature()
         {
             string result = "";
-            for (int i = 0; i < DraftPicks.Length && i < 15; i++)
+            for (int i = 0; DraftPicks != null && i < DraftPicks.Length && i < 15; i++)
             {
                 if (DraftPicks[i].DraftPicks != null)
                 {

@@ -26,6 +26,8 @@ namespace LoRSideTracker
         public OptionsWindow()
         {
             InitializeComponent();
+
+            DeckOptionsGroupBox.ForeColor = ForeColor;
         }
 
         /// <summary>
@@ -58,6 +60,10 @@ namespace LoRSideTracker
             OpponentPlayedCheckBox.Checked = Properties.Settings.Default.ShowOpponentPlayedCards;
             DeckStatsCheckBox.Checked = Properties.Settings.Default.ShowDeckStats;
             TransparencyTrackBar.Value = Properties.Settings.Default.DeckTransparency;
+
+            SmallDeckSizeRadioButton.Checked = (Properties.Settings.Default.DeckDrawSize == 0);
+            MediumDeckSizeRadioButton.Checked = (Properties.Settings.Default.DeckDrawSize == 1);
+            LargeDeckSizeRadioButton.Checked = (Properties.Settings.Default.DeckDrawSize == 2);
         }
 
         private void OptionsWindow_FormClosing(object sender, FormClosingEventArgs e)
@@ -71,6 +77,9 @@ namespace LoRSideTracker
             Properties.Settings.Default.ShowOpponentPlayedCards = OpponentPlayedCheckBox.Checked;
             Properties.Settings.Default.ShowDeckStats = DeckStatsCheckBox.Checked;
             Properties.Settings.Default.DeckTransparency = TransparencyTrackBar.Value;
+
+            Properties.Settings.Default.DeckDrawSize =
+                SmallDeckSizeRadioButton.Checked ? 0 : (LargeDeckSizeRadioButton.Checked ? 2 : 1);
         }
 
         private void PlayerDeckCheckBox_CheckedChanged(object sender, EventArgs e)
@@ -165,5 +174,39 @@ namespace LoRSideTracker
             Close();
         }
 
+        private void SmallDeckSizeRadioButton_CheckedChanged(object sender, EventArgs e)
+        {
+            SetDeckScale(DeckControl.DeckScale.Small);
+        }
+
+        private void MediumDeckSizeRadioButton_CheckedChanged(object sender, EventArgs e)
+        {
+            SetDeckScale(DeckControl.DeckScale.Medium);
+        }
+
+        private void LargeDeckSizeRadioButton_CheckedChanged(object sender, EventArgs e)
+        {
+            SetDeckScale(DeckControl.DeckScale.Large);
+        }
+
+        private void SetDeckScale(DeckControl.DeckScale scale)
+        {
+            if (PlayerActiveDeckWindow != null)
+            {
+                PlayerActiveDeckWindow.CustomDeckScale = scale;
+            }
+            if (PlayerDrawnCardsWindow != null)
+            {
+                PlayerDrawnCardsWindow.CustomDeckScale = scale;
+            }
+            if (PlayerPlayedCardsWindow != null)
+            {
+                PlayerPlayedCardsWindow.CustomDeckScale = scale;
+            }
+            if (OpponentPlayedCardsWindow != null)
+            {
+                OpponentPlayedCardsWindow.CustomDeckScale = scale;
+            }
+        }
     }
 }

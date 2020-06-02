@@ -10,6 +10,9 @@ using System.Windows.Forms;
 
 namespace LoRSideTracker
 {
+    /// <summary>
+    /// Overlay watch window
+    /// </summary>
     public partial class OverlayWatchWindow : Form
     {
         List<OverlayElement> PlayerElements = new List<OverlayElement>();
@@ -17,6 +20,9 @@ namespace LoRSideTracker
         int ScreenWidth = 1024;
         int ScreenHeight = 768;
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
         public OverlayWatchWindow()
         {
             InitializeComponent();
@@ -63,14 +69,20 @@ namespace LoRSideTracker
             {
                 return;
             }
+
+            // Determine scale to use
             float scaleX = (float)ClientRectangle.Width / (float)ScreenWidth;
             float scaleY = (float)ClientRectangle.Height / (float)ScreenHeight;
             float scale = Math.Min(scaleX, scaleY);
+
+            // Draw screen rectangle
             Rectangle screenRect = new Rectangle(0, 0,
                 (int)(0.5f + ScreenWidth * scale),
                 (int)(0.5f + ScreenHeight * scale));
             screenRect.Offset(ClientRectangle.Width / 2 - screenRect.Width / 2, ClientRectangle.Height / 2 - screenRect.Height / 2);
             e.Graphics.DrawRectangle(new Pen(Color.Black, 2), screenRect);
+
+            // Draw all player card rectangles
             foreach (var el in PlayerElements)
             {
                 Rectangle r = new Rectangle(
@@ -80,9 +92,11 @@ namespace LoRSideTracker
                     (int)(0.5f + el.BoundingBox.Height * scale));
                 r.Offset(screenRect.X, screenRect.Y);
                 e.Graphics.DrawRectangle(new Pen(Color.Blue, 2), r);
-                string text = string.Format("{0}\r\n{1} {2}", CardLibrary.GetCard(el.CardCode).Name, el.CardCode, el.NormalizedBoundingBox.Height);
+                string text = string.Format("{0}\r\n{1}\r\n{2}", CardLibrary.GetCard(el.CardCode).Name, el.CardCode, el.NormalizedBoundingBox.Height);
                 TextRenderer.DrawText(e.Graphics, text, this.Font, r, Color.Blue, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
             }
+
+            // Draw all opponent card rectangles
             foreach (var el in OpponentElements)
             {
                 Rectangle r = new Rectangle(

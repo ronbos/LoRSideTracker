@@ -238,5 +238,17 @@ namespace LoRSideTracker.Properties {
                 this["ActiveLogWindowBounds"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("1")]
+        public int DeckDrawSize {
+            get {
+                return ((int)(this["DeckDrawSize"]));
+            }
+            set {
+                this["DeckDrawSize"] = value;
+            }
+        }
     }
 }

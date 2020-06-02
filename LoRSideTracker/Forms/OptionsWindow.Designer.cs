@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.CloseButton = new System.Windows.Forms.Button();
             this.DeckOptionsGroupBox = new System.Windows.Forms.GroupBox();
             this.label3 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
@@ -39,13 +40,35 @@
             this.HideZeroCountCheckBox = new System.Windows.Forms.CheckBox();
             this.PlayerDrawnCheckBox = new System.Windows.Forms.CheckBox();
             this.PlayerDeckCheckBox = new System.Windows.Forms.CheckBox();
-            this.CloseButton = new System.Windows.Forms.Button();
+            this.label4 = new System.Windows.Forms.Label();
+            this.SmallDeckSizeRadioButton = new System.Windows.Forms.RadioButton();
+            this.MediumDeckSizeRadioButton = new System.Windows.Forms.RadioButton();
+            this.LargeDeckSizeRadioButton = new System.Windows.Forms.RadioButton();
             this.DeckOptionsGroupBox.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.TransparencyTrackBar)).BeginInit();
             this.SuspendLayout();
             // 
+            // CloseButton
+            // 
+            this.CloseButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.CloseButton.FlatAppearance.BorderColor = System.Drawing.Color.LightYellow;
+            this.CloseButton.FlatAppearance.MouseDownBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(32)))), ((int)(((byte)(32)))), ((int)(((byte)(36)))));
+            this.CloseButton.FlatAppearance.MouseOverBackColor = System.Drawing.Color.Gray;
+            this.CloseButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.CloseButton.Location = new System.Drawing.Point(261, 286);
+            this.CloseButton.Name = "CloseButton";
+            this.CloseButton.Size = new System.Drawing.Size(75, 23);
+            this.CloseButton.TabIndex = 7;
+            this.CloseButton.Text = "Close";
+            this.CloseButton.UseVisualStyleBackColor = true;
+            this.CloseButton.Click += new System.EventHandler(this.CloseButton_Click);
+            // 
             // DeckOptionsGroupBox
             // 
+            this.DeckOptionsGroupBox.Controls.Add(this.LargeDeckSizeRadioButton);
+            this.DeckOptionsGroupBox.Controls.Add(this.MediumDeckSizeRadioButton);
+            this.DeckOptionsGroupBox.Controls.Add(this.SmallDeckSizeRadioButton);
+            this.DeckOptionsGroupBox.Controls.Add(this.label4);
             this.DeckOptionsGroupBox.Controls.Add(this.label3);
             this.DeckOptionsGroupBox.Controls.Add(this.label2);
             this.DeckOptionsGroupBox.Controls.Add(this.label1);
@@ -58,7 +81,7 @@
             this.DeckOptionsGroupBox.Controls.Add(this.PlayerDeckCheckBox);
             this.DeckOptionsGroupBox.Location = new System.Drawing.Point(12, 12);
             this.DeckOptionsGroupBox.Name = "DeckOptionsGroupBox";
-            this.DeckOptionsGroupBox.Size = new System.Drawing.Size(322, 216);
+            this.DeckOptionsGroupBox.Size = new System.Drawing.Size(322, 265);
             this.DeckOptionsGroupBox.TabIndex = 5;
             this.DeckOptionsGroupBox.TabStop = false;
             this.DeckOptionsGroupBox.Text = "Show Decks";
@@ -86,9 +109,9 @@
             this.label1.AutoSize = true;
             this.label1.Location = new System.Drawing.Point(7, 159);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(133, 13);
+            this.label1.Size = new System.Drawing.Size(75, 13);
             this.label1.TabIndex = 7;
-            this.label1.Text = "Deck Transparency Level:";
+            this.label1.Text = "Deck Opacity:";
             // 
             // TransparencyTrackBar
             // 
@@ -174,23 +197,60 @@
             this.PlayerDeckCheckBox.UseVisualStyleBackColor = true;
             this.PlayerDeckCheckBox.CheckedChanged += new System.EventHandler(this.PlayerDeckCheckBox_CheckedChanged);
             // 
-            // CloseButton
+            // label4
             // 
-            this.CloseButton.Location = new System.Drawing.Point(261, 234);
-            this.CloseButton.Name = "CloseButton";
-            this.CloseButton.Size = new System.Drawing.Size(75, 23);
-            this.CloseButton.TabIndex = 7;
-            this.CloseButton.Text = "Close";
-            this.CloseButton.UseVisualStyleBackColor = true;
-            this.CloseButton.Click += new System.EventHandler(this.CloseButton_Click);
+            this.label4.AutoSize = true;
+            this.label4.Location = new System.Drawing.Point(7, 214);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(59, 13);
+            this.label4.TabIndex = 9;
+            this.label4.Text = "Deck Size:";
+            // 
+            // SmallDeckSizeRadioButton
+            // 
+            this.SmallDeckSizeRadioButton.AutoSize = true;
+            this.SmallDeckSizeRadioButton.Location = new System.Drawing.Point(30, 232);
+            this.SmallDeckSizeRadioButton.Name = "SmallDeckSizeRadioButton";
+            this.SmallDeckSizeRadioButton.Size = new System.Drawing.Size(50, 17);
+            this.SmallDeckSizeRadioButton.TabIndex = 10;
+            this.SmallDeckSizeRadioButton.TabStop = true;
+            this.SmallDeckSizeRadioButton.Text = "Small";
+            this.SmallDeckSizeRadioButton.UseVisualStyleBackColor = true;
+            this.SmallDeckSizeRadioButton.CheckedChanged += new System.EventHandler(this.SmallDeckSizeRadioButton_CheckedChanged);
+            // 
+            // MediumDeckSizeRadioButton
+            // 
+            this.MediumDeckSizeRadioButton.AutoSize = true;
+            this.MediumDeckSizeRadioButton.Location = new System.Drawing.Point(140, 232);
+            this.MediumDeckSizeRadioButton.Name = "MediumDeckSizeRadioButton";
+            this.MediumDeckSizeRadioButton.Size = new System.Drawing.Size(62, 17);
+            this.MediumDeckSizeRadioButton.TabIndex = 10;
+            this.MediumDeckSizeRadioButton.TabStop = true;
+            this.MediumDeckSizeRadioButton.Text = "Medium";
+            this.MediumDeckSizeRadioButton.UseVisualStyleBackColor = true;
+            this.MediumDeckSizeRadioButton.CheckedChanged += new System.EventHandler(this.MediumDeckSizeRadioButton_CheckedChanged);
+            // 
+            // LargeDeckSizeRadioButton
+            // 
+            this.LargeDeckSizeRadioButton.AutoSize = true;
+            this.LargeDeckSizeRadioButton.Location = new System.Drawing.Point(250, 232);
+            this.LargeDeckSizeRadioButton.Name = "LargeDeckSizeRadioButton";
+            this.LargeDeckSizeRadioButton.Size = new System.Drawing.Size(52, 17);
+            this.LargeDeckSizeRadioButton.TabIndex = 10;
+            this.LargeDeckSizeRadioButton.TabStop = true;
+            this.LargeDeckSizeRadioButton.Text = "Large";
+            this.LargeDeckSizeRadioButton.UseVisualStyleBackColor = true;
+            this.LargeDeckSizeRadioButton.CheckedChanged += new System.EventHandler(this.LargeDeckSizeRadioButton_CheckedChanged);
             // 
             // OptionsWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(348, 264);
+            this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(32)))), ((int)(((byte)(32)))), ((int)(((byte)(36)))));
+            this.ClientSize = new System.Drawing.Size(348, 321);
             this.Controls.Add(this.CloseButton);
             this.Controls.Add(this.DeckOptionsGroupBox);
+            this.ForeColor = System.Drawing.Color.LightYellow;
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
             this.MinimizeBox = false;
@@ -206,8 +266,11 @@
         }
 
         #endregion
-
+        private System.Windows.Forms.Button CloseButton;
         private System.Windows.Forms.GroupBox DeckOptionsGroupBox;
+        private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.Label label1;
         private System.Windows.Forms.TrackBar TransparencyTrackBar;
         private System.Windows.Forms.CheckBox DeckStatsCheckBox;
         private System.Windows.Forms.CheckBox OpponentPlayedCheckBox;
@@ -215,9 +278,9 @@
         private System.Windows.Forms.CheckBox HideZeroCountCheckBox;
         private System.Windows.Forms.CheckBox PlayerDrawnCheckBox;
         private System.Windows.Forms.CheckBox PlayerDeckCheckBox;
-        private System.Windows.Forms.Label label3;
-        private System.Windows.Forms.Label label2;
-        private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.Button CloseButton;
+        private System.Windows.Forms.RadioButton LargeDeckSizeRadioButton;
+        private System.Windows.Forms.RadioButton MediumDeckSizeRadioButton;
+        private System.Windows.Forms.RadioButton SmallDeckSizeRadioButton;
+        private System.Windows.Forms.Label label4;
     }
 }

@@ -29,9 +29,25 @@ namespace LoRSideTracker
         public string Title
         {
             get { return MyDeckControl != null ? MyDeckControl.Title : string.Empty; }
-            set { MyDeckControl.Title = value; MyDeckControl.Invalidate(new Rectangle(0, 0, MyDeckControl.Width, MyDeckControl.TopBorderSize));  }
+            set { 
+                MyDeckControl.Title = value; 
+                MyDeckControl.Invalidate(new Rectangle(0, 0, MyDeckControl.Width, MyDeckControl.CustomDeckScale.TitleHeight));
+            }
         }
 
+        /// <summary>Custom deck scale</summary>
+        public DeckControl.DeckScale CustomDeckScale
+        {
+            get { return MyDeckControl.CustomDeckScale; }
+            set
+            {
+                if (MyDeckControl.CustomDeckScale.TitleHeight != value.TitleHeight)
+                {
+                    MyDeckControl.CustomDeckScale = value;
+                    FixMySize();
+                }
+            }
+        }
         /// <summary>Should window hide when mouse leaves?</summary>
         public bool ShouldHideOnMouseLeave { get; set; } = false;
 
@@ -173,6 +189,7 @@ namespace LoRSideTracker
                 deckStatsHeight = 0;
             }
             SetBounds(0, 0, bestSize.Width, bestSize.Height + deckStatsHeight, BoundsSpecified.Size);
+            MyDeckControl.Invalidate();
         }
 
         private void DeckWindow_Load(object sender, EventArgs e)
@@ -224,7 +241,7 @@ namespace LoRSideTracker
             {
                 if (e.Clicks == 2)
                 {
-                    if (e.Y < MyDeckControl.TopBorderSize)
+                    if (e.Y < MyDeckControl.CustomDeckScale.TitleHeight)
                     {
                         MyDeckControl.IsMinimized = !MyDeckControl.IsMinimized;
                         FixMySize();

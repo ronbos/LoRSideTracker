@@ -57,6 +57,9 @@ namespace LoRSideTracker
         void OnElementsUpdate(List<OverlayElement> playerElements, List<OverlayElement> opponentElements, int screenWidth, int screenHeight);
     }
 
+    /// <summary>
+    /// Overlay element
+    /// </summary>
     public class OverlayElement : ICloneable
     {
         /// <summary></summary>
@@ -100,6 +103,10 @@ namespace LoRSideTracker
             NormalizedCenter = new PointF((left + right) / 2, (top + bottom) / 2);
         }
 
+        /// <summary>
+        /// ICloneable interface
+        /// </summary>
+        /// <returns></returns>
         public object Clone()
         {
             OverlayElement result = new OverlayElement();
