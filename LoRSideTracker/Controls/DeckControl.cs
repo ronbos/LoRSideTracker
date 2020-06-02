@@ -51,7 +51,7 @@ namespace LoRSideTracker
         public List<CardWithCount> Cards;
 
         /// <summary>Border size</summary>
-        public int BorderSize { get; private set; } = 1;
+        public int BorderSize { get; set; } = 1;
         /// <summary>Size of spacing between cards</summary>
         public int SpacingSize { get; private set; } = 1;
 
@@ -202,7 +202,7 @@ namespace LoRSideTracker
 
             // Draw the card and a translucent layer to make the tile darker
             card.TheCard.DrawCardArt(g, paintRect);
-            g.FillRectangle(new SolidBrush(Color.FromArgb(96, Color.Black)), paintRect);
+            g.FillRectangle(new SolidBrush(Color.FromArgb(128, Color.Black)), paintRect);
 
             // Create font
             TextRenderer.DrawText(g, card.Cost.ToString(), CustomDeckScale.TitleFont, costRect, Color.LightGray, TextFormatFlags.VerticalCenter | TextFormatFlags.HorizontalCenter);
@@ -218,10 +218,10 @@ namespace LoRSideTracker
                 g.DrawRectangle(new Pen(Color.DarkGray, 1), frameRect);
             }
             // Make x0 tile darker
-            if (card.Count == 0)
-            {
-                g.FillRectangle(new SolidBrush(Color.FromArgb(128, Color.Black)), paintRect);
-            }
+            //if (card.Count == 0)
+            //{
+            //    g.FillRectangle(new SolidBrush(Color.FromArgb(128, Color.Black)), paintRect);
+            //}
         }
 
         private void DeckControl_MouseLeave(object sender, EventArgs e)

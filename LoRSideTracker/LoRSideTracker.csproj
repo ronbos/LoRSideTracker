@@ -53,11 +53,10 @@
     <ApplicationIcon>Resources\AppIcon.ico</ApplicationIcon>
   </PropertyGroup>
   <PropertyGroup>
-    <ManifestCertificateThumbprint>A1F645F5B164AB4E759253CBA47D2CB064F69209</ManifestCertificateThumbprint>
+    <ManifestCertificateThumbprint>437F6A37DDBBF488094B4A1A91DB98BD3335C6D4</ManifestCertificateThumbprint>
   </PropertyGroup>
   <PropertyGroup>
-    <ManifestKeyFile>
-    </ManifestKeyFile>
+    <ManifestKeyFile>LoRSideTracker_TemporaryKey.pfx</ManifestKeyFile>
   </PropertyGroup>
   <PropertyGroup>
     <GenerateManifests>true</GenerateManifests>
@@ -118,6 +117,7 @@
       <DependentUpon>GameLogControl.cs</DependentUpon>
     </Compile>
     <Compile Include="Core\GameHistory.cs" />
+    <Compile Include="Core\SetDownloader.cs" />
     <Compile Include="Forms\OverlayWatchWindow.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -185,7 +185,7 @@
     <Compile Include="Forms\PerPixelAlphaForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Forms\Program.cs" />
+    <Compile Include="Core\Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Core\Utilities.cs" />
     <EmbeddedResource Include="Controls\GameLogControl.resx">
@@ -229,6 +229,7 @@
       <DesignTime>True</DesignTime>
     </Compile>
     <None Include="app.config" />
+    <None Include="Properties\LoRSideTracker_TemporaryKey.pfx" />
     <None Include="Properties\packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>

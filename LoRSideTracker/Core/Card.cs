@@ -210,6 +210,42 @@ namespace LoRSideTracker
             // since the card contains image art and can be large
             return new CardWithCount(TheCard, Count);
         }
+
+        /// <summary>
+        /// == operator overload
+        /// </summary>
+        /// <param name="a"></param>
+        /// <param name="b"></param>
+        /// <returns></returns>
+        public static bool operator ==(CardWithCount a, CardWithCount b) => a.Code == b.Code && a.Count == b.Count;
+
+        /// <summary>
+        /// != operator overload
+        /// </summary>
+        /// <param name="a"></param>
+        /// <param name="b"></param>
+        /// <returns></returns>
+        public static bool operator !=(CardWithCount a, CardWithCount b) => a.Code != b.Code || a.Count != b.Count;
+
+
+        /// <summary>
+        /// GetHashCode function overload
+        /// </summary>
+        /// <returns></returns>
+        public override int GetHashCode()
+        {
+            return string.Format("{0}_{1}", Code, Count).GetHashCode();
+        }
+
+        /// <summary>
+        /// Equals function overload
+        /// </summary>
+        /// <param name="o"></param>
+        /// <returns></returns>
+        public override bool Equals(object o)
+        {
+            return o != null && (this == o as CardWithCount);
+        }
     }
 
     /// <summary>

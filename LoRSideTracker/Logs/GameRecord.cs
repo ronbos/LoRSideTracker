@@ -14,7 +14,7 @@ namespace LoRSideTracker
     /// </summary>
     public class GameRecord : ICloneable
     {
-        private static Dictionary<string, string> AIDeckNames = new Dictionary<string, string>()
+        private static readonly Dictionary<string, string> AIDeckNames = new Dictionary<string, string>()
         {
             { "decks_badstuns_name", "Flash of Steel (AI)" },
             { "decks_easybraum_name", "Stay Warm (AI)" },
@@ -107,8 +107,13 @@ namespace LoRSideTracker
             }
 
             result.MyDeckName = gameRecord["MyDeckName"].ToString();
+            if (!string.IsNullOrEmpty(result.MyDeckCode))
+            {
+                // Map the deck name for constructed decks only
+                try { result.MyDeckName = GameHistory.DeckNames[result.MyDeckCode]; } catch { }
+            }
+
             result.MyDeck = Utilities.LoadDeckFromStringCodeList(gameRecord["MyDeck"].ToObject<string[]>());
-            try { result.MyDeckName = GameHistory.DeckNames[result.MyDeckCode]; } catch { }
             result.OpponentName = gameRecord["OpponentName"].ToString();
             try { result.OpponentName = AIDeckNames[result.OpponentName]; } catch { }
             result.OpponentDeck = Utilities.LoadDeckFromStringCodeList(gameRecord["OpponentDeck"].ToObject<string[]>());

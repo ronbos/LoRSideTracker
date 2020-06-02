@@ -3,10 +3,8 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.IO;
-using System.IO.Compression;
 using System.Linq;
 using System.Net;
-using System.Text;
 using System.Text.Json;
 
 namespace LoRSideTracker
@@ -19,48 +17,8 @@ namespace LoRSideTracker
         private static Dictionary<string, Card> Cards;
         private static Dictionary<string, Region> Regions;
 
-        /// <summary>
-        /// Find the list of missing sets that can be downloaded
-        /// </summary>
-        /// <returns>List of missing set indices</returns>
-        public static List<ValueTuple<int, long>> FindMissingSets()
-        {
-            if (!Directory.Exists(Constants.GetLocalSetsPath()))
-            {
-                Directory.CreateDirectory(Constants.GetLocalSetsPath());
-            }
-            var missingSets = new List<ValueTuple<int, long>>();
-            for (int i = 0; i < 99; i++)
-            {
-                long remoteZipSize = Utilities.CheckURLExists(Constants.GetSetURL(i));
-                if (remoteZipSize <= 0)
-                {
-                    break;
-                }
-                if (!Directory.Exists(Constants.GetSetPath(i)))
-                {
-                    if (remoteZipSize > 0)
-                    {
-                        missingSets.Add((i, remoteZipSize));
-                    }
-                    else
-                    {
-                        break;
-                    }
-                }
-                else
-                {
-                    var json = Utilities.ReadLocalFile(Constants.GetSetVersionInfoPath(i));
-                    Dictionary<string, JsonElement> info = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(json);
-                    long refRemoteZipSize = info["remoteZipSize"].ToObject<long>();
-                    if (remoteZipSize != refRemoteZipSize)
-                    {
-                        missingSets.Add((i, remoteZipSize));
-                    }
-                }
-            }
-            return missingSets;
-        }
+        /// <summary>Desired image width for card sets</summary>
+        public static readonly int TargetImageSize = 256;
 
         /// <summary>
         /// Gegin asynchronous download of a set zip file
@@ -76,58 +34,6 @@ namespace LoRSideTracker
             client.DownloadProgressChanged += onDownloadProgressChangedHandler;
             client.DownloadFileCompleted += onDownloadFileCompletedHandler;
             client.DownloadFileAsync(new Uri(Constants.GetSetURL(setNumber)), Constants.GetSetZipPath(setNumber));
-        }
-
-        /// <summary>
-        /// Unzip downloaded set, Resine image to manageable size, and delete the zip file
-        /// </summary>
-        /// <param name="setNumber">Set number</param>
-        /// <param name="remoteZipSize">Zip file size as given by remote URL query</param>
-        public static void ProcessDownloadedSet(int setNumber, long remoteZipSize)
-        {
-            string setPath = Constants.GetSetPath(setNumber);
-            string setZip = Constants.GetSetZipPath(setNumber);
-            if (!Directory.Exists(setPath))
-            {
-                ZipFile.ExtractToDirectory(setZip, setPath);
-            }
-
-            // We don't have a way of checking version. Check by download size instead
-            var json = JsonSerializer.Serialize(new
-            {
-                setNumber = setNumber,
-                remoteZipSize = remoteZipSize
-            });
-            File.WriteAllText(Constants.GetSetVersionInfoPath(setNumber), json);
-
-            // Resize all images to manageable size
-            if (setNumber > 0)
-            {
-                string imagesDir = String.Format("{0}\\img\\cards", setPath);
-                DirectoryInfo dirInfo = new DirectoryInfo(imagesDir);
-                FileInfo[] files = dirInfo.GetFiles();
-                const int targetWidth = 256;
-                foreach (FileInfo fi in files)
-                {
-                    Image fullSizeImage = Image.FromFile(fi.FullName);
-                    double ratio = (double)targetWidth / (double)fullSizeImage.Width;
-
-                    if (ratio < 1.0)
-                    {
-                        int targetHeight = (int)(0.5 + fullSizeImage.Height * ratio);
-                        Image smallImage = Utilities.ResizeImage(fullSizeImage, targetWidth, targetHeight);
-                        fullSizeImage.Dispose();
-                        File.Delete(fi.FullName);
-                        smallImage.Save(fi.FullName, System.Drawing.Imaging.ImageFormat.Png);
-                        smallImage.Dispose();
-                    }
-                    else
-                    {
-                        fullSizeImage.Dispose();
-                    }
-                }
-            }
-            File.Delete(setZip);
         }
 
         /// <summary>

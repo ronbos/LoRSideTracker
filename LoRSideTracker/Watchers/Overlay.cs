@@ -14,7 +14,7 @@ namespace LoRSideTracker
     /// <summary>
     /// Overlay update callback interface
     /// </summary>
-    public interface OverlayUpdateCallback
+    public interface IOverlayUpdateCallback
     {
         /// <summary>
         /// Callback for when player drawn set has been changed
@@ -351,8 +351,6 @@ namespace LoRSideTracker
         public OverlayZone TossingZone;
         public OverlayZone CastZone;
 
-        public OverlayZone FieldEther = new OverlayZone();
-
         private bool IsInitialDraw = true;
 
         private LogType MyLogType;
@@ -378,13 +376,10 @@ namespace LoRSideTracker
             ZoomZone.Clear();
             TossingZone.Clear();
             CastZone.Clear();
-            FieldEther.Clear();
             IsInitialDraw = true;
         }
 
         public void Update(List<OverlayElement> elements, 
-            int screenWidth, 
-            int screenHeight, 
             List<string> cardsDrawn,
             List<string> cardsPlayed,
             List<string> cardsTossed)
@@ -476,7 +471,6 @@ namespace LoRSideTracker
             var movedFromStageToField = FieldZone.AcceptFrom(StageZone, MyLogType, "[SF] Played: {0}", "[SF] Cast: {0}");
             var movedFromTossingToField = FieldZone.AcceptFrom(TossingZone, MyLogType, "[TF] Summoned: {0}");
             var movedToField = FieldZone.AcceptFromAnywhere(MyLogType, "[XF] Summoned: {0}", "[XF] Invoked: {0}");
-            var removedFromField = FieldEther.ReleaseToAnywhere(MyLogType, "[FX] Removed from Battlefield: {0}", "[FX] Resolved: {0}");
 
             var movedFromHandToStage = StageZone.AcceptFrom(HandZone, MyLogType, "[HS] Playing: {0}", "[HS] Casting: {0}");
             var movedToStage = StageZone.AcceptFromAnywhere(LogType.Debug, "[XS] Presented: {0}");
@@ -573,17 +567,16 @@ namespace LoRSideTracker
         private bool NotRespondingHasBeenReported = false;
 
         // Tossed cards cannot be tracked reliably yet
-        private bool ShouldTrackTossedCards = false;
+        private readonly bool ShouldTrackTossedCards = false;
 
-        OverlayUpdateCallback Callback;
-
-        private AutoUpdatingWebString WebString;
+        private readonly IOverlayUpdateCallback Callback;
+        private readonly AutoUpdatingWebString WebString;
 
         /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="callback"></param>
-        public Overlay(OverlayUpdateCallback callback)
+        public Overlay(IOverlayUpdateCallback callback)
         {
             Callback = callback;
             PlayerElements = new List<OverlayElement>();
@@ -709,8 +702,8 @@ namespace LoRSideTracker
                 List<string> cardsPlayed = new List<string>();
                 List<string> cardsTossed = new List<string>();
                 List<string> opponentCardsPlayed = new List<string>();
-                PlayerTracker.Update(PlayerElements, ScreenWidth, ScreenHeight, cardsDrawn, cardsPlayed, ShouldTrackTossedCards ? cardsTossed : null);
-                OpponentTracker.Update(OpponentElements, ScreenWidth, ScreenHeight, null, opponentCardsPlayed, null);
+                PlayerTracker.Update(PlayerElements, cardsDrawn, cardsPlayed, ShouldTrackTossedCards ? cardsTossed : null);
+                OpponentTracker.Update(OpponentElements, null, opponentCardsPlayed, null);
 
                 if (AddCardsToSet(PlayerDrawnCards, cardsDrawn))
                 {

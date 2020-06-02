@@ -34,14 +34,14 @@
             this.LogButton = new System.Windows.Forms.Button();
             this.DecksListBox = new System.Windows.Forms.ListBox();
             this.DeckPanel = new System.Windows.Forms.Panel();
+            this.HighlightedGameLogControl = new LoRSideTracker.GameLogControl();
             this.HighlightedDeckPanel = new System.Windows.Forms.Panel();
+            this.HighlightedDeckStatsDisplay = new LoRSideTracker.DeckStatsDisplay();
+            this.HighlightedDeckControl = new LoRSideTracker.DeckControl();
             this.DecksButton = new System.Windows.Forms.Button();
             this.ExpeditionsButton = new System.Windows.Forms.Button();
             this.ExpeditionsListBox = new System.Windows.Forms.ListBox();
             this.MyProgressDisplay = new LoRSideTracker.ProgressDisplayControl();
-            this.HighlightedDeckStatsDisplay = new LoRSideTracker.DeckStatsDisplay();
-            this.HighlightedDeckControl = new LoRSideTracker.DeckControl();
-            this.HighlightedGameLogControl = new LoRSideTracker.GameLogControl();
             this.DeckPanel.SuspendLayout();
             this.HighlightedDeckPanel.SuspendLayout();
             this.SuspendLayout();
@@ -53,7 +53,7 @@
             this.SnapWindowsButton.FlatAppearance.MouseDownBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(64)))), ((int)(((byte)(64)))));
             this.SnapWindowsButton.FlatAppearance.MouseOverBackColor = System.Drawing.Color.Gray;
             this.SnapWindowsButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.SnapWindowsButton.Location = new System.Drawing.Point(981, 10);
+            this.SnapWindowsButton.Location = new System.Drawing.Point(941, 10);
             this.SnapWindowsButton.Name = "SnapWindowsButton";
             this.SnapWindowsButton.Size = new System.Drawing.Size(85, 23);
             this.SnapWindowsButton.TabIndex = 3;
@@ -69,7 +69,7 @@
             this.OptionsButton.FlatAppearance.MouseDownBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(64)))), ((int)(((byte)(64)))));
             this.OptionsButton.FlatAppearance.MouseOverBackColor = System.Drawing.Color.Gray;
             this.OptionsButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.OptionsButton.Location = new System.Drawing.Point(981, 39);
+            this.OptionsButton.Location = new System.Drawing.Point(941, 39);
             this.OptionsButton.Name = "OptionsButton";
             this.OptionsButton.Size = new System.Drawing.Size(85, 23);
             this.OptionsButton.TabIndex = 3;
@@ -86,7 +86,7 @@
             this.LogButton.FlatAppearance.MouseDownBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(64)))), ((int)(((byte)(64)))));
             this.LogButton.FlatAppearance.MouseOverBackColor = System.Drawing.Color.Gray;
             this.LogButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.LogButton.Location = new System.Drawing.Point(981, 68);
+            this.LogButton.Location = new System.Drawing.Point(941, 68);
             this.LogButton.Name = "LogButton";
             this.LogButton.Size = new System.Drawing.Size(85, 23);
             this.LogButton.TabIndex = 3;
@@ -97,9 +97,8 @@
             // 
             // DecksListBox
             // 
-            this.DecksListBox.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
+            this.DecksListBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left)));
             this.DecksListBox.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(32)))), ((int)(((byte)(32)))), ((int)(((byte)(36)))));
             this.DecksListBox.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.DecksListBox.CausesValidation = false;
@@ -117,14 +116,14 @@
             this.DecksListBox.TabStop = false;
             this.DecksListBox.Visible = false;
             this.DecksListBox.DrawItem += new System.Windows.Forms.DrawItemEventHandler(this.ListBox_DrawItem);
-            this.DecksListBox.SelectedIndexChanged += new System.EventHandler(this.DecksListBox_SelectedIndexChanged);
+            this.DecksListBox.SelectedIndexChanged += new System.EventHandler(this.ListBox_SelectedIndexChanged);
             this.DecksListBox.SizeChanged += new System.EventHandler(this.ListBox_SizeChanged);
             this.DecksListBox.DoubleClick += new System.EventHandler(this.ListBox_DoubleClick);
             // 
             // DeckPanel
             // 
             this.DeckPanel.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Right)));
+            | System.Windows.Forms.AnchorStyles.Left)));
             this.DeckPanel.AutoScroll = true;
             this.DeckPanel.Controls.Add(this.HighlightedGameLogControl);
             this.DeckPanel.Location = new System.Drawing.Point(216, 9);
@@ -133,19 +132,54 @@
             this.DeckPanel.TabIndex = 5;
             this.DeckPanel.Visible = false;
             // 
+            // HighlightedGameLogControl
+            // 
+            this.HighlightedGameLogControl.ForeColor = System.Drawing.Color.LightYellow;
+            this.HighlightedGameLogControl.Location = new System.Drawing.Point(0, 0);
+            this.HighlightedGameLogControl.Name = "HighlightedGameLogControl";
+            this.HighlightedGameLogControl.Size = new System.Drawing.Size(546, 249);
+            this.HighlightedGameLogControl.TabIndex = 2;
+            this.HighlightedGameLogControl.TabStop = false;
+            // 
             // HighlightedDeckPanel
             // 
             this.HighlightedDeckPanel.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Right)));
+            | System.Windows.Forms.AnchorStyles.Left)));
             this.HighlightedDeckPanel.AutoScroll = true;
             this.HighlightedDeckPanel.Controls.Add(this.HighlightedDeckStatsDisplay);
             this.HighlightedDeckPanel.Controls.Add(this.HighlightedDeckControl);
             this.HighlightedDeckPanel.Location = new System.Drawing.Point(773, 9);
             this.HighlightedDeckPanel.Margin = new System.Windows.Forms.Padding(0);
             this.HighlightedDeckPanel.Name = "HighlightedDeckPanel";
-            this.HighlightedDeckPanel.Size = new System.Drawing.Size(200, 543);
+            this.HighlightedDeckPanel.Size = new System.Drawing.Size(160, 543);
             this.HighlightedDeckPanel.TabIndex = 7;
             this.HighlightedDeckPanel.Visible = false;
+            // 
+            // HighlightedDeckStatsDisplay
+            // 
+            this.HighlightedDeckStatsDisplay.BlockHeight = 4;
+            this.HighlightedDeckStatsDisplay.BlockWidth = 7;
+            this.HighlightedDeckStatsDisplay.Location = new System.Drawing.Point(0, 156);
+            this.HighlightedDeckStatsDisplay.Name = "HighlightedDeckStatsDisplay";
+            this.HighlightedDeckStatsDisplay.Size = new System.Drawing.Size(140, 65);
+            this.HighlightedDeckStatsDisplay.SpellColor = System.Drawing.Color.MediumSeaGreen;
+            this.HighlightedDeckStatsDisplay.TabIndex = 4;
+            this.HighlightedDeckStatsDisplay.TabStop = false;
+            this.HighlightedDeckStatsDisplay.TextColor = System.Drawing.Color.White;
+            this.HighlightedDeckStatsDisplay.TheDeck = null;
+            this.HighlightedDeckStatsDisplay.UnitColor = System.Drawing.Color.RoyalBlue;
+            // 
+            // HighlightedDeckControl
+            // 
+            this.HighlightedDeckControl.BackColor = System.Drawing.Color.Black;
+            this.HighlightedDeckControl.BorderSize = 1;
+            this.HighlightedDeckControl.IsMinimized = false;
+            this.HighlightedDeckControl.Location = new System.Drawing.Point(0, 0);
+            this.HighlightedDeckControl.Name = "HighlightedDeckControl";
+            this.HighlightedDeckControl.Size = new System.Drawing.Size(140, 150);
+            this.HighlightedDeckControl.TabIndex = 2;
+            this.HighlightedDeckControl.TabStop = false;
+            this.HighlightedDeckControl.Title = null;
             // 
             // DecksButton
             // 
@@ -188,9 +222,8 @@
             // 
             // ExpeditionsListBox
             // 
-            this.ExpeditionsListBox.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
+            this.ExpeditionsListBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left)));
             this.ExpeditionsListBox.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(32)))), ((int)(((byte)(32)))), ((int)(((byte)(36)))));
             this.ExpeditionsListBox.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.ExpeditionsListBox.CausesValidation = false;
@@ -208,7 +241,7 @@
             this.ExpeditionsListBox.TabStop = false;
             this.ExpeditionsListBox.Visible = false;
             this.ExpeditionsListBox.DrawItem += new System.Windows.Forms.DrawItemEventHandler(this.ListBox_DrawItem);
-            this.ExpeditionsListBox.SelectedIndexChanged += new System.EventHandler(this.ExpeditionsListBox_SelectedIndexChanged);
+            this.ExpeditionsListBox.SelectedIndexChanged += new System.EventHandler(this.ListBox_SelectedIndexChanged);
             this.ExpeditionsListBox.SizeChanged += new System.EventHandler(this.ListBox_SizeChanged);
             this.ExpeditionsListBox.DoubleClick += new System.EventHandler(this.ListBox_DoubleClick);
             // 
@@ -222,46 +255,12 @@
             this.MyProgressDisplay.TabIndex = 9;
             this.MyProgressDisplay.TabStop = false;
             // 
-            // HighlightedDeckStatsDisplay
-            // 
-            this.HighlightedDeckStatsDisplay.BlockHeight = 4;
-            this.HighlightedDeckStatsDisplay.BlockWidth = 7;
-            this.HighlightedDeckStatsDisplay.Location = new System.Drawing.Point(0, 156);
-            this.HighlightedDeckStatsDisplay.Name = "HighlightedDeckStatsDisplay";
-            this.HighlightedDeckStatsDisplay.Size = new System.Drawing.Size(177, 65);
-            this.HighlightedDeckStatsDisplay.SpellColor = System.Drawing.Color.MediumSeaGreen;
-            this.HighlightedDeckStatsDisplay.TabIndex = 4;
-            this.HighlightedDeckStatsDisplay.TabStop = false;
-            this.HighlightedDeckStatsDisplay.TextColor = System.Drawing.Color.White;
-            this.HighlightedDeckStatsDisplay.TheDeck = null;
-            this.HighlightedDeckStatsDisplay.UnitColor = System.Drawing.Color.RoyalBlue;
-            // 
-            // HighlightedDeckControl
-            // 
-            this.HighlightedDeckControl.BackColor = System.Drawing.Color.Black;
-            this.HighlightedDeckControl.IsMinimized = false;
-            this.HighlightedDeckControl.Location = new System.Drawing.Point(0, 0);
-            this.HighlightedDeckControl.Name = "HighlightedDeckControl";
-            this.HighlightedDeckControl.Size = new System.Drawing.Size(180, 150);
-            this.HighlightedDeckControl.TabIndex = 2;
-            this.HighlightedDeckControl.TabStop = false;
-            this.HighlightedDeckControl.Title = null;
-            // 
-            // HighlightedGameLogControl
-            // 
-            this.HighlightedGameLogControl.ForeColor = System.Drawing.Color.LightYellow;
-            this.HighlightedGameLogControl.Location = new System.Drawing.Point(0, 0);
-            this.HighlightedGameLogControl.Name = "HighlightedGameLogControl";
-            this.HighlightedGameLogControl.Size = new System.Drawing.Size(546, 249);
-            this.HighlightedGameLogControl.TabIndex = 2;
-            this.HighlightedGameLogControl.TabStop = false;
-            // 
             // MainWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(32)))), ((int)(((byte)(32)))), ((int)(((byte)(36)))));
-            this.ClientSize = new System.Drawing.Size(1078, 561);
+            this.ClientSize = new System.Drawing.Size(1038, 561);
             this.Controls.Add(this.ExpeditionsListBox);
             this.Controls.Add(this.ExpeditionsButton);
             this.Controls.Add(this.DecksButton);
@@ -274,13 +273,12 @@
             this.Controls.Add(this.DeckPanel);
             this.ForeColor = System.Drawing.Color.LightYellow;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-            this.MinimumSize = new System.Drawing.Size(1094, 400);
+            this.MinimumSize = new System.Drawing.Size(1054, 400);
             this.Name = "MainWindow";
             this.Text = "LoR Side Tracker";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainWindow_FormClosing);
             this.Load += new System.EventHandler(this.MainWindow_Load);
             this.Shown += new System.EventHandler(this.MainWindow_Shown);
-            this.SizeChanged += new System.EventHandler(this.MainWindow_SizeChanged);
             this.DeckPanel.ResumeLayout(false);
             this.HighlightedDeckPanel.ResumeLayout(false);
             this.ResumeLayout(false);

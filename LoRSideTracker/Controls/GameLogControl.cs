@@ -39,18 +39,18 @@ namespace LoRSideTracker
         List<GameRecord> Games;
         private List<Rectangle[]> GameTextRectangles;
 
-        private Font TitleFont = new Font("Calibri", 9, FontStyle.Bold);
-        private Font ListFont = new Font("Calibri", 9, FontStyle.Regular);
+        private readonly Font TitleFont = new Font("Calibri", 9, FontStyle.Bold);
+        private readonly Font ListFont = new Font("Calibri", 9, FontStyle.Regular);
 
-        private GameHistoryColumn[] Columns = new GameHistoryColumn[] {
+        private readonly GameHistoryColumn[] Columns = new GameHistoryColumn[] {
             new GameHistoryColumn("Game End Time", 150, "Timestamp", Color.Black, TextFormatFlags.VerticalCenter | TextFormatFlags.Left),
             new GameHistoryColumn("My Deck", 150, "MyDeckName", Color.Black, TextFormatFlags.VerticalCenter | TextFormatFlags.Left, true),
             new GameHistoryColumn("Opponent", 150, "OpponentName", Color.Black, TextFormatFlags.VerticalCenter | TextFormatFlags.Left, true),
             new GameHistoryColumn("Result", 80, "Result", Color.Black, TextFormatFlags.VerticalCenter | TextFormatFlags.HorizontalCenter),
         };
 
-        private int CellMargin = 2;
-        private int CellHeight = 20;
+        private readonly int CellMargin = 2;
+        private readonly int CellHeight = 20;
 
         private Point HighlightedCell = new Point(-1, -1);
 
@@ -153,7 +153,6 @@ namespace LoRSideTracker
             {
                 for (int j = 0; j < GameTextRectangles[i].Length; j++)
                 {
-                    Rectangle rect = GameTextRectangles[i][j];
                     GameTextRectangles[i][j].Offset(0, CellHeight + CellMargin);
                 }
             }

@@ -14,7 +14,7 @@ namespace LoRSideTracker
     /// <summary>
     /// ProgressDisplay interface to receive progress display updates
     /// </summary>
-    public interface ProgressDisplay
+    public interface IProgressDisplay
     {
         /// <summary>
         /// Update progress bar percentage and display message
@@ -27,7 +27,7 @@ namespace LoRSideTracker
     /// <summary>
     /// Control to display progress with message
     /// </summary>
-    public partial class ProgressDisplayControl : UserControl, ProgressDisplay
+    public partial class ProgressDisplayControl : UserControl, IProgressDisplay
     {
         /// <summary>
         /// Constructor

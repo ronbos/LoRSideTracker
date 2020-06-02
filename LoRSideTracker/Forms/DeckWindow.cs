@@ -58,6 +58,8 @@ namespace LoRSideTracker
         public DeckWindow()
         {
             InitializeComponent();
+
+            MyDeckControl.BorderSize = 3;
         }
 
         /// <summary>

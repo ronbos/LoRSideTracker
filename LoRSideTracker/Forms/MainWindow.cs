@@ -5,10 +5,7 @@ using System.Data;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
-using System.IO.Compression;
 using System.Linq;
-using System.Net;
-using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,11 +17,8 @@ namespace LoRSideTracker
     /// <summary>
     /// Main app wondow
     /// </summary>
-    public partial class MainWindow : Form, ExpeditionUpdateCallback, StaticDeckUpdateCallback, OverlayUpdateCallback
+    public partial class MainWindow : Form, IExpeditionUpdateCallback, StaticDeckUpdateCallback, IOverlayUpdateCallback, ISetDownloaderCallback
     {
-        private int CurrentDownloadIndex = 0;
-        private List<ValueTuple<int,long>> MissingSets;
-
         private Expedition CurrentExpedition;
         private StaticDeck CurrentDeck;
         private Overlay CurrentOverlay;
@@ -46,6 +40,7 @@ namespace LoRSideTracker
         {
             InitializeComponent();
             this.ResizeRedraw = true;
+            HighlightedDeckControl.CustomDeckScale = DeckControl.DeckScale.Small;
 
             if (!Directory.Exists(Constants.GetLocalGamesPath()))
             {
@@ -88,7 +83,7 @@ namespace LoRSideTracker
         public void OnDeckUpdated(List<CardWithCount> cards, string deckCode)
         {
             if (cards.Count > 0 &&
-                (CurrentExpedition == null || !AreDecksEqual(cards, CurrentExpedition.Cards)))
+                (CurrentExpedition == null || !cards.SequenceEqual(CurrentExpedition.Cards)))
             {
                 string title = "Constructed Deck";
                 try { title = GameHistory.DeckNames[deckCode]; } catch { }
@@ -115,7 +110,7 @@ namespace LoRSideTracker
         /// <param name="cards">Updated set</param>
         public void OnExpeditionDeckUpdated(List<CardWithCount> cards)
         {
-            if (CurrentDeck.Cards.Count == 0 || AreDecksEqual(CurrentDeck.Cards, cards))
+            if (CurrentDeck.Cards.Count == 0 || CurrentDeck.Cards.SequenceEqual(cards))
             {
                 if (cards.Count > 0)
                 {
@@ -243,29 +238,8 @@ namespace LoRSideTracker
                 GameHistory.AddGameRecord(gameRecord);
                 Utilities.CallActionSafelyAndWait(DecksListBox, new Action (() => 
                 {
-                    int index = AddToDeckList(gameRecord);
-                    if (gameRecord.IsExpedition() != ExpeditionsListBox.Visible)
-                    {
-                        if (gameRecord.IsExpedition())
-                        {
-                            SwitchDeckView(DecksListBox, DecksButton, ExpeditionsListBox, ExpeditionsButton);
-                        }
-                        else
-                        {
-                            SwitchDeckView(ExpeditionsListBox, ExpeditionsButton, DecksListBox, DecksButton);
-                        }
-                    }
-                    else
-                    {
-                        if (gameRecord.IsExpedition())
-                        {
-                            ExpeditionsListBox.SetSelected(index, true);
-                        }
-                        else
-                        {
-                            DecksListBox.SetSelected(index, true);
-                        }
-                    }
+                    AddToDeckList(gameRecord);
+                    SwitchDeckView(gameRecord.IsExpedition());
                 }));
             }
         }
@@ -285,6 +259,11 @@ namespace LoRSideTracker
             }
         }
 
+        /// <summary>
+        /// Position progress display to the center of the window and initiate set download
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void MainWindow_Shown(object sender, EventArgs e)
         {
             Rectangle progressRect = MyProgressDisplay.Bounds;
@@ -294,103 +273,52 @@ namespace LoRSideTracker
             MyProgressDisplay.SetBounds(progressRect.X, progressRect.Y, progressRect.Width, progressRect.Height);
             MyProgressDisplay.Show();
 
-            MissingSets = CardLibrary.FindMissingSets();
-            if (MissingSets.Count > 0)
+            if (!(new SetDownloader(this)).DownloadAllSets(MyProgressDisplay))
             {
-                long totalDownloadSize = MissingSets.Sum(x => x.Item2);
-                var result = MessageBox.Show(
-                    string.Format("Card sets have been updated. Download size is {0} MB. Download new sets?", totalDownloadSize / 1024 / 1024), 
-                    "Sets Out of Date", 
-                    MessageBoxButtons.YesNo);
-                if (result != DialogResult.Yes)
-                {
-                    Close();
-                    return;
-                }
-
-                // Delete existing outdated sets
-                foreach (var set in MissingSets)
-                {
-                    if (Directory.Exists(Constants.GetSetPath(set.Item1)))
-                    {
-                        Directory.Delete(Constants.GetSetPath(set.Item1), true);
-                    }
-                }
-
-                CurrentDownloadIndex = 0;
-                CardLibrary.DownloadSet(MissingSets[CurrentDownloadIndex].Item1, 
-                    new DownloadProgressChangedEventHandler(OnDownloadProgressChanged),
-                    new AsyncCompletedEventHandler(OnDownloadFileCompleted));
-            }
-            else
-            {
-                OnAllSetsDownloaded();
+                Close();
             }
         }
 
+
         /// <summary>
-        /// Receives notification that set download progress changed
+        /// Callback for when a download was canceled or error occured
         /// </summary>
-        /// <param name="sender">Sender</param>
-        /// <param name="e">Arguments</param>
-        private void OnDownloadProgressChanged(object sender, DownloadProgressChangedEventArgs e)
+        /// <param name="errorOccured"></param>
+        public void OnDownloadCanceled(bool errorOccured)
         {
-            double bytesIn = double.Parse(e.BytesReceived.ToString());
-            double totalBytes = double.Parse(e.TotalBytesToReceive.ToString());
-            double percentage = bytesIn / totalBytes * 100;
-            string message = String.Format("Downloading card set {0} ({1}/{2})", MissingSets[CurrentDownloadIndex].Item1, CurrentDownloadIndex + 1, MissingSets.Count);
-            MyProgressDisplay.Update(message, percentage);
+            if (errorOccured)
+            {
+                MessageBox.Show("Download Error Occurred. Exiting...", "Error", MessageBoxButtons.OK);
+                Close();
+            }
         }
 
-        /// <summary>
-        /// Receives notification that set download was completed
-        /// </summary>
-        /// <param name="sender">Sender</param>
-        /// <param name="e">Arguments</param>
-        private void OnDownloadFileCompleted(object sender, AsyncCompletedEventArgs e)
+        private DeckWindow CreateDeckWindow(string title, DeckControl.DeckScale deckScale, double opacity,
+            bool showWindow, int posX, int posY)
         {
-            if (e != null && e.Error != null && e.Error.HResult != 0)
+            DeckWindow deckWindow = new DeckWindow();
+            deckWindow.CreateControl();
+            deckWindow.Title = title;
+            deckWindow.CustomDeckScale = deckScale;
+            deckWindow.ShouldShowDeckStats = Properties.Settings.Default.ShowDeckStats;
+            if (showWindow)
             {
-                string localFile = Constants.GetSetZipPath(MissingSets[CurrentDownloadIndex].Item1);
-                if (File.Exists(localFile))
-                {
-                    File.Delete(localFile);
-                }
-
-                // Error occured, finish up
-                OnAllSetsDownloaded();
+                deckWindow.Show();
             }
-            else
-            {
-                // Success, finish up and queue up the next one
+            deckWindow.SetBounds(posX, posY, 0, 0, BoundsSpecified.Location);
+            deckWindow.Opacity = opacity;
+            return deckWindow;
 
-                MyProgressDisplay.Update("Download completed. Processing...", 100);
-                CardLibrary.ProcessDownloadedSet(MissingSets[CurrentDownloadIndex].Item1, MissingSets[CurrentDownloadIndex].Item2);
-                CurrentDownloadIndex++;
-                if (CurrentDownloadIndex < MissingSets.Count)
-                {
-                    CardLibrary.DownloadSet(MissingSets[CurrentDownloadIndex].Item1,
-                        new DownloadProgressChangedEventHandler(OnDownloadProgressChanged),
-                        new AsyncCompletedEventHandler(OnDownloadFileCompleted));
-                }
-                else
-                {
-                    // Finished
-                    OnAllSetsDownloaded();
-                }
-            }
         }
 
         /// <summary>
         /// Runs after all sets are downloaded and processed.
         /// Initializes the StaticDeck windows and deck tracking objects.
         /// </summary>
-        private async void OnAllSetsDownloaded()
+        public async void OnAllSetsDownloaded()
         {
             await Task.Run(() => CardLibrary.LoadAllCards(MyProgressDisplay));
             GameHistory.LoadAllGames();
-
-            MyProgressDisplay.Hide();
 
             DeckControl.DeckScale deckScale = DeckControl.DeckScale.Medium;
             if (Properties.Settings.Default.DeckDrawSize == 0)
@@ -402,44 +330,23 @@ namespace LoRSideTracker
                 deckScale = DeckControl.DeckScale.Large;
             }
 
-            PlayerActiveDeckWindow = new DeckWindow();
-            PlayerActiveDeckWindow.CreateControl();
-            PlayerActiveDeckWindow.Title = "No Active Deck";
-            PlayerActiveDeckWindow.CustomDeckScale = deckScale;
-            PlayerActiveDeckWindow.ShouldShowDeckStats = Properties.Settings.Default.ShowDeckStats;
-            if (Properties.Settings.Default.ShowPlayerDeck) PlayerActiveDeckWindow.Show();
-
-            PlayerDrawnCardsWindow = new DeckWindow();
-            PlayerDrawnCardsWindow.CreateControl();
-            PlayerDrawnCardsWindow.Title = "Cards Drawn";
-            PlayerDrawnCardsWindow.CustomDeckScale = deckScale;
-            PlayerDrawnCardsWindow.ShouldShowDeckStats = Properties.Settings.Default.ShowDeckStats;
-            if (Properties.Settings.Default.ShowPlayerDrawnCards) PlayerDrawnCardsWindow.Show();
-
-            PlayerPlayedCardsWindow = new DeckWindow();
-            PlayerPlayedCardsWindow.CreateControl();
-            PlayerPlayedCardsWindow.Title = "You Played";
-            PlayerPlayedCardsWindow.CustomDeckScale = deckScale;
-            PlayerPlayedCardsWindow.ShouldShowDeckStats = Properties.Settings.Default.ShowDeckStats;
-            if (Properties.Settings.Default.ShowPlayerPlayedCards) PlayerPlayedCardsWindow.Show();
-
-            OpponentPlayedCardsWindow = new DeckWindow();
-            OpponentPlayedCardsWindow.CreateControl();
-            OpponentPlayedCardsWindow.Title = "Opponent Played";
-            OpponentPlayedCardsWindow.CustomDeckScale = deckScale;
-            OpponentPlayedCardsWindow.ShouldShowDeckStats = Properties.Settings.Default.ShowDeckStats;
-            if (Properties.Settings.Default.ShowOpponentPlayedCards) OpponentPlayedCardsWindow.Show();
-
-            PlayerActiveDeckWindow.SetBounds(Properties.Settings.Default.PlayerDeckLocation.X, Properties.Settings.Default.PlayerDeckLocation.Y, 0, 0, BoundsSpecified.Location);
-            PlayerDrawnCardsWindow.SetBounds(Properties.Settings.Default.PlayerDrawnCardsLocation.X, Properties.Settings.Default.PlayerDrawnCardsLocation.Y, 0, 0, BoundsSpecified.Location);
-            PlayerPlayedCardsWindow.SetBounds(Properties.Settings.Default.PlayerPlayedCardsLocation.X, Properties.Settings.Default.PlayerPlayedCardsLocation.Y, 0, 0, BoundsSpecified.Location);
-            OpponentPlayedCardsWindow.SetBounds(Properties.Settings.Default.OpponentPlayedCardsLocation.X, Properties.Settings.Default.OpponentPlayedCardsLocation.Y, 0, 0, BoundsSpecified.Location);
-
             double deckOpacity = Properties.Settings.Default.DeckTransparency / 100.0;
-            PlayerActiveDeckWindow.Opacity = deckOpacity;
-            PlayerDrawnCardsWindow.Opacity = deckOpacity;
-            PlayerPlayedCardsWindow.Opacity = deckOpacity;
-            OpponentPlayedCardsWindow.Opacity = deckOpacity;
+            PlayerActiveDeckWindow = CreateDeckWindow("No Active Deck", deckScale, deckOpacity,
+                Properties.Settings.Default.ShowPlayerDeck,
+                Properties.Settings.Default.PlayerDeckLocation.X, 
+                Properties.Settings.Default.PlayerDeckLocation.Y);
+            PlayerDrawnCardsWindow = CreateDeckWindow("Cards Drawn", deckScale, deckOpacity,
+                Properties.Settings.Default.ShowPlayerDrawnCards,
+                Properties.Settings.Default.PlayerDrawnCardsLocation.X, 
+                Properties.Settings.Default.PlayerDrawnCardsLocation.Y);
+            PlayerPlayedCardsWindow = CreateDeckWindow("You Played", deckScale, deckOpacity,
+                Properties.Settings.Default.ShowPlayerPlayedCards,
+                Properties.Settings.Default.PlayerPlayedCardsLocation.X, 
+                Properties.Settings.Default.PlayerPlayedCardsLocation.Y);
+            OpponentPlayedCardsWindow = CreateDeckWindow("Opponent Played", deckScale, deckOpacity,
+                Properties.Settings.Default.ShowOpponentPlayedCards,
+                Properties.Settings.Default.OpponentPlayedCardsLocation.X, 
+                Properties.Settings.Default.OpponentPlayedCardsLocation.Y);
 
             PlayerActiveDeckWindow.HideZeroCountCards = Properties.Settings.Default.HideZeroCountInDeck;
 
@@ -471,10 +378,12 @@ namespace LoRSideTracker
             Thread.Sleep(500);
             CurrentOverlay = new Overlay(this);
 
+            // Hide the progress display and make all the other UI elements visible
+            MyProgressDisplay.Visible = false;
             SnapWindowsButton.Visible = true;
             OptionsButton.Visible = true;
             LogButton.Visible = true;
-            DecksListBox.Visible = false;
+            DecksListBox.Visible = true;
             DeckPanel.Visible = true;
             DecksButton.Visible = true;
             ExpeditionsButton.Visible = true;
@@ -486,93 +395,87 @@ namespace LoRSideTracker
                 AddToDeckList(GameHistory.Games[i]);
             }
 
-            SwitchDeckView(ExpeditionsListBox, ExpeditionsButton, DecksListBox, DecksButton);
-
+            // Set up constructed deck list to be visible
+            SwitchDeckView(false);
         }
 
-        private int AddToDeckList(GameRecord gr)
+        /// <summary>
+        /// Add a deck to the top of the list of either decks or expeditions
+        /// If game record matches existing entry, old entry is removed from list
+        /// </summary>
+        /// <param name="gr">Game record to add</param>
+        private void AddToDeckList(GameRecord gr)
         {
-            ListBox lb = gr.IsExpedition() ? ExpeditionsListBox : DecksListBox;
-            string grSig = gr.GetDeckSignature();
-            int index = -1;
+            ListBox listBox = gr.IsExpedition() ? ExpeditionsListBox : DecksListBox;
             string deckName = gr.IsExpedition() ? string.Format("Expedition #{0}", ExpeditionsCount + 1) : gr.MyDeckName;
-            for (int i = 0; i < lb.Items.Count; i++)
-            {
-                GameRecord gr2 = (GameRecord)lb.Items[i];
-                if (grSig == gr2.GetDeckSignature())
-                {
-                    deckName = gr2.DisplayString;
-                    index = i;
-                    break;
-                }
-            }
 
+            // Does the deck already exist in the list? If it does, remove it
+            string grSig = gr.GetDeckSignature();
+            int index = listBox.Items.Cast<GameRecord>().ToList().FindIndex(x => grSig == x.GetDeckSignature());
             if (index != -1)
             {
-                lb.Items.RemoveAt(index);
+                // Keep the deck name
+                deckName = ((GameRecord)listBox.Items[index]).ToString();
+
+                // Remove old item
+                listBox.Items.RemoveAt(index);
             }
-            else if (gr.IsExpedition())
+            else
             {
-                ExpeditionsCount++;
+                if (gr.IsExpedition())
+                {
+                    // This is guaranteed to be a new expedition, increase expeditions count
+                    ExpeditionsCount++;
+
+                    // Default expedition name if it is not customized
+                    deckName = string.Format("Expedition #{0}", ExpeditionsCount);
+                }
+                else
+                {
+                    deckName = gr.MyDeckName;
+                }
+
+                // Map the name if it has been customized (if not, default name is kept)
+                try { deckName = GameHistory.DeckNames[gr.GetDeckSignature()]; } catch { }
             }
 
-            try
-            {
-                deckName = GameHistory.DeckNames[gr.GetDeckSignature()];
-            }
-            catch { }
-
+            // Add the new item
             gr.DisplayString = deckName;
-            lb.Items.Insert(0, gr);
-            index = 0;
+            listBox.Items.Insert(0, gr);
+        }
 
-            return index;
+        private bool SnapWindow(Form window, bool isSnapping, int margin, ref Point nextTopLeft)
+        {
+            // Only snap if visible
+            if (window.Visible)
+            {
+                if (!isSnapping)
+                {
+                    // Not snapping yet, initialize top left
+                    nextTopLeft = PlayerActiveDeckWindow.Location;
+                }
+                else
+                {
+                    window.SetDesktopBounds(nextTopLeft.X, nextTopLeft.Y, PlayerActiveDeckWindow.DesktopBounds.Width, PlayerActiveDeckWindow.DesktopBounds.Height);
+                }
+                // Offset top-left to the new top right of this window
+                nextTopLeft.X += window.DesktopBounds.Width + margin;
+                return true;
+            }
+
+            // Window not visible, no change
+            return isSnapping;
         }
 
         private void SnapWindowsButton_Click(object sender, EventArgs e)
         {
-            Point location;
-            if (PlayerActiveDeckWindow.Visible)
-            {
-                location = PlayerActiveDeckWindow.Location;
-            }
-            else if (PlayerDrawnCardsWindow.Visible)
-            {
-                location = PlayerDrawnCardsWindow.Location;
-            }
-            else if (PlayerPlayedCardsWindow.Visible)
-            {
-                location = PlayerPlayedCardsWindow.Location;
-            }
-            else if (OpponentPlayedCardsWindow.Visible)
-            {
-                location = OpponentPlayedCardsWindow.Location;
-            }
-            else
-            {
-                return;
-            }
-
+            bool snapping = false;
+            Point location = new Point();
             int margin = 2;
-            if (PlayerActiveDeckWindow.Visible)
-            {
-                PlayerActiveDeckWindow.SetDesktopBounds(location.X, location.Y, PlayerActiveDeckWindow.DesktopBounds.Width, PlayerActiveDeckWindow.DesktopBounds.Height);
-                location.X += PlayerActiveDeckWindow.DesktopBounds.Width + margin;
-            }
-            if (PlayerDrawnCardsWindow.Visible)
-            {
-                PlayerDrawnCardsWindow.SetDesktopBounds(location.X, location.Y, PlayerDrawnCardsWindow.DesktopBounds.Width, PlayerDrawnCardsWindow.DesktopBounds.Height);
-                location.X += PlayerDrawnCardsWindow.DesktopBounds.Width + margin;
-            }
-            if (PlayerPlayedCardsWindow.Visible)
-            {
-                PlayerPlayedCardsWindow.SetDesktopBounds(location.X, location.Y, PlayerPlayedCardsWindow.DesktopBounds.Width, PlayerPlayedCardsWindow.DesktopBounds.Height);
-                location.X += PlayerPlayedCardsWindow.DesktopBounds.Width + margin;
-            }
-            if (OpponentPlayedCardsWindow.Visible)
-            {
-                OpponentPlayedCardsWindow.SetDesktopBounds(location.X, location.Y, OpponentPlayedCardsWindow.DesktopBounds.Width, OpponentPlayedCardsWindow.DesktopBounds.Height);
-            }
+            snapping = SnapWindow(PlayerActiveDeckWindow, snapping, margin, ref location);
+            snapping = SnapWindow(PlayerDrawnCardsWindow, snapping, margin, ref location);
+            snapping = SnapWindow(PlayerPlayedCardsWindow, snapping, margin, ref location);
+            snapping = SnapWindow(OpponentPlayedCardsWindow, snapping, margin, ref location);
         }
 
         private void MainWindow_Load(object sender, EventArgs e)
@@ -584,30 +487,18 @@ namespace LoRSideTracker
             }
         }
 
+        /// <summary>
+        /// Save properties while window is closing
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void MainWindow_FormClosing(object sender, FormClosingEventArgs e)
         {
             Properties.Settings.Default.MainWindowState = this.WindowState;
-            if (this.WindowState == FormWindowState.Normal)
-            {
-                // save location and size if the state is normal
-                Properties.Settings.Default.MainWindowBounds = Bounds;
-            }
-            else
-            {
-                // save the RestoreBounds if the form is minimized or maximized!
-                Properties.Settings.Default.MainWindowBounds = this.RestoreBounds;
-            }
+            Properties.Settings.Default.MainWindowBounds = (this.WindowState == FormWindowState.Normal) ? Bounds : RestoreBounds;
+            Properties.Settings.Default.ActiveLogWindowBounds = (ActiveLogWindow.WindowState == FormWindowState.Normal) 
+                ? ActiveLogWindow.Bounds : ActiveLogWindow.RestoreBounds;
 
-            if (ActiveLogWindow.WindowState == FormWindowState.Normal)
-            {
-                // save location and size if the state is normal
-                Properties.Settings.Default.ActiveLogWindowBounds = ActiveLogWindow.Bounds;
-            }
-            else
-            {
-                // save the RestoreBounds if the form is minimized or maximized!
-                Properties.Settings.Default.ActiveLogWindowBounds = ActiveLogWindow.RestoreBounds;
-            }
             if (PlayerActiveDeckWindow != null) Properties.Settings.Default.PlayerDeckLocation = PlayerActiveDeckWindow.Location;
             if (PlayerDrawnCardsWindow != null) Properties.Settings.Default.PlayerDrawnCardsLocation = PlayerDrawnCardsWindow.Location;
             if (PlayerPlayedCardsWindow != null) Properties.Settings.Default.PlayerPlayedCardsLocation = PlayerPlayedCardsWindow.Location;
@@ -617,15 +508,6 @@ namespace LoRSideTracker
             Properties.Settings.Default.Save();
         }
 
-        private void MainWindow_SizeChanged(object sender, EventArgs e)
-        {
-            Rectangle progressRect = MyProgressDisplay.Bounds;
-            progressRect.Offset(
-                ClientRectangle.Width / 2 - (progressRect.Left + progressRect.Right) / 2,
-                ClientRectangle.Height / 2 - (progressRect.Top + progressRect.Bottom) / 2);
-            MyProgressDisplay.SetBounds(progressRect.X, progressRect.Y, progressRect.Width, progressRect.Height);
-        }
-
         private void OptionsButton_Click(object sender, EventArgs e)
         {
             OptionsWindow myOptions = new OptionsWindow();
@@ -633,6 +515,11 @@ namespace LoRSideTracker
             myOptions.ShowDialog();
         }
 
+        /// <summary>
+        /// Show or hide log window
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void LogButton_Click(object sender, EventArgs e)
         {
             if (ActiveLogWindow != null)
@@ -648,14 +535,72 @@ namespace LoRSideTracker
             }
         }
 
-        private void DecksListBox_SelectedIndexChanged(object sender, EventArgs e)
+        /// <summary>
+        /// Switch to viewing decks
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void DecksButton_Click(object sender, EventArgs e)
         {
-            GameRecord gr = (GameRecord)DecksListBox.SelectedItem;
+            SwitchDeckView(false);
+        }
+
+        /// <summary>
+        /// Switch to viewing expeditions
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void ExpeditionsButton_Click(object sender, EventArgs e)
+        {
+            SwitchDeckView(true);
+        }
+
+        private void SwitchDeckView(bool showExpeditions)
+        {
+            ListBox fromListBox, toListBox;
+            Button fromButton, toButton;
+            if (showExpeditions)
+            {
+                fromListBox = DecksListBox;
+                fromButton = DecksButton;
+                toListBox = ExpeditionsListBox;
+                toButton = ExpeditionsButton;
+            }
+            else
+            {
+                fromListBox = ExpeditionsListBox;
+                fromButton = ExpeditionsButton;
+                toListBox = DecksListBox;
+                toButton = DecksButton;
+            }
+            if (fromListBox.Visible)
+            {
+                fromButton.BackColor = BackColor;
+                fromButton.FlatAppearance.MouseOverBackColor = toButton.FlatAppearance.MouseOverBackColor;
+                fromButton.FlatAppearance.MouseDownBackColor = toButton.FlatAppearance.MouseDownBackColor;
+                toButton.BackColor = Color.FromArgb(BackColor.R * 2, BackColor.G * 2, BackColor.B * 2);
+                toButton.FlatAppearance.MouseOverBackColor = toButton.BackColor;
+                toButton.FlatAppearance.MouseDownBackColor = toButton.BackColor;
+                fromListBox.Visible = false;
+                toListBox.Visible = true;
+                fromListBox.SelectedIndex = -1;
+            }
+
+            if (toListBox.Items.Count > 0)
+            {
+                toListBox.SelectedIndex = 0;
+            }
+        }
+
+        private void ListBox_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            ListBox listBox = (ListBox)sender;
+            GameRecord gr = (GameRecord)listBox.SelectedItem;
             if (gr == null)
             {
-                if (DecksListBox.Items.Count > 0)
+                if (listBox.Items.Count > 0)
                 {
-                    gr = (GameRecord)DecksListBox.Items[0];
+                    gr = (GameRecord)listBox.Items[0];
                 }
                 else
                 {
@@ -666,32 +611,7 @@ namespace LoRSideTracker
                 }
             }
 
-            HighlightDeck(gr);
-        }
-
-        private void ExpeditionsListBox_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            GameRecord gr = (GameRecord)ExpeditionsListBox.SelectedItem;
-            if (gr == null)
-            {
-                if (ExpeditionsListBox.Items.Count > 0)
-                {
-                    gr = (GameRecord)ExpeditionsListBox.Items[0];
-                }
-                else
-                {
-                    HighlightedGameLogControl.Clear();
-                    HighlightedDeckControl.ClearDeck();
-                    HighlightedDeckStatsDisplay.Visible = false;
-                    return;
-                }
-            }
-
-            HighlightDeck(gr);
-        }
-
-        private void HighlightDeck(GameRecord gr)
-        {
+            // Highlight the deck
             HighlightedGameLogControl.LoadGames(gr.GetDeckSignature());
 
             // Update deck
@@ -711,19 +631,6 @@ namespace LoRSideTracker
             HighlightedDeckPanel.Visible = true;
         }
 
-        /// <summary>
-        /// Code from here: https://nickstips.wordpress.com/2010/03/03/c-panel-resets-scroll-position-after-focus-is-lost-and-regained/
-        /// To prevent scrollbar from snapping back to position zero
-        /// </summary>
-        /// <param name="activeControl"></param>
-        /// <returns></returns>
-        protected override System.Drawing.Point ScrollToControl(System.Windows.Forms.Control activeControl)
-        {
-            // Returning the current location prevents the panel from
-            // scrolling to the active control when the panel loses and regains focus
-            return this.DisplayRectangle.Location;
-        }
-
         private void ListBox_DoubleClick(object sender, EventArgs e)
         {
             ListBox listBox = (ListBox)sender;
@@ -741,55 +648,6 @@ namespace LoRSideTracker
                     GameHistory.SetDeckName(gr.GetDeckSignature(), result);
                 }
             }
-        }
-        private void ExpeditionsListBox_DoubleClick(object sender, EventArgs e)
-        {
-            int index = ExpeditionsListBox.SelectedIndex;
-            if (index >= 0)
-            {
-                GameRecord gr = (GameRecord)((GameRecord)ExpeditionsListBox.Items[index]).Clone();
-                string result = Microsoft.VisualBasic.Interaction.InputBox("Name:", "Change Deck Name", gr.DisplayString);
-                if (!string.IsNullOrEmpty(result))
-                {
-                    gr.DisplayString = result;
-                    ExpeditionsListBox.Items[index] = gr;
-                    ExpeditionsListBox.Refresh();
-
-                    GameHistory.SetDeckName(gr.GetDeckSignature(), result);
-                }
-            }
-        }
-
-        private void DecksButton_Click(object sender, EventArgs e)
-        {
-            SwitchDeckView(ExpeditionsListBox, ExpeditionsButton, DecksListBox, DecksButton);
-        }
-
-        private void ExpeditionsButton_Click(object sender, EventArgs e)
-        {
-            SwitchDeckView(DecksListBox, DecksButton, ExpeditionsListBox, ExpeditionsButton);
-        }
-
-        private void SwitchDeckView(ListBox fromListBox, Button fromButton, ListBox toListBox, Button toButton)
-        {
-            fromButton.BackColor = BackColor;
-            fromButton.FlatAppearance.MouseOverBackColor = toButton.FlatAppearance.MouseOverBackColor;
-            fromButton.FlatAppearance.MouseDownBackColor = toButton.FlatAppearance.MouseDownBackColor;
-            toButton.BackColor = Color.FromArgb(BackColor.R * 2, BackColor.G * 2, BackColor.B * 2);
-            toButton.FlatAppearance.MouseOverBackColor = toButton.BackColor;
-            toButton.FlatAppearance.MouseDownBackColor = toButton.BackColor;
-            toButton.FlatAppearance.BorderSize = 1;
-            fromListBox.Visible = false;
-            fromListBox.SelectedIndex = -1;
-            if (toListBox.Items.Count > 0)
-            {
-                toListBox.SelectedIndex = 0;
-            }
-            else
-            {
-                // Clear selection
-            }
-            toListBox.Visible = true;
         }
 
         private void ListBox_DrawItem(object sender, DrawItemEventArgs e)
@@ -842,8 +700,7 @@ namespace LoRSideTracker
                 Dictionary<string, int> regions = new Dictionary<string, int>();
                 foreach (var c in gr.MyDeck)
                 {
-                    int currentCount = 0;
-                    regions.TryGetValue(c.TheCard.Region, out currentCount);
+                    regions.TryGetValue(c.TheCard.Region, out int currentCount);
                     regions[c.TheCard.Region] = currentCount + 1;
                 }
 
@@ -864,6 +721,19 @@ namespace LoRSideTracker
 
                 TextRenderer.DrawText(e.Graphics, gr.ToString(), e.Font, rect, ForeColor, TextFormatFlags.Left | TextFormatFlags.VerticalCenter);
             }
+        }
+
+        /// <summary>
+        /// Code from here: https://nickstips.wordpress.com/2010/03/03/c-panel-resets-scroll-position-after-focus-is-lost-and-regained/
+        /// To prevent game log scrollbar from snapping back to top
+        /// </summary>
+        /// <param name="activeControl"></param>
+        /// <returns></returns>
+        protected override System.Drawing.Point ScrollToControl(System.Windows.Forms.Control activeControl)
+        {
+            // Returning the current location prevents the panel from
+            // scrolling to the active control when the panel loses and regains focus
+            return this.DisplayRectangle.Location;
         }
 
         /// <summary>

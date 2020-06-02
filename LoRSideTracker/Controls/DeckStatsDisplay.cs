@@ -18,7 +18,7 @@ namespace LoRSideTracker
         /// <summary>Deck to illustrate</summary>
         public List<CardWithCount> TheDeck { get; set; }
 
-        private Font CostsFont = new Font("Calibri", 8, FontStyle.Bold);
+        private readonly Font CostsFont = new Font("Calibri", 8, FontStyle.Bold);
 
         /// <summary>Unit color in histogram</summary>
         public Color UnitColor { get; set; } = Color.RoyalBlue;
@@ -28,11 +28,11 @@ namespace LoRSideTracker
         public Color TextColor { get; set; } = Color.White;
 
         /// <summary>Histogram block height</summary>
-        public int BlockHeight { get; set; } = 4;
+        public int BlockHeight { get; set; } = 3;
         /// <summary>Histogram block width</summary>
         public int BlockWidth { get; set; } = 7;
 
-        private int ColumnMargin = 2;
+        private readonly int ColumnMargin = 2;
 
         /// <summary>
         /// Constructor
@@ -96,7 +96,7 @@ namespace LoRSideTracker
                 int right = (i + 1 == numCols) ? nextLeft :  nextLeft - ColumnMargin;
 
                 DrawColumn(e.Graphics, new Rectangle(left, boundsRect.Y, right - left, boundsRect.Height),
-                    unitCounts[i], spellCounts[i], maxCount);
+                    unitCounts[i], spellCounts[i]);
 
                 String text = i.ToString();
                 if (i + 1 == numCols && numCols < maxCost)
@@ -109,7 +109,7 @@ namespace LoRSideTracker
                     Color.White, TextFormatFlags.Bottom | TextFormatFlags.HorizontalCenter);
             }
         }
-        private void DrawColumn(Graphics g, Rectangle boundsRect, int unitCount, int spellCount, int maxCount)
+        private void DrawColumn(Graphics g, Rectangle boundsRect, int unitCount, int spellCount)
         {
             int blockHeight = BlockHeight + 1;
             if (boundsRect.Width > 3 * BlockWidth)

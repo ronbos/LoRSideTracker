@@ -40,7 +40,7 @@ namespace LoRSideTracker
     /// <summary>
     /// Interface to receive expedition updates
     /// </summary>
-    public interface ExpeditionUpdateCallback
+    public interface IExpeditionUpdateCallback
     {
         /// <summary>
         /// Receives updates that expedition deck changed
@@ -71,15 +71,15 @@ namespace LoRSideTracker
         /// <summary>Number of Losses</summary>
         public int NumberOfLosses { get; private set; }
 
-        private AutoUpdatingWebString WebString;
+        private readonly AutoUpdatingWebString WebString;
 
-        private ExpeditionUpdateCallback Callback;
+        private readonly IExpeditionUpdateCallback Callback;
 
         /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="callback"></param>
-        public Expedition(ExpeditionUpdateCallback callback = null)
+        public Expedition(IExpeditionUpdateCallback callback = null)
         {
             Callback = callback;
             Clear();
