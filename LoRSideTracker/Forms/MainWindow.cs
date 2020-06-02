@@ -91,6 +91,7 @@ namespace LoRSideTracker
                 (CurrentExpedition == null || !AreDecksEqual(cards, CurrentExpedition.Cards)))
             {
                 string title = "Constructed Deck";
+                try { title = GameHistory.DeckNames[deckCode]; } catch { }
                 PlayerActiveDeckWindow.Title = string.Format(title);
                 PlayerActiveDeckWindow.SetFullDeck(cards);
 

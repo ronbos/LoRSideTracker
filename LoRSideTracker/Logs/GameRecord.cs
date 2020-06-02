@@ -108,6 +108,7 @@ namespace LoRSideTracker
 
             result.MyDeckName = gameRecord["MyDeckName"].ToString();
             result.MyDeck = Utilities.LoadDeckFromStringCodeList(gameRecord["MyDeck"].ToObject<string[]>());
+            try { result.MyDeckName = GameHistory.DeckNames[result.MyDeckCode]; } catch { }
             result.OpponentName = gameRecord["OpponentName"].ToString();
             try { result.OpponentName = AIDeckNames[result.OpponentName]; } catch { }
             result.OpponentDeck = Utilities.LoadDeckFromStringCodeList(gameRecord["OpponentDeck"].ToObject<string[]>());

@@ -24,26 +24,7 @@ namespace LoRSideTracker
         /// </summary>
         public static void LoadAllGames()
         {
-            // Load all games
-            Games = new List<GameRecord>();
-            if (Directory.Exists(Constants.GetLocalGamesPath()))
-            {
-                DirectoryInfo dirInfo = new DirectoryInfo(Constants.GetLocalGamesPath());
-                FileInfo[] files = dirInfo.GetFiles();
-
-                foreach (FileInfo fi in files.OrderBy(x => x.CreationTime))
-                {
-                    try
-                    {
-                        AddGameRecord(GameRecord.LoadFromFile(fi.FullName));
-                    }
-                    catch
-                    {
-                        // Skip bad records
-                    }
-                }
-            }
-
+            // Load all known deck names
             DeckNames = new Dictionary<string, string>();
             if (File.Exists(Constants.GetLocalDeckNamesFilePath()))
             {
@@ -64,6 +45,26 @@ namespace LoRSideTracker
                             DeckNames = deckNames["DeckNames"].ToObject<Dictionary<string, string>>();
                         }
                         catch { }
+                    }
+                }
+            }
+
+            // Load all games
+            Games = new List<GameRecord>();
+            if (Directory.Exists(Constants.GetLocalGamesPath()))
+            {
+                DirectoryInfo dirInfo = new DirectoryInfo(Constants.GetLocalGamesPath());
+                FileInfo[] files = dirInfo.GetFiles();
+
+                foreach (FileInfo fi in files.OrderBy(x => x.CreationTime))
+                {
+                    try
+                    {
+                        AddGameRecord(GameRecord.LoadFromFile(fi.FullName));
+                    }
+                    catch
+                    {
+                        // Skip bad records
                     }
                 }
             }
