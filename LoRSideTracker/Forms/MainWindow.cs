@@ -393,6 +393,8 @@ namespace LoRSideTracker
             {
                 DecksListCtrl.AddToDeckList(GameHistory.Games[i]);
             }
+
+            Utilities.CallActionSafelyAndWait(DecksListCtrl, new Action(() => { DecksListCtrl.SwitchDeckView(false); }));
         }
 
         private void MainWindow_Load(object sender, EventArgs e)
@@ -467,6 +469,7 @@ namespace LoRSideTracker
             // Fix the size
             Size bestDeckSize = HighlightedDeckControl.GetBestSize();
             HighlightedDeckControl.SetBounds(0, 0, bestDeckSize.Width, bestDeckSize.Height, BoundsSpecified.Size);
+            HighlightedGameLogControl.Invalidate();
             HighlightedDeckStatsDisplay.Invalidate();
             int deckStatsHeight = HighlightedDeckStatsDisplay.GetBestHeight(bestDeckSize.Width);
             HighlightedDeckStatsDisplay.SetBounds(HighlightedDeckControl.Left, HighlightedDeckControl.Top + bestDeckSize.Height, bestDeckSize.Width, deckStatsHeight, BoundsSpecified.All);

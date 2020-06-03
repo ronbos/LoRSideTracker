@@ -123,7 +123,11 @@ namespace LoRSideTracker.Controls
             SwitchDeckView(true);
         }
 
-        private void SwitchDeckView(bool showExpeditions)
+        /// <summary>
+        /// Switch deck view to decks or expeditions
+        /// </summary>
+        /// <param name="showExpeditions">If true, switch to Expeditions</param>
+        public void SwitchDeckView(bool showExpeditions)
         {
             ListBox fromListBox, toListBox;
             Button fromButton, toButton;

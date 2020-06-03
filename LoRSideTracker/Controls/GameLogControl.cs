@@ -187,7 +187,11 @@ namespace LoRSideTracker
             GameLogDisplay.Width = BestWidth;
             GameLogDisplay.Height = BestHeight;
         }
-
+        protected override void OnInvalidated(InvalidateEventArgs e)
+        {
+            base.OnInvalidated(e);
+            GameLogDisplay.Invalidate(e.InvalidRect);
+        }
         private void GameLogDisplay_Paint(object sender, PaintEventArgs e)
         {
             int top = CellMargin;
