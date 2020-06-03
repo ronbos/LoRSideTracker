@@ -217,7 +217,15 @@ namespace LoRSideTracker
         /// <param name="a"></param>
         /// <param name="b"></param>
         /// <returns></returns>
-        public static bool operator ==(CardWithCount a, CardWithCount b) => a.Code == b.Code && a.Count == b.Count;
+        public static bool operator ==(CardWithCount a, CardWithCount b)
+        {
+            if (object.ReferenceEquals(a, null))
+            {
+                return object.ReferenceEquals(b, null);
+            }
+
+            return !object.ReferenceEquals(b, null) && a.Code == b.Code && a.Count == b.Count;
+        }
 
         /// <summary>
         /// != operator overload
@@ -225,14 +233,14 @@ namespace LoRSideTracker
         /// <param name="a"></param>
         /// <param name="b"></param>
         /// <returns></returns>
-        public static bool operator !=(CardWithCount a, CardWithCount b) => a.Code != b.Code || a.Count != b.Count;
+        public static bool operator !=(CardWithCount a, CardWithCount b) => !(a == b);
 
 
-        /// <summary>
-        /// GetHashCode function overload
-        /// </summary>
-        /// <returns></returns>
-        public override int GetHashCode()
+    /// <summary>
+    /// GetHashCode function overload
+    /// </summary>
+    /// <returns></returns>
+    public override int GetHashCode()
         {
             return string.Format("{0}_{1}", Code, Count).GetHashCode();
         }
@@ -244,7 +252,7 @@ namespace LoRSideTracker
         /// <returns></returns>
         public override bool Equals(object o)
         {
-            return o != null && (this == o as CardWithCount);
+            return o != null && Code == ((CardWithCount)o).Code && Count == ((CardWithCount)o).Count;
         }
     }
 
