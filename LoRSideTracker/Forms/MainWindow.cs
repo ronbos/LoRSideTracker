@@ -30,7 +30,6 @@ namespace LoRSideTracker
 
         private LogWindow ActiveLogWindow;
         private OverlayWatchWindow OverlayWindow;
-        private int ExpeditionsCount = 0;
 
         private GameRecord CurrentGameRecord = new GameRecord();
         /// <summary>
@@ -236,10 +235,9 @@ namespace LoRSideTracker
                     gameRecord.Timestamp.Second);
                 gameRecord.SaveToFile(filePath);
                 GameHistory.AddGameRecord(gameRecord);
-                Utilities.CallActionSafelyAndWait(DecksListBox, new Action (() => 
+                Utilities.CallActionSafelyAndWait(DecksListCtrl, new Action (() => 
                 {
-                    AddToDeckList(gameRecord);
-                    SwitchDeckView(gameRecord.IsExpedition());
+                    DecksListCtrl.AddToDeckList(gameRecord, true);
                 }));
             }
         }
@@ -371,6 +369,7 @@ namespace LoRSideTracker
             }
             Log.SetLogWindow(ActiveLogWindow);
 
+            // Special debigging window is shown if D key is held during load
             if (Keyboard.IsKeyDown(Key.D))
             {
                 OverlayWindow = new OverlayWatchWindow();
@@ -378,72 +377,22 @@ namespace LoRSideTracker
             }
 
             CurrentDeck = new StaticDeck(this);
-            Thread.Sleep(500);
+            //Thread.Sleep(500);
             CurrentExpedition = new Expedition(this);
-            Thread.Sleep(500);
+            //Thread.Sleep(500);
             CurrentOverlay = new Overlay(this);
 
             // Hide the progress display and make all the other UI elements visible
             MyProgressDisplay.Visible = false;
-            DecksListBox.Visible = true;
-            DeckPanel.Visible = true;
-            DecksButton.Visible = true;
-            ExpeditionsButton.Visible = true;
+            DecksListCtrl.Visible = true;
+            HighlightedGameLogControl.Visible = true;
 
             // Load all games. We do this in reverse as AddDeckToList expects them
             // in chronological order
             for (int i = GameHistory.Games.Count - 1; i >= 0; i--)
             {
-                AddToDeckList(GameHistory.Games[i]);
+                DecksListCtrl.AddToDeckList(GameHistory.Games[i]);
             }
-
-            // Set up constructed deck list to be visible
-            SwitchDeckView(false);
-        }
-
-        /// <summary>
-        /// Add a deck to the top of the list of either decks or expeditions
-        /// If game record matches existing entry, old entry is removed from list
-        /// </summary>
-        /// <param name="gr">Game record to add</param>
-        private void AddToDeckList(GameRecord gr)
-        {
-            ListBox listBox = gr.IsExpedition() ? ExpeditionsListBox : DecksListBox;
-            string deckName = gr.IsExpedition() ? string.Format("Expedition #{0}", ExpeditionsCount + 1) : gr.MyDeckName;
-
-            // Does the deck already exist in the list? If it does, remove it
-            string grSig = gr.GetDeckSignature();
-            int index = listBox.Items.Cast<GameRecord>().ToList().FindIndex(x => grSig == x.GetDeckSignature());
-            if (index != -1)
-            {
-                // Keep the deck name
-                deckName = ((GameRecord)listBox.Items[index]).ToString();
-
-                // Remove old item
-                listBox.Items.RemoveAt(index);
-            }
-            else
-            {
-                if (gr.IsExpedition())
-                {
-                    // This is guaranteed to be a new expedition, increase expeditions count
-                    ExpeditionsCount++;
-
-                    // Default expedition name if it is not customized
-                    deckName = string.Format("Expedition #{0}", ExpeditionsCount);
-                }
-                else
-                {
-                    deckName = gr.MyDeckName;
-                }
-
-                // Map the name if it has been customized (if not, default name is kept)
-                try { deckName = GameHistory.DeckNames[gr.GetDeckSignature()]; } catch { }
-            }
-
-            // Add the new item
-            gr.DisplayString = deckName;
-            listBox.Items.Insert(0, gr);
         }
 
         private void MainWindow_Load(object sender, EventArgs e)
@@ -497,81 +446,15 @@ namespace LoRSideTracker
             // Save the settings
             Properties.Settings.Default.Save();
         }
-
-        /// <summary>
-        /// Switch to viewing decks
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void DecksButton_Click(object sender, EventArgs e)
+        private void DecksListCtrl_SelectionChanged(object sender, EventArgs e)
         {
-            SwitchDeckView(false);
-        }
-
-        /// <summary>
-        /// Switch to viewing expeditions
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void ExpeditionsButton_Click(object sender, EventArgs e)
-        {
-            SwitchDeckView(true);
-        }
-
-        private void SwitchDeckView(bool showExpeditions)
-        {
-            ListBox fromListBox, toListBox;
-            Button fromButton, toButton;
-            if (showExpeditions)
-            {
-                fromListBox = DecksListBox;
-                fromButton = DecksButton;
-                toListBox = ExpeditionsListBox;
-                toButton = ExpeditionsButton;
-            }
-            else
-            {
-                fromListBox = ExpeditionsListBox;
-                fromButton = ExpeditionsButton;
-                toListBox = DecksListBox;
-                toButton = DecksButton;
-            }
-            if (fromListBox.Visible)
-            {
-                fromButton.BackColor = BackColor;
-                fromButton.FlatAppearance.MouseOverBackColor = toButton.FlatAppearance.MouseOverBackColor;
-                fromButton.FlatAppearance.MouseDownBackColor = toButton.FlatAppearance.MouseDownBackColor;
-                toButton.BackColor = Color.FromArgb(BackColor.R * 2, BackColor.G * 2, BackColor.B * 2);
-                toButton.FlatAppearance.MouseOverBackColor = toButton.BackColor;
-                toButton.FlatAppearance.MouseDownBackColor = toButton.BackColor;
-                fromListBox.Visible = false;
-                toListBox.Visible = true;
-                fromListBox.SelectedIndex = -1;
-            }
-
-            if (toListBox.Items.Count > 0)
-            {
-                toListBox.SelectedIndex = 0;
-            }
-        }
-
-        private void ListBox_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            ListBox listBox = (ListBox)sender;
-            GameRecord gr = (GameRecord)listBox.SelectedItem;
+            GameRecord gr = DecksListCtrl.SelectedItem;
             if (gr == null)
             {
-                if (listBox.Items.Count > 0)
-                {
-                    gr = (GameRecord)listBox.Items[0];
-                }
-                else
-                {
-                    HighlightedGameLogControl.Clear();
-                    HighlightedDeckControl.ClearDeck();
-                    HighlightedDeckStatsDisplay.Visible = false;
-                    return;
-                }
+                HighlightedGameLogControl.Clear();
+                HighlightedDeckControl.ClearDeck();
+                HighlightedDeckStatsDisplay.Visible = false;
+                return;
             }
 
             // Highlight the deck
@@ -589,24 +472,6 @@ namespace LoRSideTracker
             HighlightedDeckStatsDisplay.SetBounds(HighlightedDeckControl.Left, HighlightedDeckControl.Top + bestDeckSize.Height, bestDeckSize.Width, deckStatsHeight, BoundsSpecified.All);
         }
 
-        private void ListBox_DoubleClick(object sender, EventArgs e)
-        {
-            ListBox listBox = (ListBox)sender;
-            int index = listBox.SelectedIndex;
-            if (index >= 0)
-            {
-                GameRecord gr = (GameRecord)((GameRecord)listBox.Items[index]).Clone();
-                string result = Microsoft.VisualBasic.Interaction.InputBox("Name:", "Change Deck Name", gr.DisplayString);
-                if (!string.IsNullOrEmpty(result))
-                {
-                    gr.DisplayString = result;
-                    listBox.Items[index] = gr;
-                    listBox.Refresh();
-
-                    GameHistory.SetDeckName(gr.GetDeckSignature(), result);
-                }
-            }
-        }
 
         private void ListBox_DrawItem(object sender, DrawItemEventArgs e)
         {

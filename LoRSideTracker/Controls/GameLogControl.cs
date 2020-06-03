@@ -7,7 +7,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.IO;
 
 namespace LoRSideTracker
 {
@@ -174,19 +173,22 @@ namespace LoRSideTracker
                     GameTextRectangles[1][i].Offset((CellRectangles[i].Width - GameTextRectangles[1][i].Width) / 2, 0);
                 }
             }
+            GameLogDisplay.Width = BestWidth;
+            GameLogDisplay.Height = BestHeight;
+
             if (shouldInvalidate) Invalidate();
         }
-
 
         private void GameLogControl_Load(object sender, EventArgs e)
         {
             PopupDeckWindow = new DeckWindow();
             PopupDeckWindow.ShouldHideOnMouseLeave = true;
             PopupDeckWindow.StartPosition = FormStartPosition.Manual;
-
+            GameLogDisplay.Width = BestWidth;
+            GameLogDisplay.Height = BestHeight;
         }
 
-        private void GameLogControl_Paint(object sender, PaintEventArgs e)
+        private void GameLogDisplay_Paint(object sender, PaintEventArgs e)
         {
             int top = CellMargin;
             Rectangle currentRect = new Rectangle(0, top, 0, top + CellHeight);
@@ -233,7 +235,8 @@ namespace LoRSideTracker
             return rect;
         }
 
-        private void GameLogControl_MouseMove(object sender, MouseEventArgs e)
+
+        private void GameLogDisplay_MouseMove(object sender, MouseEventArgs e)
         {
             // Find the column
             int column = -1, row = -1;
@@ -291,31 +294,28 @@ namespace LoRSideTracker
                 HighlightedCell.Y = row;
                 if (HighlightedCell.X != -1)
                 {
-                    Rectangle cellRectangle = GameTextRectangles[HighlightedCell.Y + 1][HighlightedCell.X];// GetCellRectangle(HighlightedCell.X, HighlightedCell.Y);
+                    Rectangle cellRectangle = GameTextRectangles[HighlightedCell.Y + 1][HighlightedCell.X];
                     Invalidate(cellRectangle);
 
                     if (Columns[column].Title == "My Deck" || Columns[column].Title == "Opponent")
                     {
-                        if (Columns[column].Title == "Opponent")
-                        {
-                            PopupDeckWindow.SetFullDeck(Games[row].OpponentDeck);
-                        }
-                        else
+                        List<CardWithCount> deck = (Columns[column].Title == "Opponent") ? Games[row].OpponentDeck : Games[row].MyDeck;
+
+                        if (deck.Count > 0)
                         {
                             PopupDeckWindow.SetFullDeck(Games[row].MyDeck);
+                            Point pos = PointToScreen(new Point(cellRectangle.Right, cellRectangle.Top));
+                            PopupDeckWindow.SetBounds(pos.X, pos.Y, 0, 0);
+                            Utilities.ShowInactiveTopmost(PopupDeckWindow);
+                            PopupDeckWindow.UpdateSize();
                         }
-                        Point pos = PointToScreen(new Point(cellRectangle.Right, cellRectangle.Top));
-                        PopupDeckWindow.SetBounds(pos.X, pos.Y, 0, 0);
-                        Utilities.ShowInactiveTopmost(PopupDeckWindow);
-                        PopupDeckWindow.UpdateSize();
                     }
                 }
             }
         }
 
-        private void GameLogControl_MouseLeave(object sender, EventArgs e)
+        private void GameLogDisplay_MouseLeave(object sender, EventArgs e)
         {
-            //MouseEventArgs me = (MouseEventArgs) e;
             if (!PopupDeckWindow.Visible || !PopupDeckWindow.DesktopBounds.Contains(MousePosition))
             {
                 PopupDeckWindow.Hide();
