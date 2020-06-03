@@ -613,14 +613,7 @@ namespace LoRSideTracker
 
             // Highlight the deck
             HighlightedGameLogControl.LoadGames(gr.GetDeckSignature());
-
-            // Update deck
-            HighlightedDeckControl.ClearDeck();
-            for (int i = 0; i < gr.MyDeck.Count; i++)
-            {
-                HighlightedDeckControl.SetCard(i, gr.MyDeck[i]);
-            }
-
+            HighlightedDeckControl.SetDeck(gr.MyDeck);
             HighlightedDeckControl.Title = gr.ToString();
             Size bestDeckSize = HighlightedDeckControl.GetBestSize();
             HighlightedDeckControl.SetBounds(0, 0, bestDeckSize.Width, bestDeckSize.Height, BoundsSpecified.Size);

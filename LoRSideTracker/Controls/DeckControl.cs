@@ -31,9 +31,9 @@ namespace LoRSideTracker
             /// <summary>Small scale deck</summary>
             public static readonly DeckScale Small = new DeckScale(19, "Calibri", 11, 10, 140, 19);
             /// <summary>Medium scale deck</summary>
-            public static readonly DeckScale Medium = new DeckScale(27, "Calibri", 13, 11, 180, 25);
+            public static readonly DeckScale Medium = new DeckScale(25, "Calibri", 13, 11, 180, 25);
             /// <summary>Large scale deck</summary>
-            public static readonly DeckScale Large = new DeckScale(35, "Calibri", 16, 14, 220, 31);
+            public static readonly DeckScale Large = new DeckScale(31, "Calibri", 16, 14, 220, 31);
 
             private DeckScale(int titleHeight, string fontName, int titleFontSize, int cardFontSize, int cardWidth, int cardHeight)
             {
@@ -61,10 +61,8 @@ namespace LoRSideTracker
         /// <summary>Window Title</summary>
         public string Title { get; set; }
 
-        private CardArtView CardPopup;
+        private CardArtView CardArtWindow;
         private int HighlightedCard = -1;
-
-        private delegate void SetCardSafeDelegate(int index, CardWithCount cardCode);
 
         /// <summary>
         /// Constructor
@@ -74,45 +72,21 @@ namespace LoRSideTracker
             InitializeComponent();
 
             Cards = new List<CardWithCount>();
-            CardPopup = new CardArtView();
+            CardArtWindow = new CardArtView();
         }
 
         /// <summary>
-        /// Set card
+        /// Set deck
         /// </summary>
-        /// <param name="index">Card index to set</param>
-        /// <param name="card">Card</param>
-        public void SetCard(int index, CardWithCount card)
+        /// <param name="cards">Cards in deck</param>
+        public void SetDeck(List<CardWithCount> cards)
         {
-            if (this.InvokeRequired)
+            List<CardWithCount> cardsCopy = cards.Clone();
+            Utilities.CallActionSafelyAndWait(this, new Action(() => 
             {
-                var d = new SetCardSafeDelegate(SetCardSafe);
-                this.Invoke(d, new object[] { index, card });
-            }
-            else
-            {
-                SetCardSafe(index, card);
-            }
-        }
-
-
-        private void SetCardSafe(int index, CardWithCount card)
-        {
-            if (index == Cards.Count)
-            {
-                Cards.Add((CardWithCount)card.Clone());
-                Invalidate(GetCardRectangle(Cards.Count - 1));
-            }
-            else if (Cards[index].Code != card.Code)
-            {
-                Cards[index] = (CardWithCount)card.Clone();
-                Invalidate(GetCardRectangle(index));
-            }
-            else if (Cards[index].Count != card.Count)
-            {
-                Cards[index].Count = card.Count;
-                Invalidate(GetCardRectangle(index));
-            }
+                Cards = cardsCopy;
+                Invalidate();
+            }));
         }
 
         /// <summary>
@@ -122,21 +96,11 @@ namespace LoRSideTracker
         {
             if (Cards.Count > 0)
             {
-                Cards.Clear();
-                Invalidate();
-            }
-        }
-
-        /// <summary>
-        /// Trim the deck to given size
-        /// </summary>
-        /// <param name="setSize">Size to trim to</param>
-        public void TrimDeck(int setSize)
-        {
-            if (Cards.Count > setSize)
-            {
-                Cards.RemoveRange(setSize, Cards.Count - setSize);
-                Invalidate();
+                Utilities.CallActionSafelyAndWait(this, new Action(() =>
+                {
+                    Cards.Clear();
+                    Invalidate();
+                }));
             }
         }
 
@@ -162,7 +126,10 @@ namespace LoRSideTracker
 
         private void DeckControl_Paint(object sender, PaintEventArgs e)
         {
+            // Fill the background
             e.Graphics.FillRectangle(new SolidBrush(Color.Black), Bounds);
+
+            // Measure and draw the title. Blank title indicates we should not draw it
             int topBorderSize = BorderSize;
             if (!string.IsNullOrEmpty(this.Title))
             {
@@ -177,22 +144,16 @@ namespace LoRSideTracker
                 TextRenderer.DrawText(e.Graphics, this.Title, CustomDeckScale.TitleFont, titleRect, Color.White, TextFormatFlags.VerticalCenter | TextFormatFlags.HorizontalCenter);
             }
 
+            // Draw all the cards
             for (int i = 0; i < Cards.Count; i++)
             {
                 DrawCard(e.Graphics, Cards[i], cardRect, i == HighlightedCard);
                 cardRect.Y += CustomDeckScale.CardSize.Height + SpacingSize;
             }
         }
+
         private void DrawCard(Graphics g, CardWithCount card, Rectangle paintRect, bool isHighlighted)
         {
-            // Draw the 2 pixel border
-            g.FillRectangle(new SolidBrush(Color.Black), paintRect);
-
-            if (card == null)
-            {
-                return;
-            }
-
             Rectangle cardRect = paintRect;
             cardRect.Inflate(-paintRect.Height, 0);
             Rectangle costRect = paintRect;
@@ -201,33 +162,34 @@ namespace LoRSideTracker
             countRect.X = cardRect.X + cardRect.Width;
 
             // Draw the card and a translucent layer to make the tile darker
+            // and text more readable
             card.TheCard.DrawCardArt(g, paintRect);
             g.FillRectangle(new SolidBrush(Color.FromArgb(128, Color.Black)), paintRect);
 
-            // Create font
-            TextRenderer.DrawText(g, card.Cost.ToString(), CustomDeckScale.TitleFont, costRect, Color.LightGray, TextFormatFlags.VerticalCenter | TextFormatFlags.HorizontalCenter);
+            // Draw the cost
+            TextRenderer.DrawText(g, card.Cost.ToString(), CustomDeckScale.TitleFont, costRect, 
+                Color.LightGray, TextFormatFlags.VerticalCenter | TextFormatFlags.HorizontalCenter);
+
+            // Draw the name
             TextRenderer.DrawText(g, card.Name, CustomDeckScale.CardFont, cardRect, 
                 (card.TheCard.SuperType == "Champion") ? Color.Gold : Color.White, 
                 TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis);
-            TextRenderer.DrawText(g, "x" + card.Count.ToString(), CustomDeckScale.TitleFont, countRect, Color.LightGray, TextFormatFlags.VerticalCenter | TextFormatFlags.HorizontalCenter);
 
-            // Highlight
-            Rectangle frameRect = new Rectangle(paintRect.X - 5, paintRect.Y, paintRect.Width + 10, paintRect.Height - 1);
+            // Draw the count
+            TextRenderer.DrawText(g, "x" + card.Count.ToString(), CustomDeckScale.TitleFont, countRect, 
+                Color.LightGray, TextFormatFlags.VerticalCenter | TextFormatFlags.HorizontalCenter);
+
+            // If this card is highlighted, draw a border around it
             if (isHighlighted)
             {
+                Rectangle frameRect = new Rectangle(paintRect.X - 5, paintRect.Y, paintRect.Width + 10, paintRect.Height - 1);
                 g.DrawRectangle(new Pen(Color.DarkGray, 1), frameRect);
             }
-            // Make x0 tile darker
-            //if (card.Count == 0)
-            //{
-            //    g.FillRectangle(new SolidBrush(Color.FromArgb(128, Color.Black)), paintRect);
-            //}
         }
 
         private void DeckControl_MouseLeave(object sender, EventArgs e)
         {
             HighlightCard(-1);
-            //if (ShouldHideOnMouseLeave()) Hide();
         }
 
         /// <summary>
@@ -249,23 +211,28 @@ namespace LoRSideTracker
             }
             if (HighlightedCard >= 0)
             {
-                CardPopup.SetCard(Cards[index].TheCard);
+                CardArtWindow.SetCard(Cards[index].TheCard);
                 Point topLeft = PointToScreen(new Point(0, 0));
                 Rectangle cardRect = GetCardRectangle(index);
-                CardPopup.SetBounds(topLeft.X + cardRect.X + cardRect.Width, topLeft.Y + cardRect.Y,
+                CardArtWindow.SetBounds(topLeft.X + cardRect.X + cardRect.Width, topLeft.Y + cardRect.Y,
                     Cards[index].TheCard.CardArt.Width, Cards[index].TheCard.CardArt.Height);
                 Invalidate(GetCardRectangle(HighlightedCard));
-                if (!CardPopup.Visible)
+                if (!CardArtWindow.Visible)
                 {
-                    Utilities.ShowInactiveTopmost(CardPopup);
+                    Utilities.ShowInactiveTopmost(CardArtWindow);
                 }
             }
             else
             {
-                CardPopup.Hide();
+                CardArtWindow.Hide();
             }
         }
 
+        /// <summary>
+        /// Calculate bounds rectangle for given card index
+        /// </summary>
+        /// <param name="index"></param>
+        /// <returns></returns>
         private Rectangle GetCardRectangle(int index)
         {
             int topBorderSize = BorderSize;
@@ -279,6 +246,7 @@ namespace LoRSideTracker
 
         private void DeckControl_MouseMove(object sender, MouseEventArgs e)
         {
+            // Determine which card the mouse is hovering over, and change the highlighted card if necessary
             int topBorderSize = BorderSize;
             if (!string.IsNullOrEmpty(this.Title))
             {
@@ -291,6 +259,7 @@ namespace LoRSideTracker
             }
             else
             {
+                // Mouse is not over any card
                 HighlightCard(-1);
             }
         }

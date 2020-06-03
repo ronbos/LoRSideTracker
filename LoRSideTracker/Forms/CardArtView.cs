@@ -30,8 +30,11 @@ namespace LoRSideTracker
         /// <param name="card">Card to display</param>
         public void SetCard(Card card)
         {
-            MyCard = card;
-            this.SelectBitmap(new Bitmap(MyCard.CardArt));
+            Utilities.CallActionSafelyAndWait(this, new Action(() =>
+            {
+                MyCard = card;
+                this.SelectBitmap(new Bitmap(MyCard.CardArt));
+            }));
         }
 
         private void CardArtView_Paint(object sender, PaintEventArgs e)

@@ -137,13 +137,17 @@ namespace LoRSideTracker
         /// <returns></returns>
         public int GetBestHeight(int width)
         {
+            // How many columns can we fit? We cap it at 10 (to show costs 0 ... 9+)
             int numCols = (int)((width + ColumnMargin) / (BlockWidth + ColumnMargin));
             numCols = Math.Min(numCols, 10);
 
+            // Can we fit anything?
             if (numCols < 1 || TheDeck == null)
             {
                 return 0;
             }
+
+            // Count how many cards for each cost column
             int[] counts = new int[numCols];
             foreach (var card in TheDeck)
             {
@@ -151,16 +155,8 @@ namespace LoRSideTracker
                 counts[index] += card.Count;
             }
 
-            int maxCount = 0;
-            for (int i = 0; i < counts.Length; i++)
-            {
-                maxCount = Math.Max(maxCount, counts[i]);
-            }
-
-            if (maxCount == 0)
-            {
-                return 0;
-            }
+            // Height is calculated from tallest column that needs to be drawn
+            int maxCount = counts.Max();
             maxCount = Math.Max(maxCount, 4);
             return maxCount * (BlockHeight + 1) + 2 * ColumnMargin - 1;
         }

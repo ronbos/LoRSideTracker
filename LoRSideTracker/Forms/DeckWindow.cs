@@ -18,7 +18,6 @@ namespace LoRSideTracker
         private List<CardWithCount> AllCards = new List<CardWithCount>();
         private List<CardWithCount> DrawnCards = new List<CardWithCount>();
         private List<CardWithCount> TossedCards = new List<CardWithCount>();
-        private List<CardWithCount> RemainingCards = new List<CardWithCount>();
 
         /// <summary>Are cards with zero count shown?</summary>
         public bool HideZeroCountCards { get; set; } = false;
@@ -95,19 +94,15 @@ namespace LoRSideTracker
         /// <summary>
         /// Reevaluate current deck -- useful when flipping zero count visibility
         /// </summary>
-        public void RefreshDeck()
+        public void UpdateDeck()
         {
-            if (this.InvokeRequired)
-            {
-                Invoke(new Action(() => { RefreshDeckSafe(); }));
-            }
-            else
-            {
-                RefreshDeckSafe();
-            }
+            Utilities.CallActionSafelyAndWait(this, new Action(() => { UpdateDeckSafe(); }));
         }
 
-        private void UpdateDeck()
+        /// <summary>
+        /// Safely update full deck and drawn cards contents, and redraw the set of displayed cards
+        /// </summary>
+        private void UpdateDeckSafe()
         {
             List<CardWithCount> remainingCards = Utilities.Clone(AllCards);
             foreach (var card in DrawnCards)
@@ -127,32 +122,18 @@ namespace LoRSideTracker
                 }
             }
 
-            RemainingCards = Utilities.Clone(remainingCards);
-
-            RefreshDeck();
-        }
-
-        /// <summary>
-        /// Safely update full deck and drawn cards contents, and redraw the set of displayed cards
-        /// </summary>
-        private void RefreshDeckSafe()
-        {
             if (AllCards.Count == 0)
             {
                 MyDeckControl.IsMinimized = false;
             }
 
-            MyDeckControl.ClearDeck();
-            int nextCard = 0;
-            for (int i = 0; i < RemainingCards.Count; i++)
+            if (HideZeroCountCards)
             {
-                if (!HideZeroCountCards || RemainingCards[i].Count > 0)
-                {
-                    MyDeckControl.SetCard(nextCard, RemainingCards[i]);
-                    nextCard++;
-                }
+                remainingCards = remainingCards.FindAll(x => x.Count > 0).ToList();
             }
-            MyDeckStatsDisplay.TheDeck = RemainingCards;
+
+            MyDeckControl.SetDeck(remainingCards);
+            MyDeckStatsDisplay.TheDeck = remainingCards;
             MyDeckStatsDisplay.Invalidate();
             FixMySize();
         }
