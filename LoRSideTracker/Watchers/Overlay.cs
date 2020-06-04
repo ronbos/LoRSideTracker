@@ -98,7 +98,7 @@ namespace LoRSideTracker
             float left = (float)(BoundingBox.X - screenWidth / 2) / (float)screenHeightForNormalized;
             float right = (float)(BoundingBox.Right - screenWidth / 2) / (float)screenHeightForNormalized;
             float top = (float)(BoundingBox.Y - (screenHeight - screenHeightForNormalized) / 2) / (float)screenHeightForNormalized;
-            float bottom = (float)(BoundingBox.Bottom) / (float)screenHeightForNormalized;
+            float bottom = (float)(BoundingBox.Bottom - (screenHeight - screenHeightForNormalized) / 2) / (float)screenHeightForNormalized;
             NormalizedBoundingBox = new RectangleF(left, top, right - left, bottom - top);
             NormalizedCenter = new PointF((left + right) / 2, (top + bottom) / 2);
         }
@@ -328,7 +328,7 @@ namespace LoRSideTracker
             StageZone = new OverlayZone();
             ZoomZone = new OverlayZone();
             TossingZone = new OverlayZone();
-            CastZone = new OverlayZone();
+            CastZone = new OverlayZone(2);
         }
 
         public void Reset()
@@ -380,15 +380,15 @@ namespace LoRSideTracker
                 {
                     newStage.Add(element.CardCode);
                 }
-                else if (element.NormalizedCenter.Y > 0.225f && element.NormalizedBoundingBox.Bottom > 1.0f)
+                else if (element.NormalizedBoundingBox.Height > 0.20f && element.NormalizedBoundingBox.Bottom > 1.0f)
                 {
                     newHand.Add(element.CardCode);
                 }
-                else if (element.NormalizedBoundingBox.Height < 0.115f)
+                else if (element.NormalizedBoundingBox.Height < 0.125f)
                 {
                     newCast.Add(element.CardCode);
                 }
-                else if (element.NormalizedBoundingBox.Height < 0.17f)
+                else if (element.NormalizedBoundingBox.Height < 0.18f)
                 {
                     newField.Add(element.CardCode);
                 }
@@ -414,6 +414,7 @@ namespace LoRSideTracker
 
             ZoomZone.AcceptFromAnywhere(LogType.Debug, "[XZ] Drawing: {0}");
             var movedFromZoomToHand = ZoomZone.ReleaseTo(HandZone, MyLogType, "[ZH] Drawn: {0}");
+            var movedFromCastToHand = CastZone.ReleaseTo(HandZone, MyLogType, "[CH] UNEXPECTED: {0}", "[CH] Spell cancelled: {0}");
             List<string> movedFromStageToHand = null;
             if (IsInitialDraw)
             {
@@ -426,10 +427,10 @@ namespace LoRSideTracker
 
             var movedToHand = HandZone.AcceptFromAnywhere(MyLogType, "[XH] Added to Hand: {0}");
 
-            var movedFromStageToCast = CastZone.AcceptFrom(StageZone, LogType.Debug, "[SC] Played???: {0}", "[SC] Cast: {0}");
-            var movedFromHandToCast = CastZone.AcceptFrom(HandZone, LogType.Debug, "[HC] Played???: {0}", "[HC] Cast: {0}");
+            var movedFromStageToCast = CastZone.AcceptFrom(StageZone, MyLogType, "[SC] UNEXPECTED: {0}", "[SC] Casting: {0}");
+            var movedFromHandToCast = CastZone.AcceptFrom(HandZone, MyLogType, "[HC] UNEXPECTED: {0}", "[HC] Casting: {0}");
 
-            var movedFromCastToField = FieldZone.AcceptFrom(CastZone, MyLogType, "[CF] Played???: {0}", "[CF] Cast???: {0}");
+            var movedFromCastToField = FieldZone.AcceptFrom(CastZone, MyLogType, "[CF] UNEXPECTED: {0}", "[CF] UNEXPECTED: {0}");
             var movedFromHandToField = FieldZone.AcceptFrom(HandZone, MyLogType, "[HF] Played: {0}", "[HF] Cast: {0}");
             var movedFromStageToField = FieldZone.AcceptFrom(StageZone, MyLogType, "[SF] Played: {0}", "[SF] Cast: {0}");
             var movedFromTossingToField = FieldZone.AcceptFrom(TossingZone, MyLogType, "[TF] Summoned: {0}");
@@ -451,12 +452,16 @@ namespace LoRSideTracker
             // This breaks logic for cards that are discarded, but that's preferable to other problems
             HandZone.CancelOutgoing();
 
-            var movedToCast = CastZone.AcceptFromAnywhere(LogType.Debug, "[XC] Played???: {0}", "[XC] Cast: {0}");
-            var removedFromCast = CastZone.ReleaseToAnywhere(LogType.Debug, "[CX] Played???: {0}", "[CX] Resolved: {0}");
+            var movedToCast = CastZone.AcceptFromAnywhere(LogType.Debug, "[XC] UNEXPECTED: {0}", "[XC] Casting: {0}");
+            var removedFromCast = CastZone.ReleaseToAnywhere(LogType.Debug, "[CX] UNEXPECTED: {0}", "[CX] Resolved: {0}");
 
             if (cardsDrawn != null)
             {
                 cardsDrawn.AddRange(movedFromZoomToHand);
+
+                // Cancelled spells
+                cardsDrawn.AddRange(movedFromCastToHand);
+
                 if (IsInitialDraw)
                 {
                     cardsDrawn.AddRange(movedFromStageToHand);
