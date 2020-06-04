@@ -14,18 +14,6 @@ namespace LoRSideTracker
     /// </summary>
     public class GameRecord : ICloneable
     {
-        private static readonly Dictionary<string, string> AIDeckNames = new Dictionary<string, string>()
-        {
-            { "decks_badstuns_name", "Flash of Steel (AI)" },
-            { "decks_easybraum_name", "Stay Warm (AI)" },
-            { "decks_easyteemo_name", "Scout's Honor (AI)" },
-            { "deckname_kinkou_keepers", "Stealthy Strikes (AI)" },
-            { "decks_mediumelise_name", "Spider Swarm (AI)" },
-            { "decks_mediumdraven_name", "The Main Event (AI)" },
-            { "decks_mediumzed_name", "Shadow and Blades (AI)" },
-            { "front_five_game_one", "Poro Trouble (AI)" }
-        };
-
         /// <summary>Player Deck Name</summary>
         public string MyDeckName { get; set; }
         /// <summary>Player Deck Code</summary>
@@ -115,7 +103,6 @@ namespace LoRSideTracker
 
             result.MyDeck = Utilities.LoadDeckFromStringCodeList(gameRecord["MyDeck"].ToObject<string[]>());
             result.OpponentName = gameRecord["OpponentName"].ToString();
-            try { result.OpponentName = AIDeckNames[result.OpponentName]; } catch { }
             result.OpponentDeck = Utilities.LoadDeckFromStringCodeList(gameRecord["OpponentDeck"].ToObject<string[]>());
             result.Result = gameRecord["Result"].ToString();
             result.Notes = gameRecord["Notes"].ToString();

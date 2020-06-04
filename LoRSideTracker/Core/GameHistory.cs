@@ -13,6 +13,18 @@ namespace LoRSideTracker
     /// </summary>
     public static class GameHistory
     {
+        private static readonly Dictionary<string, string> AIDeckNames = new Dictionary<string, string>()
+        {
+            { "decks_badstuns_name", "Flash of Steel (AI)" },
+            { "decks_easybraum_name", "Stay Warm (AI)" },
+            { "decks_easyteemo_name", "Scout's Honor (AI)" },
+            { "deckname_kinkou_keepers", "Stealthy Strikes (AI)" },
+            { "decks_mediumelise_name", "Spider Swarm (AI)" },
+            { "decks_mediumdraven_name", "The Main Event (AI)" },
+            { "decks_mediumzed_name", "Shadow and Blades (AI)" },
+            { "front_five_game_one", "Poro Trouble (AI)" }
+        };
+
         /// <summary></summary>
         public static List<GameRecord> Games { get; private set; }
 
@@ -76,6 +88,7 @@ namespace LoRSideTracker
         /// <param name="gr">Game record to add</param>
         public static void AddGameRecord(GameRecord gr)
         {
+            try { gr.OpponentName = AIDeckNames[gr.OpponentName]; } catch { }
             Games.Insert(0, (GameRecord)gr.Clone());
         }
 
