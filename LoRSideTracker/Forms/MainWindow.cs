@@ -370,7 +370,7 @@ namespace LoRSideTracker
             Log.SetLogWindow(ActiveLogWindow);
 
             // Special debigging window is shown if D key is held during load
-            if (Keyboard.IsKeyDown(Key.D))
+            if (Keyboard.IsKeyDown(Key.LeftCtrl))
             {
                 OverlayWindow = new OverlayWatchWindow();
                 OverlayWindow.Show();
@@ -455,7 +455,7 @@ namespace LoRSideTracker
             {
                 HighlightedGameLogControl.Clear();
                 HighlightedDeckControl.ClearDeck();
-                HighlightedDeckStatsDisplay.Visible = false;
+                HighlightedDeckPanel.Visible = false;
                 return;
             }
 
@@ -464,15 +464,17 @@ namespace LoRSideTracker
             HighlightedDeckControl.SetDeck(gr.MyDeck);
             HighlightedDeckControl.Title = gr.ToString();
             HighlightedDeckStatsDisplay.TheDeck = gr.MyDeck;
-            HighlightedDeckPanel.Visible = true;
 
             // Fix the size
             Size bestDeckSize = HighlightedDeckControl.GetBestSize();
             HighlightedDeckControl.SetBounds(0, 0, bestDeckSize.Width, bestDeckSize.Height, BoundsSpecified.Size);
-            HighlightedGameLogControl.Invalidate();
-            HighlightedDeckStatsDisplay.Invalidate();
             int deckStatsHeight = HighlightedDeckStatsDisplay.GetBestHeight(bestDeckSize.Width);
             HighlightedDeckStatsDisplay.SetBounds(HighlightedDeckControl.Left, HighlightedDeckControl.Top + bestDeckSize.Height, bestDeckSize.Width, deckStatsHeight, BoundsSpecified.All);
+
+            HighlightedGameLogControl.Invalidate();
+            HighlightedDeckControl.Invalidate();
+            HighlightedDeckStatsDisplay.Invalidate();
+            HighlightedDeckPanel.Visible = true;
         }
 
 
@@ -696,11 +698,6 @@ namespace LoRSideTracker
             snapping = SnapWindow(OpponentPlayedCardsWindow, snapping, margin, ref location);
         }
 
-
-        private void logToolStripMenuItem_VisibleChanged(object sender, EventArgs e)
-        {
-            logToolStripMenuItem.Checked = (ActiveLogWindow != null) && ActiveLogWindow.Visible;
-        }
 
         private void fileToolStripMenuItem_DropDownOpened(object sender, EventArgs e)
         {

@@ -23,8 +23,9 @@ namespace LoRSideTracker
             public Color TextColor;
             public TextFormatFlags TextFormat;
             public bool AcceptMouseOverEvents;
+            public bool AcceptMouseClickEvents;
 
-            public GameHistoryColumn(string title, int width, string propertyName, Color textColor, TextFormatFlags textFormat, bool acceptMouseOverEvents = false)
+            public GameHistoryColumn(string title, int width, string propertyName, Color textColor, TextFormatFlags textFormat, bool acceptMouseOverEvents = false, bool acceptMouseClickEvents = false)
             {
                 Title = title;
                 Width = width;
@@ -32,6 +33,7 @@ namespace LoRSideTracker
                 TextColor = textColor;
                 TextFormat = textFormat;
                 AcceptMouseOverEvents = acceptMouseOverEvents;
+                AcceptMouseClickEvents = acceptMouseClickEvents;
             }
         }
 
@@ -45,7 +47,7 @@ namespace LoRSideTracker
             new GameHistoryColumn("Game End Time", 150, "Timestamp", Color.Black, TextFormatFlags.VerticalCenter | TextFormatFlags.Left),
             new GameHistoryColumn("My Deck", 150, "MyDeckName", Color.Black, TextFormatFlags.VerticalCenter | TextFormatFlags.Left, true),
             new GameHistoryColumn("Opponent", 150, "OpponentName", Color.Black, TextFormatFlags.VerticalCenter | TextFormatFlags.Left, true),
-            new GameHistoryColumn("Result", 80, "Result", Color.Black, TextFormatFlags.VerticalCenter | TextFormatFlags.HorizontalCenter),
+            new GameHistoryColumn("Result", 80, "Result", Color.Black, TextFormatFlags.VerticalCenter | TextFormatFlags.HorizontalCenter, false, true),
         };
 
         private readonly int CellMargin = 2;
@@ -103,6 +105,15 @@ namespace LoRSideTracker
             Games = new List<GameRecord>();
 
             InitializeComponent();
+        }
+
+        private void GameLogControl_Load(object sender, EventArgs e)
+        {
+            PopupDeckWindow = new DeckWindow();
+            PopupDeckWindow.ShouldHideOnMouseLeave = true;
+            PopupDeckWindow.StartPosition = FormStartPosition.Manual;
+            GameLogDisplay.Width = BestWidth;
+            GameLogDisplay.Height = BestHeight;
         }
 
         /// <summary>
@@ -179,19 +190,16 @@ namespace LoRSideTracker
             if (shouldInvalidate) Invalidate();
         }
 
-        private void GameLogControl_Load(object sender, EventArgs e)
-        {
-            PopupDeckWindow = new DeckWindow();
-            PopupDeckWindow.ShouldHideOnMouseLeave = true;
-            PopupDeckWindow.StartPosition = FormStartPosition.Manual;
-            GameLogDisplay.Width = BestWidth;
-            GameLogDisplay.Height = BestHeight;
-        }
+        /// <summary>
+        /// Make sure child controls get invalidated
+        /// </summary>
+        /// <param name="e"></param>
         protected override void OnInvalidated(InvalidateEventArgs e)
         {
             base.OnInvalidated(e);
             GameLogDisplay.Invalidate(e.InvalidRect);
         }
+
         private void GameLogDisplay_Paint(object sender, PaintEventArgs e)
         {
             int top = CellMargin;
@@ -238,30 +246,24 @@ namespace LoRSideTracker
             rect.Offset(0, (column + 1) * (CellHeight + CellMargin));
             return rect;
         }
-
-
-        private void GameLogDisplay_MouseMove(object sender, MouseEventArgs e)
+        private Point FindCell(int mouseX, int mouseY)
         {
             // Find the column
             int column = -1, row = -1;
             for (int i = 0; i < CellRectangles.Length; i++)
             {
-                if (e.X >= CellRectangles[i].Left && e.X <= CellRectangles[i].Right)
+                if (mouseX >= CellRectangles[i].Left && mouseX <= CellRectangles[i].Right)
                 {
                     column = i;
                     break;
                 }
             }
-            if (column >= 0 && !Columns[column].AcceptMouseOverEvents)
-            {
-                column = -1;
-            }
 
             if (column != -1)
             {
                 // Find the row
-                row = (e.Y - CellMargin) / (CellHeight + CellMargin);
-                if (row > Games.Count || e.Y - (CellMargin + row * (CellHeight + CellMargin)) >= CellHeight)
+                row = (mouseY - CellMargin) / (CellHeight + CellMargin);
+                if (row > Games.Count || mouseY - (CellMargin + row * (CellHeight + CellMargin)) >= CellHeight)
                 {
                     // In the margin
                     row = -1;
@@ -272,19 +274,30 @@ namespace LoRSideTracker
                 }
                 if (row == -1) column = -1;
 
-                if (row != -1 && !GameTextRectangles[row + 1][column].Contains(e.X, e.Y))
+                if (row != -1 && !GameTextRectangles[row + 1][column].Contains(mouseX, mouseY))
                 {
                     row = -1;
                     column = -1;
                 }
             }
 
-            HighlightCell(row, column);
+            return new Point(column, row);
         }
 
-        private void HighlightCell(int row, int column)
+        private void GameLogDisplay_MouseMove(object sender, MouseEventArgs e)
         {
-            if (HighlightedCell.X != column || HighlightedCell.Y != row)
+            Point cellIndex = FindCell(e.X, e.Y);
+            if (cellIndex.X >= 0 && !Columns[cellIndex.X].AcceptMouseOverEvents)
+            {
+                cellIndex.X = -1;
+                cellIndex.Y = -1;
+            }
+            HighlightCell(cellIndex);
+        }
+
+        private void HighlightCell(Point cellIndex)
+        {
+            if (HighlightedCell != cellIndex)
             {
                 if (PopupDeckWindow.Visible && !PopupDeckWindow.DesktopBounds.Contains(PointToScreen(MousePosition)))
                 {
@@ -294,20 +307,19 @@ namespace LoRSideTracker
                 {
                     Invalidate(GetCellRectangle(HighlightedCell.X, HighlightedCell.Y));
                 }
-                HighlightedCell.X = column;
-                HighlightedCell.Y = row;
+                HighlightedCell = cellIndex;
                 if (HighlightedCell.X != -1)
                 {
                     Rectangle cellRectangle = GameTextRectangles[HighlightedCell.Y + 1][HighlightedCell.X];
                     Invalidate(cellRectangle);
 
-                    if (Columns[column].Title == "My Deck" || Columns[column].Title == "Opponent")
+                    if (Columns[HighlightedCell.X].Title == "My Deck" || Columns[HighlightedCell.X].Title == "Opponent")
                     {
-                        List<CardWithCount> deck = (Columns[column].Title == "Opponent") ? Games[row].OpponentDeck : Games[row].MyDeck;
+                        List<CardWithCount> deck = (Columns[HighlightedCell.X].Title == "Opponent") ? Games[HighlightedCell.Y].OpponentDeck : Games[HighlightedCell.Y].MyDeck;
 
                         if (deck.Count > 0)
                         {
-                            PopupDeckWindow.SetFullDeck(Games[row].MyDeck);
+                            PopupDeckWindow.SetFullDeck(deck);
                             Point pos = PointToScreen(new Point(cellRectangle.Right, cellRectangle.Top));
                             PopupDeckWindow.SetBounds(pos.X, pos.Y, 0, 0);
                             Utilities.ShowInactiveTopmost(PopupDeckWindow);
@@ -324,6 +336,24 @@ namespace LoRSideTracker
             {
                 PopupDeckWindow.Hide();
             }
+        }
+
+        private void GameLogDisplay_Click(object sender, EventArgs _e)
+        {
+            MouseEventArgs e = (MouseEventArgs)_e;
+            Point cellIndex = FindCell(e.X, e.Y);
+            
+            if (cellIndex.X >= 0 && Columns[cellIndex.X].Title == "Result")
+            {
+                LogWindow logWindow = new LogWindow();
+                Utilities.CallActionSafelyAndWait(logWindow, new Action(() =>
+                {
+                logWindow.CreateControl();
+                }));
+                    logWindow.SetRtf(Games[cellIndex.Y].Log);
+                logWindow.ShowDialog();
+            }
+
         }
     }
 }

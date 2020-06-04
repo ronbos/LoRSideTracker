@@ -124,9 +124,6 @@
     </Compile>
     <Compile Include="Core\GameHistory.cs" />
     <Compile Include="Core\SetDownloader.cs" />
-    <Compile Include="Controls\NoFocusCueButton.cs">
-      <SubType>Component</SubType>
-    </Compile>
     <Compile Include="Forms\OverlayWatchWindow.cs">
       <SubType>Form</SubType>
     </Compile>

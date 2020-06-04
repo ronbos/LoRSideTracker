@@ -143,82 +143,41 @@ namespace LoRSideTracker
             IncomingSet.Clear();
         }
 
-        private void RemoveCyclical(List<string> incomingSet, List<string> outgoingSet)
+        public void SetNextState(List<string> nextSet, LogType logType = LogType.Debug, string logFormatUnit = null, string logFormatSpell = null)
         {
-            bool done = false;
-            while (!done)
+            // Incoming set is all the cards that are in next set but not in current set
+            IncomingSet = GetDifference(nextSet, CurrentSet);
+
+            // Some cards in the incoming set may be in one of the outgoing sets,
+            // either due to a glitch or due to a transformation
+            for (int i = IncomingSet.Count - 1; i >= 0; i--)
             {
-                done = true;
-                for (int i = 0; i < incomingSet.Count && done; i++)
+                Card cardA = CardLibrary.GetCard(IncomingSet[i]);
+                List<string> cardAndAssociated = new List<string>();
+                cardAndAssociated.Add(cardA.Code);
+                cardAndAssociated.AddRange(cardA.AssociatedCardCodes);
+                for (int j = OutgoingSets.Length - 1; j >= 0; j--)
                 {
-                    Card cardA = CardLibrary.GetCard(incomingSet[i]);
-                    for (int j = 0; j < outgoingSet.Count && done; j++)
+                    int index = OutgoingSets[j].FindIndex(x => cardAndAssociated.Contains(x));
+                    if (index >= 0)
                     {
-                        if (incomingSet[i] == outgoingSet[j])
-                        {
-                            done = false;
-                        }
-
-                        // Check for transformed cards
-                        for (int k = 0; k < cardA.AssociatedCardCodes.Length && done; k++)
-                        {
-                            if (cardA.AssociatedCardCodes[k] == outgoingSet[j])
-                            {
-                                done = false;
-                            }
-                        }
-
-                        if (!done)
-                        {
-                            Log.WriteLine(LogType.Debug, "TRANSFORMED: {0} -> {1}", cardA.Name, CardLibrary.GetCard(outgoingSet[j]));
-                            incomingSet.RemoveAt(i);
-                            outgoingSet.RemoveAt(j);
-                        }
+                        CurrentSet.Add(IncomingSet[i]);
+                        OutgoingSets[j].RemoveAt(index);
+                        IncomingSet.RemoveAt(i);
+                        break;
                     }
                 }
             }
-        }
 
-        public void SetNextState(List<string> nextSet, LogType logType = LogType.Debug, string logFormatUnit = null, string logFormatSpell = null)
-        {
-            // Aggregate existing outgoing sets
-            List<string> outgoingSet = new List<string>();
-            for (int i = 0; i < OutgoingSets.Length; i++)
-            {
-                outgoingSet.AddRange(OutgoingSets[i]);
-            }
-
-            // Cancel looped transactions
-            IncomingSet = GetDifference(nextSet, GetDifference(CurrentSet, outgoingSet));
-            outgoingSet = GetDifference(GetDifference(CurrentSet, outgoingSet), nextSet);
-
-            RemoveCyclical(IncomingSet, outgoingSet);
-
-            // If incoming has any elements that are queued for outgoing, cancel them out
-            for (int i = OutgoingSets.Length - 1; i >= 0 && IncomingSet.Count > 0; i--)
-            {
-                // We toss the intersection
-                ExtractIntersection(OutgoingSets[i], IncomingSet);
-            }
-
-            // Remove existing outgoing elements from outgoing set
-            for (int i = 0; i < OutgoingSets.Length; i++)
-            {
-                outgoingSet = GetDifference(outgoingSet, OutgoingSets[i]);
-            }
-
-            // Remove expiring outgoing set
-            List<string> removed = ExtractIntersection(CurrentSet, OutgoingSets[OutgoingSets.Length - 1]);
-
-            // Shift outgoing sets out by 1, and compute current set without outgoing sets
-            List<string> currentWithoutOutgoing = CurrentSet.Clone();
+            // Roll all the outgoing set out by 1, and finalize tossing of the oldset set
+            List<string> removed = OutgoingSets[OutgoingSets.Length - 1];
             for (int i = OutgoingSets.Length - 1; i > 0; i--)
             {
+                // We toss the intersection
                 OutgoingSets[i] = OutgoingSets[i - 1];
             }
-
-            // Remove next set from remaining outgoing set to
-            OutgoingSets[0] = outgoingSet;
+            OutgoingSets[0] = GetDifference(CurrentSet, nextSet);
+            CurrentSet = GetDifference(CurrentSet, OutgoingSets[0]);
 
             LogResult(removed, logType, logFormatUnit, logFormatSpell);
         }
@@ -245,7 +204,11 @@ namespace LoRSideTracker
 
         public void CancelOutgoing()
         {
-            foreach (var set in OutgoingSets) { set.Clear(); }
+            for (int i = 0; i < OutgoingSets.Length; i++) 
+            {
+                CurrentSet.AddRange(OutgoingSets[i]);
+                OutgoingSets[i].Clear();
+            }
         }
 
         public void CancelIncoming()
@@ -361,7 +324,7 @@ namespace LoRSideTracker
 
             // When dragging a unit, it may momentarily disappear from overlay
             // To account for this, we add a single frame of delay to Field zone
-            FieldZone = new OverlayZone(2);// logType == LogType.Player ? 3 : 0);
+            FieldZone = new OverlayZone(3);
             StageZone = new OverlayZone();
             ZoomZone = new OverlayZone();
             TossingZone = new OverlayZone();
@@ -494,9 +457,9 @@ namespace LoRSideTracker
             if (cardsDrawn != null)
             {
                 cardsDrawn.AddRange(movedFromZoomToHand);
-                cardsDrawn.AddRange(movedFromStageToHand);
                 if (IsInitialDraw)
                 {
+                    cardsDrawn.AddRange(movedFromStageToHand);
                     // Initial draw may occur when we are in the middle of the game.
                     // Therefore we one-time accept all card coming to hand
                     cardsDrawn.AddRange(movedToHand);

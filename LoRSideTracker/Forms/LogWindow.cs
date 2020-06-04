@@ -73,25 +73,66 @@ namespace LoRSideTracker
 
         private void LogWindow_Load(object sender, EventArgs e)
         {
-            LogTextBox = CreateRichTextBox();
-            DebugLogTextBox = CreateRichTextBox();
-            DebugLogsCheckBox.Checked = Properties.Settings.Default.MainWindowShowDebugLog;
-            if (Properties.Settings.Default.MainWindowShowDebugLog)
+            if (LogTextBox == null)
             {
-                DebugLogTextBox.Show();
-                LogTextBox.Hide();
+                LogTextBox = CreateRichTextBox();
+                DebugLogTextBox = CreateRichTextBox();
+                DebugLogsCheckBox.Checked = Properties.Settings.Default.MainWindowShowDebugLog;
+                if (Properties.Settings.Default.MainWindowShowDebugLog)
+                {
+                    DebugLogTextBox.Show();
+                    LogTextBox.Hide();
+                }
+                else
+                {
+                    DebugLogTextBox.Hide();
+                    LogTextBox.Show();
+                }
             }
-            else
+        }
+
+        /// <summary>
+        /// Populate the contents of logs with a copy of RTF-formatted text
+        /// </summary>
+        /// <param name="rtfText">RTF text to use</param>
+        public void SetRtf(string rtfText)
+        {
+            if (LogTextBox == null)
             {
-                DebugLogTextBox.Hide();
-                LogTextBox.Show();
+                LogWindow_Load(this, null);
             }
+            DebugLogTextBox.Rtf = rtfText;
+
+            // Remove all "\cf2" blocks
+            int nextCf = rtfText.IndexOf(@"\cf");
+            int nextCf2 = rtfText.IndexOf(@"\cf2");
+            while (nextCf2 >= 0 && nextCf >= 0)
+            {
+                if (nextCf <= nextCf2)
+                {
+                    nextCf = rtfText.IndexOf(@"\cf", nextCf + 1);
+                }
+                else
+                {
+                    // Ready to erase
+                    rtfText = rtfText.Remove(nextCf2, nextCf - nextCf2);
+                    nextCf = nextCf2;
+                    nextCf2 = rtfText.IndexOf(@"\cf2", nextCf2);
+                }
+            }
+
+            if (nextCf2 >= 0)
+            {
+                rtfText = rtfText.Remove(nextCf2);
+            }
+            rtfText = System.Text.RegularExpressions.Regex.Replace(rtfText, @"\\cf2.*\\cf[^2]", @"XXX");
+            LogTextBox.Rtf = rtfText;
         }
 
         private void DebugLogsCheckBox_CheckedChanged(object sender, EventArgs e)
         {
             Properties.Settings.Default.MainWindowShowDebugLog = DebugLogsCheckBox.Checked;
-            if (Properties.Settings.Default.MainWindowShowDebugLog)
+            if (DebugLogsCheckBox.Checked)
             {
                 DebugLogTextBox.Show();
                 LogTextBox.Hide();
