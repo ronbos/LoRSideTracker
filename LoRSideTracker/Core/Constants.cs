@@ -104,7 +104,7 @@ namespace LoRSideTracker
         /// <returns>Local set zip path</returns>
         public static string GetSetZipPath(int setNumber)
         {
-            return GetSetPath(setNumber) + @".zip";
+            return String.Format("{0}\\{1}.zip", GetLocalSetsPath(), GetSetName(setNumber));
         }
 
         /// <summary>
