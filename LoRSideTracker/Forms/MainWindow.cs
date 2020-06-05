@@ -386,6 +386,7 @@ namespace LoRSideTracker
             MyProgressDisplay.Visible = false;
             DecksListCtrl.Visible = true;
             HighlightedGameLogControl.Visible = true;
+            TheMenuBar.Visible = true;
 
             // Load all games. We do this in reverse as AddDeckToList expects them
             // in chronological order

@@ -30,7 +30,9 @@
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainWindow));
             this.HighlightedDeckPanel = new System.Windows.Forms.Panel();
-            this.MyMenuStrip = new System.Windows.Forms.MenuStrip();
+            this.HighlightedDeckStatsDisplay = new LoRSideTracker.DeckStatsDisplay();
+            this.HighlightedDeckControl = new LoRSideTracker.DeckControl();
+            this.TheMenuBar = new System.Windows.Forms.MenuStrip();
             this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.optionsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.logToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -59,10 +61,8 @@
             this.DecksListCtrl = new LoRSideTracker.Controls.DecksListControl();
             this.HighlightedGameLogControl = new LoRSideTracker.GameLogControl();
             this.MyProgressDisplay = new LoRSideTracker.ProgressDisplayControl();
-            this.HighlightedDeckStatsDisplay = new LoRSideTracker.DeckStatsDisplay();
-            this.HighlightedDeckControl = new LoRSideTracker.DeckControl();
             this.HighlightedDeckPanel.SuspendLayout();
-            this.MyMenuStrip.SuspendLayout();
+            this.TheMenuBar.SuspendLayout();
             this.SuspendLayout();
             // 
             // HighlightedDeckPanel
@@ -81,16 +81,43 @@
             this.HighlightedDeckPanel.Visible = false;
             this.HighlightedDeckPanel.SizeChanged += new System.EventHandler(this.HighlightedDeckPanel_SizeChanged);
             // 
-            // MyMenuStrip
+            // HighlightedDeckStatsDisplay
             // 
-            this.MyMenuStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.HighlightedDeckStatsDisplay.BlockHeight = 4;
+            this.HighlightedDeckStatsDisplay.BlockWidth = 7;
+            this.HighlightedDeckStatsDisplay.Location = new System.Drawing.Point(0, 156);
+            this.HighlightedDeckStatsDisplay.Name = "HighlightedDeckStatsDisplay";
+            this.HighlightedDeckStatsDisplay.Size = new System.Drawing.Size(140, 65);
+            this.HighlightedDeckStatsDisplay.SpellColor = System.Drawing.Color.MediumSeaGreen;
+            this.HighlightedDeckStatsDisplay.TabIndex = 4;
+            this.HighlightedDeckStatsDisplay.TabStop = false;
+            this.HighlightedDeckStatsDisplay.TextColor = System.Drawing.Color.White;
+            this.HighlightedDeckStatsDisplay.TheDeck = null;
+            this.HighlightedDeckStatsDisplay.UnitColor = System.Drawing.Color.RoyalBlue;
+            // 
+            // HighlightedDeckControl
+            // 
+            this.HighlightedDeckControl.BackColor = System.Drawing.Color.Black;
+            this.HighlightedDeckControl.BorderSize = 1;
+            this.HighlightedDeckControl.IsMinimized = false;
+            this.HighlightedDeckControl.Location = new System.Drawing.Point(0, 0);
+            this.HighlightedDeckControl.Name = "HighlightedDeckControl";
+            this.HighlightedDeckControl.Size = new System.Drawing.Size(140, 150);
+            this.HighlightedDeckControl.TabIndex = 2;
+            this.HighlightedDeckControl.TabStop = false;
+            this.HighlightedDeckControl.Title = null;
+            // 
+            // TheMenuBar
+            // 
+            this.TheMenuBar.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.fileToolStripMenuItem,
             this.windowToolStripMenuItem});
-            this.MyMenuStrip.Location = new System.Drawing.Point(0, 0);
-            this.MyMenuStrip.Name = "MyMenuStrip";
-            this.MyMenuStrip.Size = new System.Drawing.Size(962, 24);
-            this.MyMenuStrip.TabIndex = 14;
-            this.MyMenuStrip.Text = "MyMenuStrip";
+            this.TheMenuBar.Location = new System.Drawing.Point(0, 0);
+            this.TheMenuBar.Name = "TheMenuBar";
+            this.TheMenuBar.Size = new System.Drawing.Size(962, 24);
+            this.TheMenuBar.TabIndex = 14;
+            this.TheMenuBar.Text = "TheMenuBar";
+            this.TheMenuBar.Visible = false;
             // 
             // fileToolStripMenuItem
             // 
@@ -317,32 +344,6 @@
             this.MyProgressDisplay.TabIndex = 9;
             this.MyProgressDisplay.TabStop = false;
             // 
-            // HighlightedDeckStatsDisplay
-            // 
-            this.HighlightedDeckStatsDisplay.BlockHeight = 4;
-            this.HighlightedDeckStatsDisplay.BlockWidth = 7;
-            this.HighlightedDeckStatsDisplay.Location = new System.Drawing.Point(0, 156);
-            this.HighlightedDeckStatsDisplay.Name = "HighlightedDeckStatsDisplay";
-            this.HighlightedDeckStatsDisplay.Size = new System.Drawing.Size(140, 65);
-            this.HighlightedDeckStatsDisplay.SpellColor = System.Drawing.Color.MediumSeaGreen;
-            this.HighlightedDeckStatsDisplay.TabIndex = 4;
-            this.HighlightedDeckStatsDisplay.TabStop = false;
-            this.HighlightedDeckStatsDisplay.TextColor = System.Drawing.Color.White;
-            this.HighlightedDeckStatsDisplay.TheDeck = null;
-            this.HighlightedDeckStatsDisplay.UnitColor = System.Drawing.Color.RoyalBlue;
-            // 
-            // HighlightedDeckControl
-            // 
-            this.HighlightedDeckControl.BackColor = System.Drawing.Color.Black;
-            this.HighlightedDeckControl.BorderSize = 1;
-            this.HighlightedDeckControl.IsMinimized = false;
-            this.HighlightedDeckControl.Location = new System.Drawing.Point(0, 0);
-            this.HighlightedDeckControl.Name = "HighlightedDeckControl";
-            this.HighlightedDeckControl.Size = new System.Drawing.Size(140, 150);
-            this.HighlightedDeckControl.TabIndex = 2;
-            this.HighlightedDeckControl.TabStop = false;
-            this.HighlightedDeckControl.Title = null;
-            // 
             // MainWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -353,11 +354,11 @@
             this.Controls.Add(this.HighlightedGameLogControl);
             this.Controls.Add(this.MyProgressDisplay);
             this.Controls.Add(this.HighlightedDeckPanel);
-            this.Controls.Add(this.MyMenuStrip);
+            this.Controls.Add(this.TheMenuBar);
             this.DoubleBuffered = true;
             this.ForeColor = System.Drawing.Color.LightYellow;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-            this.MainMenuStrip = this.MyMenuStrip;
+            this.MainMenuStrip = this.TheMenuBar;
             this.MinimumSize = new System.Drawing.Size(978, 400);
             this.Name = "MainWindow";
             this.Text = "LoR Side Tracker";
@@ -365,8 +366,8 @@
             this.Load += new System.EventHandler(this.MainWindow_Load);
             this.Shown += new System.EventHandler(this.MainWindow_Shown);
             this.HighlightedDeckPanel.ResumeLayout(false);
-            this.MyMenuStrip.ResumeLayout(false);
-            this.MyMenuStrip.PerformLayout();
+            this.TheMenuBar.ResumeLayout(false);
+            this.TheMenuBar.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -377,7 +378,7 @@
         private DeckStatsDisplay HighlightedDeckStatsDisplay;
         private DeckControl HighlightedDeckControl;
         private ProgressDisplayControl MyProgressDisplay;
-        private System.Windows.Forms.MenuStrip MyMenuStrip;
+        private System.Windows.Forms.MenuStrip TheMenuBar;
         private System.Windows.Forms.ToolStripMenuItem fileToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem windowToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem myDeckToolStripMenuItem;
