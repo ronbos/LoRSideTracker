@@ -37,8 +37,8 @@
             this.GameLogDisplay.Name = "GameLogDisplay";
             this.GameLogDisplay.Size = new System.Drawing.Size(574, 100);
             this.GameLogDisplay.TabIndex = 0;
-            this.GameLogDisplay.Click += new System.EventHandler(this.GameLogDisplay_Click);
             this.GameLogDisplay.Paint += new System.Windows.Forms.PaintEventHandler(this.GameLogDisplay_Paint);
+            this.GameLogDisplay.DoubleClick += new System.EventHandler(this.GameLogDisplay_Click);
             this.GameLogDisplay.MouseLeave += new System.EventHandler(this.GameLogDisplay_MouseLeave);
             this.GameLogDisplay.MouseMove += new System.Windows.Forms.MouseEventHandler(this.GameLogDisplay_MouseMove);
             // 
