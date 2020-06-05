@@ -155,8 +155,9 @@ namespace LoRSideTracker
 
         /// <summary>
         /// Fix the size of the window to match the size of the deck control
+        /// <param name="shouldInvalidate">If true, deck control is invalidated</param>
         /// </summary>
-        private void FixMySize()
+        private void FixMySize(bool shouldInvalidate = true)
         {
             Size bestSize = MyDeckControl.GetBestSize();
             int deckStatsHeight = MyDeckStatsDisplay.GetBestHeight(bestSize.Width);
@@ -172,24 +173,15 @@ namespace LoRSideTracker
                 deckStatsHeight = 0;
             }
             SetBounds(0, 0, bestSize.Width, bestSize.Height + deckStatsHeight, BoundsSpecified.Size);
-            MyDeckControl.Invalidate();
+            if (shouldInvalidate)
+            {
+                MyDeckControl.Invalidate();
+            }
         }
 
         private void DeckWindow_Load(object sender, EventArgs e)
         {
-            Size bestSize = MyDeckControl.GetBestSize();
-            int deckStatsHeight = MyDeckStatsDisplay.GetBestHeight(bestSize.Width);
-            MyDeckControl.SetBounds(0, 0, bestSize.Width, bestSize.Height, BoundsSpecified.All);
-            if (deckStatsHeight > 0)
-            {
-                MyDeckStatsDisplay.SetBounds(0, bestSize.Height, bestSize.Width, deckStatsHeight, BoundsSpecified.All);
-                MyDeckStatsDisplay.Visible = true;
-            }
-            else
-            {
-                MyDeckStatsDisplay.Visible = false;
-            }
-            SetBounds(0, 0, bestSize.Width, bestSize.Height + deckStatsHeight, BoundsSpecified.Size);
+            FixMySize(false);
         }
 
         /// <summary>
