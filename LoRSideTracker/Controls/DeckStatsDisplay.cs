@@ -51,7 +51,7 @@ namespace LoRSideTracker
             int numCols = (int)((boundsRect.Width + ColumnMargin) / (BlockWidth + ColumnMargin));
             numCols = Math.Min(numCols, 10);
 
-            if (numCols < 1 || TheDeck == null)
+            if (numCols < 1 || TheDeck == null || TheDeck.Count == 0)
             {
                 return;
             }
@@ -142,7 +142,7 @@ namespace LoRSideTracker
             numCols = Math.Min(numCols, 10);
 
             // Can we fit anything?
-            if (numCols < 1 || TheDeck == null)
+            if (numCols < 1 || TheDeck == null || TheDeck.Count == 0)
             {
                 return 0;
             }

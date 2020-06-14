@@ -181,7 +181,13 @@ namespace LoRSideTracker
         private void WriteLineSafe(LogType type, string format, params object[] arg)
         {
             string text = String.Format(format, arg);
+            string zoneText = "";
             string frontText, backText;
+            if (text[0] == '[' && text[3] == ']' && text[4] == ' ')
+            {
+                zoneText = text.Substring(0, 5);
+                text = text.Substring(5);
+            }
             int index = text.IndexOf(':');
             if (index >= 0)
             {
@@ -214,7 +220,7 @@ namespace LoRSideTracker
             {
                 Utilities.CallActionSafelyAndWait(DebugLogTextBox, new Action(() =>
                 {
-                    if (!string.IsNullOrEmpty(frontText)) DebugLogTextBox.AppendText(frontText, textColor, true);
+                    if (!string.IsNullOrEmpty(frontText)) DebugLogTextBox.AppendText(zoneText + frontText, textColor, true);
                     DebugLogTextBox.AppendText(backText, textColor, false);
                     DebugLogTextBox.ScrollToCaret();
                 }));

@@ -35,7 +35,7 @@ namespace LoRSideTracker
 
         public static bool ShowDebugLog { get; set; } = false;
 
-        public static bool IgnoreDebugVerboseLog { get; set; } = false;
+        public static bool IgnoreDebugVerboseLog { get; set; } = true;
 
         public static string CurrentLogText
         {
@@ -91,6 +91,9 @@ namespace LoRSideTracker
         /// <param name="arg">Format string arguments</param>
         public static void WriteLine(LogType type, string format, params object[] arg)
         {
+            string text = String.Format(format, arg);
+            Console.WriteLine(text);
+
             if (type == LogType.DebugVerbose
 #if DEBUG
                 && IgnoreDebugVerboseLog
@@ -99,9 +102,6 @@ namespace LoRSideTracker
             {
                 return;
             }
-
-            string text = String.Format(format, arg);
-            Console.WriteLine(text);
 
             if (ActiveLogWindow != null)
             {

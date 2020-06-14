@@ -174,6 +174,7 @@ namespace LoRSideTracker
         {
             StreamReader r = new StreamReader(path);
             string str = r.ReadToEnd();
+            r.Close();
             return str;
         }
 

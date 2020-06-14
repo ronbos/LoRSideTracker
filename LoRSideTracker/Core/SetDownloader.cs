@@ -196,7 +196,7 @@ namespace LoRSideTracker
             if (!Directory.Exists(setPath))
             {
                 // .. is needed because set path includes language subfolder
-                ZipFile.ExtractToDirectory(setZip, setPath + @"\..");
+                ZipFile.ExtractToDirectory(setZip, setPath + @"\..\..");
             }
 
             // We don't have a way of checking version. Check by download size instead

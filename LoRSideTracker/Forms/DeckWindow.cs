@@ -67,8 +67,11 @@ namespace LoRSideTracker
         /// <param name="allCards">Deck contents</param>
         public void SetFullDeck(List<CardWithCount> allCards)
         {
-            AllCards = Utilities.Clone(allCards);
-            UpdateDeck();
+            if (!allCards.SequenceEqual(AllCards))
+            {
+                AllCards = Utilities.Clone(allCards);
+                UpdateDeck();
+            }
         }
 
         /// <summary>
@@ -77,8 +80,11 @@ namespace LoRSideTracker
         /// <param name="drawnCards">Set of drawn cards</param>
         public void SetDrawnCards(List<CardWithCount> drawnCards)
         {
-            DrawnCards = Utilities.Clone(drawnCards);
-            UpdateDeck();
+            if (!drawnCards.SequenceEqual(DrawnCards))
+            {
+                DrawnCards = Utilities.Clone(drawnCards);
+                UpdateDeck();
+            }
         }
 
         /// <summary>
@@ -87,8 +93,11 @@ namespace LoRSideTracker
         /// <param name="tossedCards">Set of drawn cards</param>
         public void SetTossedCards(List<CardWithCount> tossedCards)
         {
-            TossedCards = Utilities.Clone(tossedCards);
-            UpdateDeck();
+            if (!tossedCards.SequenceEqual(TossedCards))
+            {
+                TossedCards = Utilities.Clone(tossedCards);
+                UpdateDeck();
+            }
         }
 
         /// <summary>
@@ -155,8 +164,9 @@ namespace LoRSideTracker
 
         /// <summary>
         /// Fix the size of the window to match the size of the deck control
+        /// <param name="shouldInvalidate">If true, deck control is invalidated</param>
         /// </summary>
-        private void FixMySize()
+        private void FixMySize(bool shouldInvalidate = true)
         {
             Size bestSize = MyDeckControl.GetBestSize();
             int deckStatsHeight = MyDeckStatsDisplay.GetBestHeight(bestSize.Width);
@@ -172,24 +182,15 @@ namespace LoRSideTracker
                 deckStatsHeight = 0;
             }
             SetBounds(0, 0, bestSize.Width, bestSize.Height + deckStatsHeight, BoundsSpecified.Size);
-            MyDeckControl.Invalidate();
+            if (shouldInvalidate)
+            {
+                MyDeckControl.Invalidate();
+            }
         }
 
         private void DeckWindow_Load(object sender, EventArgs e)
         {
-            Size bestSize = MyDeckControl.GetBestSize();
-            int deckStatsHeight = MyDeckStatsDisplay.GetBestHeight(bestSize.Width);
-            MyDeckControl.SetBounds(0, 0, bestSize.Width, bestSize.Height, BoundsSpecified.All);
-            if (deckStatsHeight > 0)
-            {
-                MyDeckStatsDisplay.SetBounds(0, bestSize.Height, bestSize.Width, deckStatsHeight, BoundsSpecified.All);
-                MyDeckStatsDisplay.Visible = true;
-            }
-            else
-            {
-                MyDeckStatsDisplay.Visible = false;
-            }
-            SetBounds(0, 0, bestSize.Width, bestSize.Height + deckStatsHeight, BoundsSpecified.Size);
+            FixMySize(false);
         }
 
         /// <summary>
