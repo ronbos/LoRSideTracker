@@ -67,8 +67,11 @@ namespace LoRSideTracker
         /// <param name="allCards">Deck contents</param>
         public void SetFullDeck(List<CardWithCount> allCards)
         {
-            AllCards = Utilities.Clone(allCards);
-            UpdateDeck();
+            if (!allCards.SequenceEqual(AllCards))
+            {
+                AllCards = Utilities.Clone(allCards);
+                UpdateDeck();
+            }
         }
 
         /// <summary>
@@ -77,8 +80,11 @@ namespace LoRSideTracker
         /// <param name="drawnCards">Set of drawn cards</param>
         public void SetDrawnCards(List<CardWithCount> drawnCards)
         {
-            DrawnCards = Utilities.Clone(drawnCards);
-            UpdateDeck();
+            if (!drawnCards.SequenceEqual(DrawnCards))
+            {
+                DrawnCards = Utilities.Clone(drawnCards);
+                UpdateDeck();
+            }
         }
 
         /// <summary>
@@ -87,8 +93,11 @@ namespace LoRSideTracker
         /// <param name="tossedCards">Set of drawn cards</param>
         public void SetTossedCards(List<CardWithCount> tossedCards)
         {
-            TossedCards = Utilities.Clone(tossedCards);
-            UpdateDeck();
+            if (!tossedCards.SequenceEqual(TossedCards))
+            {
+                TossedCards = Utilities.Clone(tossedCards);
+                UpdateDeck();
+            }
         }
 
         /// <summary>

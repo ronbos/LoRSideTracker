@@ -8,6 +8,7 @@ using System.Drawing;
 using System.Xml.XPath;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
+using System.Windows.Forms;
 
 namespace LoRSideTracker
 {
@@ -286,21 +287,21 @@ namespace LoRSideTracker
 
         private static void LogResult(List<string> result, LogType logType, string logFormatUnit, string logFormatSpell)
         {
-            if (!string.IsNullOrEmpty(logFormatUnit))
-            {
-                foreach (var c in result)
-                {
-                    var card = CardLibrary.GetCard(c);
-                    if (string.IsNullOrEmpty(logFormatSpell) || CardLibrary.GetCard(c).Type == "Unit")
-                    {
-                        Log.WriteLine(logType, logFormatUnit, card.Name);
-                    }
-                    else
-                    {
-                        Log.WriteLine(logType, logFormatSpell, card.Name);
-                    }
-                }
-            }
+            //if (!string.IsNullOrEmpty(logFormatUnit))
+            //{
+            //    foreach (var c in result)
+            //    {
+            //        var card = CardLibrary.GetCard(c);
+            //        if (string.IsNullOrEmpty(logFormatSpell) || CardLibrary.GetCard(c).Type == "Unit")
+            //        {
+            //            Log.WriteLine(logType, logFormatUnit, card.Name);
+            //        }
+            //        else
+            //        {
+            //            Log.WriteLine(logType, logFormatSpell, card.Name);
+            //        }
+            //    }
+            //}
         }
     }
 
@@ -540,6 +541,13 @@ namespace LoRSideTracker
         private readonly IOverlayUpdateCallback Callback;
         private readonly AutoUpdatingWebString WebString;
 
+        private CardsInPlayWorker MyCardsInPlayWorker = new CardsInPlayWorker();
+
+        public void SetDeck(List<CardWithCount> cards)
+        {
+            MyCardsInPlayWorker.SetDeck(cards);
+        }
+
         /// <summary>
         /// Constructor
         /// </summary>
@@ -557,7 +565,7 @@ namespace LoRSideTracker
             OpponentTracker = new PlayerOverlay(LogType.Opponent);
             GameState = "Unknown";
 
-            WebString = new AutoUpdatingWebString(Constants.OverlayStateURL(), 66, this, 100);
+            WebString = new AutoUpdatingWebString(Constants.OverlayStateURL(), 16, this, 100);
         }
 
         /// <summary>
@@ -569,7 +577,12 @@ namespace LoRSideTracker
             if (Utilities.IsJsonStringValid(newValue))
             {
                 NotRespondingHasBeenReported = false;
-                Reload(JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(newValue));
+                var dict = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(newValue);
+                Reload(dict);
+                if (GameState == "InProgress" && !Control.MouseButtons.HasFlag(MouseButtons.Left))
+                {
+                    MyCardsInPlayWorker.ProcessNext(dict);
+                }
             }
             else
             {
@@ -584,6 +597,7 @@ namespace LoRSideTracker
 
         private void Reload(Dictionary<string, JsonElement> currentOverlay)
         {
+            List<CardInPlay> cards = new List<CardInPlay>();
             PlayerElements.Clear();
             OpponentElements.Clear();
             string oldGameState = GameState;
@@ -607,7 +621,7 @@ namespace LoRSideTracker
                 int normalizedScreenHeight = ScreenHeight;
                 if (ScreenWidth * 0.66 < ScreenHeight)
                 {
-                    normalizedScreenHeight = (int)(0.5 + ScreenWidth * 0.66);
+                    normalizedScreenHeight = (int)(0.5 + ScreenWidth * 0.658);
                 }
 
 

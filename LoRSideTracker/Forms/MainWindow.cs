@@ -56,25 +56,6 @@ namespace LoRSideTracker
         }
 
         /// <summary>
-        /// Check if two decks are equal
-        /// </summary>
-        /// <param name="cardsA">First deck</param>
-        /// <param name="cardsB">Second deck</param>
-        /// <returns>true if decks are exactly the same</returns>
-        private bool AreDecksEqual(List<CardWithCount> cardsA, List<CardWithCount> cardsB)
-        {
-            if (cardsA.Count != cardsB.Count) return false;
-            for (int i = 0; i < cardsA.Count; i++)
-            {
-                if (cardsA[i].Code != cardsB[i].Code || cardsA[i].Count != cardsB[i].Count)
-                {
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        /// <summary>
         /// Receives notification that static deck was updated
         /// </summary>
         /// <param name="cards">Updated set</param>
@@ -88,6 +69,10 @@ namespace LoRSideTracker
                 try { title = GameHistory.DeckNames[deckCode]; } catch { }
                 PlayerActiveDeckWindow.Title = string.Format(title);
                 PlayerActiveDeckWindow.SetFullDeck(cards);
+                if (CurrentOverlay != null)
+                {
+                    CurrentOverlay.SetDeck(cards);
+                }
 
                 CurrentGameRecord.MyDeck = Utilities.Clone(cards);
                 CurrentGameRecord.MyDeckName = title;
@@ -118,6 +103,10 @@ namespace LoRSideTracker
                     string title = string.Format("Expedition {0}-{1}{2}", CurrentExpedition.NumberOfWins, CurrentExpedition.NumberOfLosses, isEliminationGame ? "*" : "");
                     PlayerActiveDeckWindow.Title = title;
                     PlayerActiveDeckWindow.SetFullDeck(Utilities.Clone(cards));
+                    if (CurrentOverlay != null)
+                    {
+                        CurrentOverlay.SetDeck(cards);
+                    }
 
                     CurrentGameRecord.MyDeck = Utilities.Clone(cards);
                     CurrentGameRecord.MyDeckName = title;
@@ -131,6 +120,10 @@ namespace LoRSideTracker
                     string title = "No Active Deck";
                     PlayerActiveDeckWindow.Title = title;
                     PlayerActiveDeckWindow.SetFullDeck(new List<CardWithCount>());
+                    if (CurrentOverlay != null)
+                    {
+                        CurrentOverlay.SetDeck(new List<CardWithCount>());
+                    }
 
                     // Don't set game record here due to a race condition with saving
                     //CurrentGameRecord.MyDeck = new List<CardWithCount>();

@@ -173,6 +173,15 @@
     <Compile Include="Controls\ProgressDisplayControl.Designer.cs">
       <DependentUpon>ProgressDisplayControl.cs</DependentUpon>
     </Compile>
+    <Compile Include="Watchers\CardInPlay.cs" />
+    <Compile Include="Forms\CardsInPlayDebugView.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\CardsInPlayDebugView.Designer.cs">
+      <DependentUpon>CardsInPlayDebugView.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Watchers\CardInPlayMoveLogger.cs" />
+    <Compile Include="Watchers\CardInPlayWorker.cs" />
     <Compile Include="Watchers\StaticDeck.cs" />
     <Compile Include="Controls\DeckControl.cs">
       <SubType>UserControl</SubType>
@@ -208,6 +217,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Controls\DeckStatsDisplay.resx">
       <DependentUpon>DeckStatsDisplay.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\CardsInPlayDebugView.resx">
+      <DependentUpon>CardsInPlayDebugView.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\DeckWindow.resx">
       <DependentUpon>DeckWindow.cs</DependentUpon>
