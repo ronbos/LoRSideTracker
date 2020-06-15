@@ -196,7 +196,6 @@
     <Compile Include="Forms\MainWindow.Designer.cs">
       <DependentUpon>MainWindow.cs</DependentUpon>
     </Compile>
-    <Compile Include="Watchers\Overlay.cs" />
     <Compile Include="Forms\PerPixelAlphaForm.cs">
       <SubType>Form</SubType>
     </Compile>

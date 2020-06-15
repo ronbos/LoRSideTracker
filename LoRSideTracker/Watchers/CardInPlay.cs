@@ -153,7 +153,7 @@ namespace LoRSideTracker
                 // When dragged around, size varies between 0.20-0.24, being smallest at the center (y == 0.5)
                 CurrentZone = PlayZone.Hand;
             }
-            else if (NormalizedBoundingBox.Height == 0)
+            else if (NormalizedBoundingBox.Height <= 0)
             {
                 // Current theory is that cards of size zero are being tossed, but that almost never works
                 CurrentZone = PlayZone.Tossing;

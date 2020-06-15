@@ -17,11 +17,11 @@ namespace LoRSideTracker
     /// <summary>
     /// Main app wondow
     /// </summary>
-    public partial class MainWindow : Form, IExpeditionUpdateCallback, StaticDeckUpdateCallback, IOverlayUpdateCallback, ISetDownloaderCallback
+    public partial class MainWindow : Form, IExpeditionUpdateCallback, StaticDeckUpdateCallback, ICardsInPlayCallback, ISetDownloaderCallback
     {
         private Expedition CurrentExpedition;
         private StaticDeck CurrentDeck;
-        private Overlay CurrentOverlay;
+        private CardsInPlayWorker CurrentPlayState;
 
         private DeckWindow PlayerActiveDeckWindow;
         private DeckWindow PlayerDrawnCardsWindow;
@@ -69,9 +69,10 @@ namespace LoRSideTracker
                 try { title = GameHistory.DeckNames[deckCode]; } catch { }
                 PlayerActiveDeckWindow.Title = string.Format(title);
                 PlayerActiveDeckWindow.SetFullDeck(cards);
-                if (CurrentOverlay != null)
+                PlayerActiveDeckWindow.SetCurrentDeck(cards);
+                if (CurrentPlayState != null)
                 {
-                    CurrentOverlay.SetDeck(cards);
+                    CurrentPlayState.SetDeck(cards);
                 }
 
                 CurrentGameRecord.MyDeck = Utilities.Clone(cards);
@@ -103,9 +104,10 @@ namespace LoRSideTracker
                     string title = string.Format("Expedition {0}-{1}{2}", CurrentExpedition.NumberOfWins, CurrentExpedition.NumberOfLosses, isEliminationGame ? "*" : "");
                     PlayerActiveDeckWindow.Title = title;
                     PlayerActiveDeckWindow.SetFullDeck(Utilities.Clone(cards));
-                    if (CurrentOverlay != null)
+                    PlayerActiveDeckWindow.SetCurrentDeck(Utilities.Clone(cards));
+                    if (CurrentPlayState != null)
                     {
-                        CurrentOverlay.SetDeck(cards);
+                        CurrentPlayState.SetDeck(cards);
                     }
 
                     CurrentGameRecord.MyDeck = Utilities.Clone(cards);
@@ -120,9 +122,10 @@ namespace LoRSideTracker
                     string title = "No Active Deck";
                     PlayerActiveDeckWindow.Title = title;
                     PlayerActiveDeckWindow.SetFullDeck(new List<CardWithCount>());
-                    if (CurrentOverlay != null)
+                    PlayerActiveDeckWindow.SetCurrentDeck(new List<CardWithCount>());
+                    if (CurrentPlayState != null)
                     {
-                        CurrentOverlay.SetDeck(new List<CardWithCount>());
+                        CurrentPlayState.SetDeck(new List<CardWithCount>());
                     }
 
                     // Don't set game record here due to a race condition with saving
@@ -134,43 +137,49 @@ namespace LoRSideTracker
         }
 
         /// <summary>
-        /// Receives notification that player drawn set was changed
+        /// Callback for when player deck set has been changed
         /// </summary>
-        /// <param name="cards">Updated set</param>
-        public void OnPlayerDrawnSetUpdated(List<CardWithCount> cards)
+        /// <param name="cards">Cards in the set</param>
+        public void OnPlayerDeckChanged(List<CardWithCount> cards)
         {
-            PlayerActiveDeckWindow.SetDrawnCards(Utilities.Clone(cards));
-            PlayerDrawnCardsWindow.SetFullDeck(Utilities.Clone(cards));
+            PlayerActiveDeckWindow.SetCurrentDeck(Utilities.Clone(cards));
         }
 
         /// <summary>
-        /// Receives notification that player played set was changed
+        /// Callback for when player hand has been changed
         /// </summary>
-        /// <param name="cards">Updated set</param>
-        public void OnPlayerPlayedSetUpdated(List<CardWithCount> cards)
+        /// <param name="cards">Cards in the set</param>
+        public void OnPlayerDrawnAndPlayedChanged(List<CardWithCount> cards)
         {
-            PlayerPlayedCardsWindow.SetFullDeck(Utilities.Clone(cards));
+            PlayerDrawnCardsWindow.SetCurrentDeck(Utilities.Clone(cards));
         }
 
         /// <summary>
-        /// Receives notification that player played set was changed
+        /// Callback for when player graveyard has been changed
         /// </summary>
-        /// <param name="cards">Updated set</param>
-        public void OnPlayerTossedSetUpdated(List<CardWithCount> cards)
+        /// <param name="cards">Cards in the set</param>
+        public void OnPlayerGraveyardChanged(List<CardWithCount> cards)
         {
-            PlayerActiveDeckWindow.SetTossedCards(Utilities.Clone(cards));
+            PlayerPlayedCardsWindow.SetCurrentDeck(Utilities.Clone(cards));
         }
 
         /// <summary>
-        /// Receives notification that opponent played set was changed
+        /// Callback for when opponent graveyard has been changed
         /// </summary>
-        /// <param name="cards">Updated set</param>
-        public void OnOpponentPlayedSetUpdated(List<CardWithCount> cards)
+        /// <param name="cards">Cards in the set</param>
+        public void OnOpponentGraveyardChanged(List<CardWithCount> cards)
         {
-            OpponentPlayedCardsWindow.SetFullDeck(Utilities.Clone(cards));
+            OpponentPlayedCardsWindow.SetCurrentDeck(Utilities.Clone(cards));
+        }
 
+        /// <summary>
+        /// Callback for when opponent deck has been changed
+        /// </summary>
+        /// <param name="cards">Cards in the set</param>
+        public void OnOpponentDeckChanged(List<CardWithCount> cards)
+        {
             CurrentGameRecord.OpponentDeck = Utilities.Clone(cards);
-            CurrentGameRecord.OpponentName = CurrentOverlay.OpponentName;
+            CurrentGameRecord.OpponentName = CurrentPlayState.OpponentName;
         }
 
         /// <summary>
@@ -242,7 +251,7 @@ namespace LoRSideTracker
         /// <param name="opponentElements"></param>
         /// <param name="screenWidth"></param>
         /// <param name="screenHeight"></param>
-        public void OnElementsUpdate(List<OverlayElement> playerElements, List<OverlayElement> opponentElements, int screenWidth, int screenHeight)
+        public void OnElementsUpdate(List<CardInPlay> playerElements, List<CardInPlay> opponentElements, int screenWidth, int screenHeight)
         {
             if (OverlayWindow != null)
             {
@@ -326,15 +335,15 @@ namespace LoRSideTracker
                 Properties.Settings.Default.ShowPlayerDeck,
                 Properties.Settings.Default.PlayerDeckLocation.X, 
                 Properties.Settings.Default.PlayerDeckLocation.Y);
-            PlayerDrawnCardsWindow = CreateDeckWindow("Cards Drawn", deckScale, deckOpacity,
+            PlayerDrawnCardsWindow = CreateDeckWindow("Drawn Cards", deckScale, deckOpacity,
                 Properties.Settings.Default.ShowPlayerDrawnCards,
                 Properties.Settings.Default.PlayerDrawnCardsLocation.X, 
                 Properties.Settings.Default.PlayerDrawnCardsLocation.Y);
-            PlayerPlayedCardsWindow = CreateDeckWindow("You Played", deckScale, deckOpacity,
+            PlayerPlayedCardsWindow = CreateDeckWindow("Graveyard", deckScale, deckOpacity,
                 Properties.Settings.Default.ShowPlayerPlayedCards,
                 Properties.Settings.Default.PlayerPlayedCardsLocation.X, 
                 Properties.Settings.Default.PlayerPlayedCardsLocation.Y);
-            OpponentPlayedCardsWindow = CreateDeckWindow("Opponent Played", deckScale, deckOpacity,
+            OpponentPlayedCardsWindow = CreateDeckWindow("Opponent Graveyard", deckScale, deckOpacity,
                 Properties.Settings.Default.ShowOpponentPlayedCards,
                 Properties.Settings.Default.OpponentPlayedCardsLocation.X, 
                 Properties.Settings.Default.OpponentPlayedCardsLocation.Y);
@@ -369,11 +378,9 @@ namespace LoRSideTracker
                 OverlayWindow.Show();
             }
 
+            CurrentPlayState = new CardsInPlayWorker(this);
             CurrentDeck = new StaticDeck(this);
-            //Thread.Sleep(500);
             CurrentExpedition = new Expedition(this);
-            //Thread.Sleep(500);
-            CurrentOverlay = new Overlay(this);
 
             // Hide the progress display and make all the other UI elements visible
             MyProgressDisplay.Visible = false;

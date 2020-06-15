@@ -16,8 +16,7 @@ namespace LoRSideTracker
     public partial class DeckWindow : Form
     {
         private List<CardWithCount> AllCards = new List<CardWithCount>();
-        private List<CardWithCount> DrawnCards = new List<CardWithCount>();
-        private List<CardWithCount> TossedCards = new List<CardWithCount>();
+        private List<CardWithCount> CurrentCards = new List<CardWithCount>();
 
         /// <summary>Are cards with zero count shown?</summary>
         public bool HideZeroCountCards { get; set; } = false;
@@ -77,25 +76,12 @@ namespace LoRSideTracker
         /// <summary>
         /// Set set of cards that have been drawn from the deck
         /// </summary>
-        /// <param name="drawnCards">Set of drawn cards</param>
-        public void SetDrawnCards(List<CardWithCount> drawnCards)
+        /// <param name="currentCards">Set of drawn cards</param>
+        public void SetCurrentDeck(List<CardWithCount> currentCards)
         {
-            if (!drawnCards.SequenceEqual(DrawnCards))
+            if (!currentCards.SequenceEqual(CurrentCards))
             {
-                DrawnCards = Utilities.Clone(drawnCards);
-                UpdateDeck();
-            }
-        }
-
-        /// <summary>
-        /// Set set of cards that have been tossed from the deck
-        /// </summary>
-        /// <param name="tossedCards">Set of drawn cards</param>
-        public void SetTossedCards(List<CardWithCount> tossedCards)
-        {
-            if (!tossedCards.SequenceEqual(TossedCards))
-            {
-                TossedCards = Utilities.Clone(tossedCards);
+                CurrentCards = Utilities.Clone(currentCards);
                 UpdateDeck();
             }
         }
@@ -113,32 +99,34 @@ namespace LoRSideTracker
         /// </summary>
         private void UpdateDeckSafe()
         {
-            List<CardWithCount> remainingCards = Utilities.Clone(AllCards);
-            foreach (var card in DrawnCards)
+            // Assume both AllCards and CurrentCards are sorted
+            List<CardWithCount> remainingCards = CurrentCards;
+            if (AllCards.Count > 0)
             {
-                int index = remainingCards.FindIndex(item => item.Code.Equals(card.Code));
-                if (index >= 0)
+                remainingCards = Utilities.Clone(AllCards);
+                int j = 0;
+                for (int i = 0; i < remainingCards.Count; i++)
                 {
-                    remainingCards[index].Count -= card.Count;
+                    if (j < CurrentCards.Count && remainingCards[i].Code == CurrentCards[j].Code)
+                    {
+                        remainingCards[i].Count = CurrentCards[j].Count;
+                        j++;
+                    }
+                    else
+                    {
+                        remainingCards[i].Count = 0;
+                    }
                 }
-            }
-            foreach (var card in TossedCards)
-            {
-                int index = remainingCards.FindIndex(item => item.Code.Equals(card.Code));
-                if (index >= 0)
+
+                if (HideZeroCountCards)
                 {
-                    remainingCards[index].Count -= card.Count;
+                    remainingCards = remainingCards.FindAll(x => x.Count > 0).ToList();
                 }
             }
 
-            if (AllCards.Count == 0)
+            if (remainingCards.Count == 0)
             {
                 MyDeckControl.IsMinimized = false;
-            }
-
-            if (HideZeroCountCards)
-            {
-                remainingCards = remainingCards.FindAll(x => x.Count > 0).ToList();
             }
 
             MyDeckControl.SetDeck(remainingCards);

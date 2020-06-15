@@ -6,21 +6,90 @@ using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace LoRSideTracker
 {
     /// <summary>
-    /// 
+    /// Overlay update callback interface
     /// </summary>
-    public class CardsInPlayWorker
+    public interface ICardsInPlayCallback
     {
-        List<CardInPlay> PlayerDeck = new List<CardInPlay>();
+        /// <summary>
+        /// Callback for when player deck set has been changed
+        /// </summary>
+        /// <param name="cards">Cards in the set</param>
+        void OnPlayerDeckChanged(List<CardWithCount> cards);
+
+        /// <summary>
+        /// Callback for when player drawn and played set has been changed
+        /// </summary>
+        /// <param name="cards">Cards in the set</param>
+        void OnPlayerDrawnAndPlayedChanged(List<CardWithCount> cards);
+
+        /// <summary>
+        /// Callback for when player graveyard has been changed
+        /// </summary>
+        /// <param name="cards">Cards in the set</param>
+        void OnPlayerGraveyardChanged(List<CardWithCount> cards);
+
+        /// <summary>
+        /// Callback for when opponent graveyard has been changed
+        /// </summary>
+        /// <param name="cards">Cards in the set</param>
+        void OnOpponentGraveyardChanged(List<CardWithCount> cards);
+
+        /// <summary>
+        /// Callback for when opponent graveyard has been changed
+        /// </summary>
+        /// <param name="cards">Cards in the set</param>
+        void OnOpponentDeckChanged(List<CardWithCount> cards);
+
+        /// <summary>
+        /// Callback for when game state changes
+        /// </summary>
+        /// <param name="oldGameState">Previous game state</param>
+        /// <param name="newGameState">New game state</param>
+        void OnGameStateChanged(string oldGameState, string newGameState);
+
+        /// <summary>
+        /// Callback for when elements have been updated
+        /// </summary>
+        /// <param name="playerCards"></param>
+        /// <param name="opponentCards"></param>
+        /// <param name="screenWidth"></param>
+        /// <param name="screenHeight"></param>
+        void OnElementsUpdate(List<CardInPlay> playerCards, List<CardInPlay> opponentCards, int screenWidth, int screenHeight);
+    }
+
+    /// <summary>
+    /// Tracks all cards in play
+    /// </summary>
+    public class CardsInPlayWorker : AutoUpdatingWebStringCallback
+    {
+        /// <summary>Current Game State</summary>
+        public string GameState { get; private set; } = "Unknown";
+        /// <summary>Current Game Screen Width</summary>
+        public int ScreenWidth { get; private set; }
+        /// <summary>Current Game Screen Height</summary>
+        public int ScreenHeight { get; private set; }
+
+        /// <summary>Current Player Name</summary>
+        public string PlayerName { get; private set; } = string.Empty;
+        /// <summary>Current Opponent Name</summary>
+        public string OpponentName { get; private set; } = string.Empty;
+
+        List<CardInPlay> PlayerFullDeck = new List<CardInPlay>();
         List<CardInPlay> PlayerCards = new List<CardInPlay>();
         List<CardInPlay> OpponentCards = new List<CardInPlay>();
 
-        private List<CardInPlay> FullPlayerDeck = new List<CardInPlay>();
+        private List<CardInPlay> FullPlayerFullDeck = new List<CardInPlay>();
 
         private bool IsInitialDraw;
+
+        private readonly ICardsInPlayCallback Callback;
+        private AutoUpdatingWebString WebString;
+        private bool NotRespondingHasBeenReported = false;
 
 #if USE_DECK_LISTS
         private CardsInPlayDebugView DeckLists;
@@ -35,9 +104,10 @@ namespace LoRSideTracker
         /// <summary>
         /// Constructor
         /// </summary>
-        public CardsInPlayWorker()
+        public CardsInPlayWorker(ICardsInPlayCallback callback)
         {
             IsInitialDraw = true;
+            Callback = callback;
 
 #if USE_DECK_LISTS
             DeckLists = new CardsInPlayDebugView();
@@ -46,14 +116,30 @@ namespace LoRSideTracker
         }
 
         /// <summary>
+        /// Destructor
+        /// </summary>
+        ~CardsInPlayWorker()
+        {
+            if (WebString == null)
+            {
+                WebString.Stop();
+            }
+        }
+
+        /// <summary>
         /// Process game has started event
         /// </summary>
         public void GameStarted()
         {
-            PlayerDeck = FullPlayerDeck.Clone();
-            PlayerCards.Clear();
-            OpponentCards.Clear();
-            InGame = true;
+            if (!InGame)
+            {
+                PlayerFullDeck = FullPlayerFullDeck.Clone();
+                PlayerCards.Clear();
+                OpponentCards.Clear();
+                InGame = true;
+                Log.Clear();
+                Log.WriteLine("New Game: {0} vs {1}", PlayerName, OpponentName);
+            }
         }
 
         /// <summary>
@@ -61,10 +147,13 @@ namespace LoRSideTracker
         /// </summary>
         public void GameEnded()
         {
-            InGame = false;
-            PlayerDeck.Clear();
-            PlayerCards.Clear();
-            OpponentCards.Clear();
+            if (InGame)
+            {
+                InGame = false;
+                PlayerFullDeck.Clear();
+                PlayerCards.Clear();
+                OpponentCards.Clear();
+            }
         }
 
         /// <summary>
@@ -73,20 +162,85 @@ namespace LoRSideTracker
         /// <param name="deck"></param>
         public void SetDeck(List<CardWithCount> deck)
         {
-            if (!InGame || FullPlayerDeck.Count == 0)
+            if (WebString == null)
             {
-                FullPlayerDeck.Clear();
+                WebString = new AutoUpdatingWebString(Constants.OverlayStateURL(), 16, this, 100);
+            }
+            if (!InGame || FullPlayerFullDeck.Count == 0)
+            {
+                FullPlayerFullDeck.Clear();
                 foreach (var card in deck)
                 {
                     for (int i = 0; i < card.Count; i++)
                     {
-                        FullPlayerDeck.Add(new CardInPlay(PlayerType.LocalPlayer, card.TheCard, PlayZone.Deck));
+                        FullPlayerFullDeck.Add(new CardInPlay(PlayerType.LocalPlayer, card.TheCard, PlayZone.Deck));
                     }
                 }
-                PlayerDeck = FullPlayerDeck.Clone();
+                PlayerFullDeck = FullPlayerFullDeck.Clone();
                 PlayerCards.Clear();
                 OpponentCards.Clear();
                 IsInitialDraw = true;
+            }
+        }
+
+        /// <summary>
+        /// Process newly updated web string to generate new overlay state
+        /// </summary>
+        /// <param name="newValue">new web string</param>
+        public void OnWebStringUpdated(string newValue)
+        {
+            if (Utilities.IsJsonStringValid(newValue))
+            {
+                NotRespondingHasBeenReported = false;
+                var dict = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(newValue);
+                UpdateGameState(dict);
+                if (GameState == "InProgress" && !Control.MouseButtons.HasFlag(MouseButtons.Left))
+                {
+                    ProcessNext(dict);
+                }
+            }
+            else
+            {
+                GameState = "Unknown";
+                if (!NotRespondingHasBeenReported)
+                {
+                    Log.WriteLine("{0} is producing invalid data", Constants.OverlayStateURL());
+                    NotRespondingHasBeenReported = true;
+                }
+                GameEnded();
+            }
+        }
+
+        private void UpdateGameState(Dictionary<string, JsonElement> currentOverlay)
+        {
+            List<CardInPlay> cards = new List<CardInPlay>();
+            string oldGameState = GameState;
+
+            if (currentOverlay != null)
+            {
+                PlayerName = currentOverlay["PlayerName"].GetString();
+                OpponentName = currentOverlay["OpponentName"].GetString();
+                GameState = currentOverlay["GameState"].GetString();
+                if (GameState == null) GameState = oldGameState;
+            }
+            else
+            {
+                GameState = "Unknown";
+            }
+
+            if (oldGameState != GameState)
+            {
+                if (GameState == "InProgress")
+                {
+                    GameStarted();
+                }
+                else if (oldGameState == "InProgress")
+                {
+                    GameEnded();
+                    NotifyCardSetUpdates();
+                }
+
+                Callback.OnGameStateChanged(oldGameState, GameState);
             }
         }
 
@@ -98,7 +252,7 @@ namespace LoRSideTracker
         {
             TimeCounter++;
 
-            if (PlayerDeck.Count == 0 && PlayerCards.Count == 0)
+            if (PlayerFullDeck.Count == 0 && PlayerCards.Count == 0)
             {
                 // Have not received the deck yet
                 return;
@@ -108,16 +262,16 @@ namespace LoRSideTracker
             if (overlay != null)
             {
                 var screen = overlay["Screen"].ToObject<Dictionary<string, JsonElement>>();
-                int screenWidth = screen["ScreenWidth"].GetInt32();
-                int screenHeight = screen["ScreenHeight"].GetInt32();
+                ScreenWidth = screen["ScreenWidth"].GetInt32();
+                ScreenHeight = screen["ScreenHeight"].GetInt32();
 
                 // We normalize elements' bounding box based on screen height. However, if screen ratio becomes
                 // too high, screen expands height-wise. To make sure we have same behavior as before,
                 // We adjust the height accordingly.
-                int normalizedScreenHeight = screenHeight;
-                if (screenWidth * 0.658 < screenHeight)
+                int normalizedScreenHeight = ScreenHeight;
+                if (ScreenWidth * 0.658 < ScreenHeight)
                 {
-                    normalizedScreenHeight = (int)(0.5 + screenWidth * 0.658);
+                    normalizedScreenHeight = (int)(0.5 + ScreenWidth * 0.658);
                 }
 
                 var rectangles = overlay["Rectangles"].ToObject<Dictionary<string, JsonElement>[]>();
@@ -134,7 +288,7 @@ namespace LoRSideTracker
                     // Also ignore abilities
                     if (card.Type != "Ability")
                     {
-                        cardsInPlay.Add(new CardInPlay(dict, screenWidth, screenHeight, normalizedScreenHeight));
+                        cardsInPlay.Add(new CardInPlay(dict, ScreenWidth, ScreenHeight, normalizedScreenHeight));
                     }
                 }
             }
@@ -143,7 +297,7 @@ namespace LoRSideTracker
             var nextPlayerCards = cardsInPlay.FindAll(x => x.Owner == PlayerType.LocalPlayer && x.CurrentZone != PlayZone.Unknown).ToList();
             var nextOpponentCards = cardsInPlay.FindAll(x => x.Owner == PlayerType.Opponent && x.CurrentZone != PlayZone.Unknown).ToList();
 
-            var playerMovedCards = MoveToNext(ref PlayerCards, nextPlayerCards, ref PlayerDeck, IsInitialDraw);
+            var playerMovedCards = MoveToNext(ref PlayerCards, nextPlayerCards, ref PlayerFullDeck, IsInitialDraw);
             if (IsInitialDraw)
             {
                 // Initial draw until we add some cards to hand
@@ -163,42 +317,43 @@ namespace LoRSideTracker
             playerMovedCards.AddRange(CleanUpEther(ref PlayerCards, thoroughCleanUp));
             opponentMovedCards.AddRange(CleanUpEther(ref OpponentCards, thoroughCleanUp));
 
+            NotifyCardSetUpdates();
+        }
+
+        private void NotifyCardSetUpdates()
+        {
             int numZones = Enum.GetValues(typeof(PlayZone)).Length;
             List<CardInPlay>[] playerZones = new List<CardInPlay>[numZones];
             List<CardInPlay>[] opponentZones = new List<CardInPlay>[numZones];
+            List<CardInPlay> opponentDeck = new List<CardInPlay>();
             for (int i = 0; i < numZones; i++)
             {
                 playerZones[i] = PlayerCards.FindAll(x => x.CurrentZone == (PlayZone)i).ToList();
                 opponentZones[i] = OpponentCards.FindAll(x => x.CurrentZone == (PlayZone)i).ToList();
             }
-            playerZones[0] = PlayerDeck.Clone();
+            playerZones[0] = PlayerFullDeck.Clone();
 
-            // Broadcast all changes to deck windows
 #if USE_DECK_LISTS
+            // Broadcast all changes to deck lists
             DeckLists.SetCards(playerZones, opponentZones);
-            /*int count = Enum.GetValues(typeof(PlayZone)).Length;
-            DeckLists.SetCards(PlayerType.LocalPlayer, PlayZone.Deck, PlayerDeck);
-            for (int i = 0; i < count; i++)
-            {
-                if (i != (int)PlayZone.Deck)
-                {
-                    var deck = PlayerCards.FindAll(x => x.CurrentZone == (PlayZone)i).OrderBy(card => card.TheCard.Cost).ThenBy(card => card.TheCard.Name);
-                    DeckLists.SetCards(PlayerType.LocalPlayer, (PlayZone)i, deck);
-                }
-            }
-            for (int i = 0; i < count; i++)
-            {
-                var deck = OpponentCards.FindAll(x => x.CurrentZone == (PlayZone)i).OrderBy(card => card.TheCard.Cost).ThenBy(card => card.TheCard.Name);
-                DeckLists.SetCards(PlayerType.Opponent, (PlayZone)i, deck);
-            }*/
 #endif
 
+            // Log all moves
             MoveLogger.LogMoves(playerZones, opponentZones);
+
+            // Send deck updates
+            Callback.OnPlayerDeckChanged(GetDeck(playerZones[(int)PlayZone.Deck]));
+            Callback.OnPlayerDrawnAndPlayedChanged(GetDeck(PlayerCards.Clone()));
+            Callback.OnPlayerGraveyardChanged(GetDeck(playerZones[(int)PlayZone.Graveyard]));
+            Callback.OnOpponentGraveyardChanged(GetDeck(opponentZones[(int)PlayZone.Graveyard]));
+            Callback.OnOpponentDeckChanged(GetDeck(OpponentCards.Clone()));
+            Callback.OnElementsUpdate(PlayerCards, OpponentCards, ScreenWidth, ScreenHeight);
+
         }
 
-        private List<CardWithCount> GetDeck(List<CardInPlay> current, PlayZone playZone)
+        private List<CardWithCount> GetDeck(List<CardInPlay> current)
         {
-            var cards = current.FindAll(x => x.CurrentZone == playZone).OrderBy(card => card.TheCard.Cost).ThenBy(card => card.TheCard.Name);
+            var cards = current.OrderBy(card => card.TheCard.Cost).ThenBy(card => card.TheCard.Name);
             List<CardWithCount> deck = new List<CardWithCount>();
             foreach (CardInPlay card in cards)
             {
@@ -347,7 +502,7 @@ namespace LoRSideTracker
                 while (current.Count > 0 && index < current.Count)
                 {
                     index = current.FindIndex(index + 1, x => x.CurrentZone == PlayZone.Ether
-                        && (now - x.EtherStartTime).TotalMilliseconds > 2000);
+                        && (now - x.EtherStartTime).TotalMilliseconds > 4000);
                     if (index == -1)
                     {
                         break;

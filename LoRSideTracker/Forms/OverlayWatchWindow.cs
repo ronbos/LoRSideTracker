@@ -15,8 +15,8 @@ namespace LoRSideTracker
     /// </summary>
     public partial class OverlayWatchWindow : Form
     {
-        List<OverlayElement> PlayerElements = new List<OverlayElement>();
-        List<OverlayElement> OpponentElements = new List<OverlayElement>();
+        List<CardInPlay> PlayerElements = new List<CardInPlay>();
+        List<CardInPlay> OpponentElements = new List<CardInPlay>();
         int ScreenWidth = 1024;
         int ScreenHeight = 768;
 
@@ -36,10 +36,10 @@ namespace LoRSideTracker
         /// <param name="opponentElements"></param>
         /// <param name="screenWidth"></param>
         /// <param name="screenHeight"></param>
-        public void Update(List<OverlayElement> playerElements, List<OverlayElement> opponentElements, int screenWidth, int screenHeight)
+        public void Update(List<CardInPlay> playerElements, List<CardInPlay> opponentElements, int screenWidth, int screenHeight)
         {
-            List<OverlayElement> playerElementsCopy= Utilities.Clone(playerElements);
-            List<OverlayElement> opponentElementsCopy = Utilities.Clone(opponentElements);
+            List<CardInPlay> playerElementsCopy= Utilities.Clone(playerElements);
+            List<CardInPlay> opponentElementsCopy = Utilities.Clone(opponentElements);
             if (InvokeRequired)
             {
                 this.Invoke(new Action(() =>
