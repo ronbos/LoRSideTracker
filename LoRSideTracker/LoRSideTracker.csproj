@@ -182,6 +182,8 @@
     </Compile>
     <Compile Include="Watchers\CardInPlayMoveLogger.cs" />
     <Compile Include="Watchers\CardInPlayWorker.cs" />
+    <Compile Include="Watchers\CardList.cs" />
+    <Compile Include="Watchers\Playground.cs" />
     <Compile Include="Watchers\StaticDeck.cs" />
     <Compile Include="Controls\DeckControl.cs">
       <SubType>UserControl</SubType>

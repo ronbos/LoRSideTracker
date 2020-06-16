@@ -314,6 +314,8 @@
             // 
             // DecksListCtrl
             // 
+            this.DecksListCtrl.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left)));
             this.DecksListCtrl.AutoScroll = true;
             this.DecksListCtrl.Location = new System.Drawing.Point(7, 31);
             this.DecksListCtrl.Name = "DecksListCtrl";

@@ -79,11 +79,11 @@ namespace LoRSideTracker
         /// <summary>Current Opponent Name</summary>
         public string OpponentName { get; private set; } = string.Empty;
 
-        List<CardInPlay> PlayerFullDeck = new List<CardInPlay>();
+        List<CardInPlay> PlayerDeck = new List<CardInPlay>();
         List<CardInPlay> PlayerCards = new List<CardInPlay>();
         List<CardInPlay> OpponentCards = new List<CardInPlay>();
 
-        private List<CardInPlay> FullPlayerFullDeck = new List<CardInPlay>();
+        private List<CardInPlay> FullPlayerDeck = new List<CardInPlay>();
 
         private bool IsInitialDraw;
 
@@ -133,7 +133,7 @@ namespace LoRSideTracker
         {
             if (!InGame)
             {
-                PlayerFullDeck = FullPlayerFullDeck.Clone();
+                PlayerDeck = FullPlayerDeck.Clone();
                 PlayerCards.Clear();
                 OpponentCards.Clear();
                 InGame = true;
@@ -150,7 +150,7 @@ namespace LoRSideTracker
             if (InGame)
             {
                 InGame = false;
-                PlayerFullDeck.Clear();
+                PlayerDeck.Clear();
                 PlayerCards.Clear();
                 OpponentCards.Clear();
             }
@@ -166,17 +166,17 @@ namespace LoRSideTracker
             {
                 WebString = new AutoUpdatingWebString(Constants.OverlayStateURL(), 16, this, 100);
             }
-            if (!InGame || FullPlayerFullDeck.Count == 0)
+            if (!InGame || FullPlayerDeck.Count == 0)
             {
-                FullPlayerFullDeck.Clear();
+                FullPlayerDeck.Clear();
                 foreach (var card in deck)
                 {
                     for (int i = 0; i < card.Count; i++)
                     {
-                        FullPlayerFullDeck.Add(new CardInPlay(PlayerType.LocalPlayer, card.TheCard, PlayZone.Deck));
+                        FullPlayerDeck.Add(new CardInPlay(PlayerType.LocalPlayer, card.TheCard, PlayZone.Deck));
                     }
                 }
-                PlayerFullDeck = FullPlayerFullDeck.Clone();
+                PlayerDeck = FullPlayerDeck.Clone();
                 PlayerCards.Clear();
                 OpponentCards.Clear();
                 IsInitialDraw = true;
@@ -252,7 +252,7 @@ namespace LoRSideTracker
         {
             TimeCounter++;
 
-            if (PlayerFullDeck.Count == 0 && PlayerCards.Count == 0)
+            if (PlayerDeck.Count == 0 && PlayerCards.Count == 0)
             {
                 // Have not received the deck yet
                 return;
@@ -297,7 +297,7 @@ namespace LoRSideTracker
             var nextPlayerCards = cardsInPlay.FindAll(x => x.Owner == PlayerType.LocalPlayer && x.CurrentZone != PlayZone.Unknown).ToList();
             var nextOpponentCards = cardsInPlay.FindAll(x => x.Owner == PlayerType.Opponent && x.CurrentZone != PlayZone.Unknown).ToList();
 
-            var playerMovedCards = MoveToNext(ref PlayerCards, nextPlayerCards, ref PlayerFullDeck, IsInitialDraw);
+            var playerMovedCards = MoveToNext(ref PlayerCards, nextPlayerCards, ref PlayerDeck, IsInitialDraw);
             if (IsInitialDraw)
             {
                 // Initial draw until we add some cards to hand
@@ -322,6 +322,20 @@ namespace LoRSideTracker
 
         private void NotifyCardSetUpdates()
         {
+            // Move all the cards from the deck zone into the player deck
+            // This is only needed when cards get shuffled back into deck
+            while (true)
+            {
+                int index = PlayerCards.FindIndex(x => x.CurrentZone == PlayZone.Deck);
+                if (index < 0)
+                {
+                    break;
+                }
+                PlayerDeck.Add(PlayerCards[index]);
+                PlayerCards.RemoveAt(index);
+            }
+
+            // Divide each set of cards by zone
             int numZones = Enum.GetValues(typeof(PlayZone)).Length;
             List<CardInPlay>[] playerZones = new List<CardInPlay>[numZones];
             List<CardInPlay>[] opponentZones = new List<CardInPlay>[numZones];
@@ -331,7 +345,10 @@ namespace LoRSideTracker
                 playerZones[i] = PlayerCards.FindAll(x => x.CurrentZone == (PlayZone)i).ToList();
                 opponentZones[i] = OpponentCards.FindAll(x => x.CurrentZone == (PlayZone)i).ToList();
             }
-            playerZones[0] = PlayerFullDeck.Clone();
+
+            // player deck zone only lists cards that have been shuffled back into deck
+            // Rejoin those cards with actual player deck
+            playerZones[0] = PlayerDeck.Clone();
 
 #if USE_DECK_LISTS
             // Broadcast all changes to deck lists
@@ -645,8 +662,11 @@ namespace LoRSideTracker
 
         enum TransitionResult
         {
+            /// <summary>Transition not recognized/allowed</summary>
             Disallow,
+            /// <summary>Transition recognized/allowed</summary>
             Proceed,
+            /// <summary>Transition recognized, but card should stay in original zone</summary>
             Stay,
         }
 
