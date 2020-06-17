@@ -1,6 +1,6 @@
 ﻿namespace LoRSideTracker
 {
-    partial class OverlayWatchWindow
+    partial class GameBoardWatchWindow
     {
         /// <summary>
         /// Required designer variable.

@@ -29,7 +29,7 @@ namespace LoRSideTracker
         private DeckWindow OpponentPlayedCardsWindow;
 
         private LogWindow ActiveLogWindow;
-        private OverlayWatchWindow OverlayWindow;
+        private GameBoardWatchWindow OverlayWindow;
 
         private GameRecord CurrentGameRecord = new GameRecord();
         /// <summary>
@@ -251,7 +251,7 @@ namespace LoRSideTracker
         /// <param name="opponentElements"></param>
         /// <param name="screenWidth"></param>
         /// <param name="screenHeight"></param>
-        public void OnElementsUpdate(List<CardInPlay> playerElements, List<CardInPlay> opponentElements, int screenWidth, int screenHeight)
+        public void OnElementsUpdate(CardList<CardInPlay> playerElements, CardList<CardInPlay> opponentElements, int screenWidth, int screenHeight)
         {
             if (OverlayWindow != null)
             {
@@ -374,7 +374,7 @@ namespace LoRSideTracker
             // Special debigging window is shown if D key is held during load
             if (Keyboard.IsKeyDown(Key.LeftCtrl))
             {
-                OverlayWindow = new OverlayWatchWindow();
+                OverlayWindow = new GameBoardWatchWindow();
                 OverlayWindow.Show();
             }
 

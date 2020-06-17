@@ -124,11 +124,11 @@
     </Compile>
     <Compile Include="Core\GameHistory.cs" />
     <Compile Include="Core\SetDownloader.cs" />
-    <Compile Include="Forms\OverlayWatchWindow.cs">
+    <Compile Include="Forms\GameBoardWatchWindow.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Forms\OverlayWatchWindow.Designer.cs">
-      <DependentUpon>OverlayWatchWindow.cs</DependentUpon>
+    <Compile Include="Forms\GameBoardWatchWindow.Designer.cs">
+      <DependentUpon>GameBoardWatchWindow.cs</DependentUpon>
     </Compile>
     <Compile Include="Forms\LogWindow.cs">
       <SubType>Form</SubType>
@@ -183,7 +183,7 @@
     <Compile Include="Watchers\CardInPlayMoveLogger.cs" />
     <Compile Include="Watchers\CardInPlayWorker.cs" />
     <Compile Include="Watchers\CardList.cs" />
-    <Compile Include="Watchers\Playground.cs" />
+    <Compile Include="Watchers\GameBoard.cs" />
     <Compile Include="Watchers\StaticDeck.cs" />
     <Compile Include="Controls\DeckControl.cs">
       <SubType>UserControl</SubType>
@@ -237,8 +237,8 @@
     <EmbeddedResource Include="Forms\OptionsWindow.resx">
       <DependentUpon>OptionsWindow.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Forms\OverlayWatchWindow.resx">
-      <DependentUpon>OverlayWatchWindow.cs</DependentUpon>
+    <EmbeddedResource Include="Forms\GameBoardWatchWindow.resx">
+      <DependentUpon>GameBoardWatchWindow.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>

@@ -12,8 +12,8 @@ namespace LoRSideTracker
     public class CardInPlayMoveLogger
     {
         static private int NumZones = Enum.GetValues(typeof(PlayZone)).Length;
-        List<CardInPlay>[] LastPlayerZones = new List<CardInPlay>[NumZones];
-        List<CardInPlay>[] LastOppponentZones = new List<CardInPlay>[NumZones];
+        CardList<CardInPlay>[] LastPlayerZones = new CardList<CardInPlay>[NumZones];
+        CardList<CardInPlay>[] LastOppponentZones = new CardList<CardInPlay>[NumZones];
 
         /// <summary>
         /// Constructor
@@ -22,8 +22,8 @@ namespace LoRSideTracker
         {
             for (int i = 0; i < NumZones; i++)
             {
-                LastPlayerZones[i] = new List<CardInPlay>();
-                LastOppponentZones[i] = new List<CardInPlay>();
+                LastPlayerZones[i] = new CardList<CardInPlay>();
+                LastOppponentZones[i] = new CardList<CardInPlay>();
             }
         }
 
@@ -34,8 +34,8 @@ namespace LoRSideTracker
         {
             for (int i = 0; i < NumZones; i++)
             {
-                LastPlayerZones[i] = new List<CardInPlay>();
-                LastOppponentZones[i] = new List<CardInPlay>();
+                LastPlayerZones[i].Clear();
+                LastOppponentZones[i].Clear();
             }
         }
 
@@ -44,10 +44,10 @@ namespace LoRSideTracker
         /// </summary>
         /// <param name="playerZones">Array of player zone contents</param>
         /// <param name="opponentZones">Array of opponent zone contents</param>
-        public void LogMoves(List<CardInPlay>[] playerZones, List<CardInPlay>[] opponentZones)
+        public void LogMoves(CardList<CardInPlay>[] playerZones, CardList<CardInPlay>[] opponentZones)
         {
-            List<CardInPlay> playerBattlingUnits = new List<CardInPlay>();
-            List<CardInPlay> opponentBattlingUnits = new List<CardInPlay>();
+            CardList<CardInPlay> playerBattlingUnits = new CardList<CardInPlay>();
+            CardList<CardInPlay> opponentBattlingUnits = new CardList<CardInPlay>();
             playerBattlingUnits.AddRange(playerZones[(int)PlayZone.Attack]);
             playerBattlingUnits.AddRange(playerZones[(int)PlayZone.Windup]);
             playerBattlingUnits.AddRange(playerZones[(int)PlayZone.Battle]);
@@ -70,7 +70,7 @@ namespace LoRSideTracker
         /// <param name="last"></param>
         /// <param name="current"></param>
         /// <param name="opponentBattlingUnits"></param>
-        private void LogMovedInCards(List<CardInPlay> last, List<CardInPlay> current, List<CardInPlay> opponentBattlingUnits)
+        private void LogMovedInCards(CardList<CardInPlay> last, CardList<CardInPlay> current, CardList<CardInPlay> opponentBattlingUnits)
         {
             foreach (var card in current)
             {
@@ -91,7 +91,7 @@ namespace LoRSideTracker
         /// </summary>
         /// <param name="card">Card to log</param>
         /// <param name="opponentBattlingUnits">Opponent's battling units, used to find opposing unit in attack</param>
-        private void LogMove(CardInPlay card, List<CardInPlay> opponentBattlingUnits)
+        private void LogMove(CardInPlay card, CardList<CardInPlay> opponentBattlingUnits)
         {
             //if (card.LastNonEtherZone == card.CurrentZone)
             //{
@@ -140,14 +140,14 @@ namespace LoRSideTracker
                 case PlayZone.Attack:
                     // Look for the opposing card the opposing 
                     action = "Attacked";
-                    var oppCard = opponentBattlingUnits.Find(x => Math.Abs(card.NormalizedCenter.X - x.NormalizedCenter.X) < 0.05);
-                    if (oppCard == null)
+                    int index = opponentBattlingUnits.FindIndex(x => Math.Abs(card.NormalizedCenter.X - x.NormalizedCenter.X) < 0.05);
+                    if (index == -1)
                     {
                         target = " hits Face";
                     }
                     else
                     {
-                        target = string.Format(" hits {0}", oppCard.TheCard.Name);
+                        target = string.Format(" hits {0}", opponentBattlingUnits[index].TheCard.Name);
                     }
                     break;
                 case PlayZone.Graveyard:

@@ -72,6 +72,29 @@ namespace LoRSideTracker
     }
 
     /// <summary>
+    /// Duplicate key enumerator, allows duplicates in SortedList
+    /// </summary>
+    /// <typeparam name="TKey"></typeparam>
+    public class DuplicateKeyComparer<TKey> : IComparer<TKey> where TKey : IComparable
+    {
+        /// <summary>
+        /// Compare function, forces non-equality
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <returns></returns>
+        public int Compare(TKey x, TKey y)
+        {
+            int result = x.CompareTo(y);
+
+            if (result == 0)
+                return 1;   // Handle equality as beeing greater
+            else
+                return result;
+        }
+    }
+
+    /// <summary>
     /// Set of utility functions
     /// </summary>
     static class Utilities

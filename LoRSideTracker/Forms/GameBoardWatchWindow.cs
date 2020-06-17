@@ -13,17 +13,17 @@ namespace LoRSideTracker
     /// <summary>
     /// Overlay watch window
     /// </summary>
-    public partial class OverlayWatchWindow : Form
+    public partial class GameBoardWatchWindow : Form
     {
-        List<CardInPlay> PlayerElements = new List<CardInPlay>();
-        List<CardInPlay> OpponentElements = new List<CardInPlay>();
+        CardList<CardInPlay> PlayerElements = new CardList<CardInPlay>();
+        CardList<CardInPlay> OpponentElements = new CardList<CardInPlay>();
         int ScreenWidth = 1024;
         int ScreenHeight = 768;
 
         /// <summary>
         /// Constructor
         /// </summary>
-        public OverlayWatchWindow()
+        public GameBoardWatchWindow()
         {
             InitializeComponent();
             this.ResizeRedraw = true;
@@ -36,10 +36,10 @@ namespace LoRSideTracker
         /// <param name="opponentElements"></param>
         /// <param name="screenWidth"></param>
         /// <param name="screenHeight"></param>
-        public void Update(List<CardInPlay> playerElements, List<CardInPlay> opponentElements, int screenWidth, int screenHeight)
+        public void Update(CardList<CardInPlay> playerElements, CardList<CardInPlay> opponentElements, int screenWidth, int screenHeight)
         {
-            List<CardInPlay> playerElementsCopy= Utilities.Clone(playerElements);
-            List<CardInPlay> opponentElementsCopy = Utilities.Clone(opponentElements);
+            CardList<CardInPlay> playerElementsCopy= playerElements.Clone();
+            CardList<CardInPlay> opponentElementsCopy = opponentElements.Clone();
             if (InvokeRequired)
             {
                 this.Invoke(new Action(() =>

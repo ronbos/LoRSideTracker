@@ -69,7 +69,7 @@ namespace LoRSideTracker
         /// </summary>
         /// <param name="playerZones"></param>
         /// <param name="opponentZones"></param>
-        public void SetCards(List<CardInPlay>[] playerZones, List<CardInPlay>[] opponentZones)
+        public void SetCards(CardList<CardInPlay>[] playerZones, CardList<CardInPlay>[] opponentZones)
         {
             int NumZones = Enum.GetValues(typeof(PlayZone)).Length;
             string playerFullList = "";

@@ -59,7 +59,7 @@ namespace LoRSideTracker
         /// <param name="opponentCards"></param>
         /// <param name="screenWidth"></param>
         /// <param name="screenHeight"></param>
-        void OnElementsUpdate(List<CardInPlay> playerCards, List<CardInPlay> opponentCards, int screenWidth, int screenHeight);
+        void OnElementsUpdate(CardList<CardInPlay> playerCards, CardList<CardInPlay> opponentCards, int screenWidth, int screenHeight);
     }
 
     /// <summary>
@@ -79,11 +79,11 @@ namespace LoRSideTracker
         /// <summary>Current Opponent Name</summary>
         public string OpponentName { get; private set; } = string.Empty;
 
-        List<CardInPlay> PlayerDeck = new List<CardInPlay>();
-        List<CardInPlay> PlayerCards = new List<CardInPlay>();
-        List<CardInPlay> OpponentCards = new List<CardInPlay>();
+        static int NumZones = Enum.GetValues(typeof(PlayZone)).Length;
+        CardList<CardInPlay>[] PlayerCards = new CardList<CardInPlay>[NumZones];
+        CardList<CardInPlay>[] OpponentCards = new CardList<CardInPlay>[NumZones];
 
-        private List<CardInPlay> FullPlayerDeck = new List<CardInPlay>();
+        private CardList<CardInPlay> FullPlayerDeck = new CardList<CardInPlay>();
 
         private bool IsInitialDraw;
 
@@ -106,6 +106,11 @@ namespace LoRSideTracker
         /// </summary>
         public CardsInPlayWorker(ICardsInPlayCallback callback)
         {
+            for (int i = 0; i < NumZones; i++)
+            {
+                PlayerCards[i] = new CardList<CardInPlay>();
+                OpponentCards[i] = new CardList<CardInPlay>();
+            }
             IsInitialDraw = true;
             Callback = callback;
 
@@ -133,9 +138,12 @@ namespace LoRSideTracker
         {
             if (!InGame)
             {
-                PlayerDeck = FullPlayerDeck.Clone();
-                PlayerCards.Clear();
-                OpponentCards.Clear();
+                for (int i = 0; i < NumZones; i++)
+                {
+                    PlayerCards[i].Clear();
+                    OpponentCards[i].Clear();
+                }
+                PlayerCards[(int)PlayZone.Deck] = FullPlayerDeck.Clone();
                 InGame = true;
                 Log.Clear();
                 Log.WriteLine("New Game: {0} vs {1}", PlayerName, OpponentName);
@@ -150,9 +158,11 @@ namespace LoRSideTracker
             if (InGame)
             {
                 InGame = false;
-                PlayerDeck.Clear();
-                PlayerCards.Clear();
-                OpponentCards.Clear();
+                for (int i = 0; i < NumZones; i++)
+                {
+                    PlayerCards[i].Clear();
+                    OpponentCards[i].Clear();
+                }
             }
         }
 
@@ -173,12 +183,15 @@ namespace LoRSideTracker
                 {
                     for (int i = 0; i < card.Count; i++)
                     {
-                        FullPlayerDeck.Add(new CardInPlay(PlayerType.LocalPlayer, card.TheCard, PlayZone.Deck));
+                        FullPlayerDeck.Add(card.Cost, card.Name, new CardInPlay(PlayerType.LocalPlayer, card.TheCard, PlayZone.Deck));
                     }
                 }
-                PlayerDeck = FullPlayerDeck.Clone();
-                PlayerCards.Clear();
-                OpponentCards.Clear();
+                for (int i = 0; i < NumZones; i++)
+                {
+                    PlayerCards[i].Clear();
+                    OpponentCards[i].Clear();
+                }
+                PlayerCards[(int)PlayZone.Deck] = FullPlayerDeck.Clone();
                 IsInitialDraw = true;
             }
         }
@@ -213,7 +226,7 @@ namespace LoRSideTracker
 
         private void UpdateGameState(Dictionary<string, JsonElement> currentOverlay)
         {
-            List<CardInPlay> cards = new List<CardInPlay>();
+            CardList<CardInPlay> cards = new CardList<CardInPlay>();
             string oldGameState = GameState;
 
             if (currentOverlay != null)
@@ -252,12 +265,12 @@ namespace LoRSideTracker
         {
             TimeCounter++;
 
-            if (PlayerDeck.Count == 0 && PlayerCards.Count == 0)
+            if (PlayerCards[(int)PlayZone.Deck].Count == 0 && PlayerCards[(int)PlayZone.Graveyard].Count == 0)
             {
                 // Have not received the deck yet
                 return;
             }
-            List<CardInPlay> cardsInPlay = new List<CardInPlay>();
+            CardList<CardInPlay> cardsInPlay = new CardList<CardInPlay>();
 
             if (overlay != null)
             {
@@ -288,191 +301,243 @@ namespace LoRSideTracker
                     // Also ignore abilities
                     if (card.Type != "Ability")
                     {
-                        cardsInPlay.Add(new CardInPlay(dict, ScreenWidth, ScreenHeight, normalizedScreenHeight));
+                        cardsInPlay.Add(card.Cost, card.Name, new CardInPlay(dict, ScreenWidth, ScreenHeight, normalizedScreenHeight));
                     }
                 }
             }
 
             // Split next elements between owners. Also, disregard cards with unknown zone
-            var nextPlayerCards = cardsInPlay.FindAll(x => x.Owner == PlayerType.LocalPlayer && x.CurrentZone != PlayZone.Unknown).ToList();
-            var nextOpponentCards = cardsInPlay.FindAll(x => x.Owner == PlayerType.Opponent && x.CurrentZone != PlayZone.Unknown).ToList();
+            CardList<CardInPlay> nextPlayerCards = new CardList<CardInPlay>();
+            CardList<CardInPlay> nextOpponentCards = new CardList<CardInPlay>();
+            cardsInPlay.Split(ref nextPlayerCards, ref nextOpponentCards, x => x.Owner == PlayerType.LocalPlayer && x.CurrentZone != PlayZone.Unknown);
+            Callback.OnElementsUpdate(nextPlayerCards, nextOpponentCards, ScreenWidth, ScreenHeight);
 
-            var playerMovedCards = MoveToNext(ref PlayerCards, nextPlayerCards, ref PlayerDeck, IsInitialDraw);
+            MoveToNext(ref PlayerCards, nextPlayerCards, IsInitialDraw);
             if (IsInitialDraw)
             {
                 // Initial draw until we add some cards to hand
-                IsInitialDraw = (PlayerCards.FindIndex(x => x.CurrentZone == PlayZone.Hand) == -1);
+                IsInitialDraw = (PlayerCards[(int)PlayZone.Hand].Count() == 0);
             }
 
-            var emptyDeck = new List<CardInPlay>();
-            var opponentMovedCards = MoveToNext(ref OpponentCards, nextOpponentCards, ref emptyDeck);
+            MoveToNext(ref OpponentCards, nextOpponentCards);
 
             // Purge Ether of spells that have been cast
             bool thoroughCleanUp = false;
-            int handCardIndex = PlayerCards.FindIndex(x => x.CurrentZone == PlayZone.Hand);
-            if (handCardIndex >= 0 && PlayerCards[handCardIndex].NormalizedBoundingBox.Height < 0.235f)
+            int handCardIndex = PlayerCards[(int)PlayZone.Hand].FindIndex(x => x.CurrentZone == PlayZone.Hand);
+            if (PlayerCards[(int)PlayZone.Hand].Count() > 0 && PlayerCards[(int)PlayZone.Hand][0].NormalizedBoundingBox.Height < 0.235f)
             {
                 thoroughCleanUp = true;
             }
-            playerMovedCards.AddRange(CleanUpEther(ref PlayerCards, thoroughCleanUp));
-            opponentMovedCards.AddRange(CleanUpEther(ref OpponentCards, thoroughCleanUp));
+            PlayerCards[(int)PlayZone.Graveyard].AddRange(CleanUpEther(ref PlayerCards[(int)PlayZone.Ether], thoroughCleanUp));
+            OpponentCards[(int)PlayZone.Graveyard].AddRange(CleanUpEther(ref OpponentCards[(int)PlayZone.Ether], thoroughCleanUp));
 
             NotifyCardSetUpdates();
+
         }
 
         private void NotifyCardSetUpdates()
         {
-            // Move all the cards from the deck zone into the player deck
-            // This is only needed when cards get shuffled back into deck
-            while (true)
-            {
-                int index = PlayerCards.FindIndex(x => x.CurrentZone == PlayZone.Deck);
-                if (index < 0)
-                {
-                    break;
-                }
-                PlayerDeck.Add(PlayerCards[index]);
-                PlayerCards.RemoveAt(index);
-            }
-
-            // Divide each set of cards by zone
-            int numZones = Enum.GetValues(typeof(PlayZone)).Length;
-            List<CardInPlay>[] playerZones = new List<CardInPlay>[numZones];
-            List<CardInPlay>[] opponentZones = new List<CardInPlay>[numZones];
-            List<CardInPlay> opponentDeck = new List<CardInPlay>();
-            for (int i = 0; i < numZones; i++)
-            {
-                playerZones[i] = PlayerCards.FindAll(x => x.CurrentZone == (PlayZone)i).ToList();
-                opponentZones[i] = OpponentCards.FindAll(x => x.CurrentZone == (PlayZone)i).ToList();
-            }
-
-            // player deck zone only lists cards that have been shuffled back into deck
-            // Rejoin those cards with actual player deck
-            playerZones[0] = PlayerDeck.Clone();
-
 #if USE_DECK_LISTS
             // Broadcast all changes to deck lists
-            DeckLists.SetCards(playerZones, opponentZones);
+            DeckLists.SetCards(PlayerCards, OpponentCards);
 #endif
 
             // Log all moves
-            MoveLogger.LogMoves(playerZones, opponentZones);
+            MoveLogger.LogMoves(PlayerCards, OpponentCards);
 
             // Send deck updates
-            Callback.OnPlayerDeckChanged(GetDeck(playerZones[(int)PlayZone.Deck]));
-            Callback.OnPlayerDrawnAndPlayedChanged(GetDeck(PlayerCards.Clone()));
-            Callback.OnPlayerGraveyardChanged(GetDeck(playerZones[(int)PlayZone.Graveyard]));
-            Callback.OnOpponentGraveyardChanged(GetDeck(opponentZones[(int)PlayZone.Graveyard]));
-            Callback.OnOpponentDeckChanged(GetDeck(OpponentCards.Clone()));
-            Callback.OnElementsUpdate(PlayerCards, OpponentCards, ScreenWidth, ScreenHeight);
-
+            Callback.OnPlayerDeckChanged(GetDeck(PlayerCards[(int)PlayZone.Deck]));
+            Callback.OnPlayerDrawnAndPlayedChanged(GetDeck(PlayerCards, (int)PlayZone.Deck));
+            Callback.OnPlayerGraveyardChanged(GetDeck(PlayerCards[(int)PlayZone.Graveyard]));
+            Callback.OnOpponentGraveyardChanged(GetDeck(OpponentCards[(int)PlayZone.Graveyard]));
+            Callback.OnOpponentDeckChanged(GetDeck(OpponentCards, (int)PlayZone.Deck));
         }
 
-        private List<CardWithCount> GetDeck(List<CardInPlay> current)
+        private List<CardWithCount> GetDeck(CardList<CardInPlay> current)
         {
-            var cards = current.OrderBy(card => card.TheCard.Cost).ThenBy(card => card.TheCard.Name);
             List<CardWithCount> deck = new List<CardWithCount>();
-            foreach (CardInPlay card in cards)
+            int count = 1;
+            for (int i = 0; i < current.Count; i++)
             {
-                int index = deck.FindIndex(x => card.MatchesCode(x.Code));
-                if (index >= 0)
+                if (i + 1 < current.Count && current[i].CardCode == current[i + 1].CardCode)
                 {
-                    deck[index].Count++;
+                    count++;
                 }
                 else
                 {
-                    deck.Add(new CardWithCount(card.TheCard, 1));
+                    deck.Add(new CardWithCount(current[i].TheCard, count));
+                    count = 1;
                 }
             }
-            return deck.OrderBy(card => card.Cost).ThenBy(card => card.Name).ToList();
+            return deck;
         }
 
-        List<CardInPlay> MoveToNext(ref List<CardInPlay> current, List<CardInPlay> next, ref List<CardInPlay> deck, bool isInitialDraw = false)
+        private List<CardWithCount> GetDeck(CardList<CardInPlay>[] current, int excludeZone = -1)
         {
-            List<CardInPlay> result = new List<CardInPlay>();
+            CardList<CardInPlay> allCards = new CardList<CardInPlay>();
+            for (int i = 0; i < NumZones; i++)
+            {
+                if (i != excludeZone)
+                {
+                    allCards.AddRange(current[i]);
+                }
+            }
+            return GetDeck(allCards);
+        }
+
+        void MoveToNext(ref CardList<CardInPlay>[] current, CardList<CardInPlay> next, bool isInitialDraw = false)
+        {
+            CardList<CardInPlay> stationaryResult = new CardList<CardInPlay>();
+            CardList<CardInPlay> movedResult = new CardList<CardInPlay>();
 
             // For each card in 'next', look for a card in 'current' that's in the same zone
             // If found, remove from both and add to stationaryCards set
-            var stationaryCards = RemoveStationary(ref current, ref next);
+            for (int i = 0; i < NumZones; i++)
+            {
+                stationaryResult.AddRange(CardList<CardInPlay>.Extract(ref next, ref current[i], (x, y) =>
+                {
+                    // Skip values in next that are incorrect zone
+                    if ((int)x.CurrentZone != i) return -1;
+                    int z = x.TheCard.Cost - y.TheCard.Cost;
+                    if (z == 0) z = x.TheCard.Name.CompareTo(y.TheCard.Name);
+                    return z;
+                }));
+            }
 
-            // Another type of stationary card is one that went to ether and came back to the same zone
-            var etherStationaryCards = RemoveEtherStationary(ref current, ref next);
+            // For each card in next, look for a card in 'current' Ether zone that may have returned to the same zone
+            stationaryResult.AddRange(CardList<CardInPlay>.Extract(ref next, ref current[(int)PlayZone.Ether], (x, y) =>
+            {
+                // Skip values in next that are incorrect zone
+                if (y.CurrentZone != PlayZone.Ether) return -1;
+                int z = x.TheCard.Cost - y.TheCard.Cost;
+                if (z == 0) z = x.TheCard.Name.CompareTo(y.TheCard.Name);
+                // Skip values in current that are incorrect zone
+                if (z == 0 && x.CurrentZone != y.LastNonEtherZone) z = 1;
+                return z;
+            }, (x, y) =>
+            {
+                y.BoundingBox = x.BoundingBox;
+                y.NormalizedBoundingBox = x.NormalizedBoundingBox;
+                y.NormalizedCenter = x.NormalizedCenter;
+                y.MoveToZone(x.CurrentZone);
+                return y;
+            }));
 
-            // We then check for cards that went to ether and came back in another zone with approved transition
-            var etherTransitions = RemoveEtherTransitions(ref current, ref next, isInitialDraw);
+            // For each card in next, look for a card in 'current' Ether zone that may has an approved transition
+            movedResult.AddRange(CardList<CardInPlay>.Extract(ref next, ref current[(int)PlayZone.Ether], (x, y) =>
+            {
+                // Skip values in next that are incorrect zone
+                if (y.CurrentZone != PlayZone.Ether) return -1;
+                int z = x.TheCard.Cost - y.TheCard.Cost;
+                if (z == 0) z = x.TheCard.Name.CompareTo(y.TheCard.Name);
+                // Skip values in current that are incorrect zone
+                if (z == 0 && GameBoard.TransitionResult.Proceed != GameBoard.TransitionAllowed(y.LastNonEtherZone, x.CurrentZone, isInitialDraw)) z = 1;
+                return z;
+            }, (x, y) =>
+            {
+                x.LastNonEtherZone = y.LastNonEtherZone;
+                x.LastZone = PlayZone.Ether;
+                return x;
+            }));
 
-            var movedCards = RemoveApprovedTransitions(ref current, ref next, isInitialDraw);
-            var declinedCards = RemoveDeclinedTransitions(ref current, ref next, isInitialDraw);
+            // For each card in next, look for approved transitions, skipping current in deck
+            for (int i = 0; i < NumZones; i++)
+            {
+                if (i == (int) PlayZone.Deck)
+                {
+                    continue;
+                }
 
-            var addedFromDeck = RemoveApprovedTransitions(ref deck, ref next, isInitialDraw);
+                movedResult.AddRange(CardList<CardInPlay>.Extract(ref next, ref current[i], (x, y) =>
+                {
+                    // Skip values in next that are incorrect zone
+                    int z = x.TheCard.Cost - y.TheCard.Cost;
+                    if (z == 0) z = x.TheCard.Name.CompareTo(y.TheCard.Name);
+                    if (z == 0 && GameBoard.TransitionResult.Proceed != GameBoard.TransitionAllowed(y.LastNonEtherZone, x.CurrentZone, isInitialDraw)) z = 1;
+                    return z;
+                }, (x, y) =>
+                {
+                    x.SetLastZone(y.CurrentZone);
+                    return x;
+                }));
+            }
+
+            // For each card in next, look for declined transitions
+            for (int i = 0; i < NumZones; i++)
+            {
+                stationaryResult.AddRange(CardList<CardInPlay>.Extract(ref next, ref current[i], (x, y) =>
+                {
+                    // Skip values in next that are incorrect zone
+                    int z = x.TheCard.Cost - y.TheCard.Cost;
+                    if (z == 0) z = x.TheCard.Name.CompareTo(y.TheCard.Name);
+                    if (z == 0 && GameBoard.TransitionResult.Stay != GameBoard.TransitionAllowed(y.LastNonEtherZone, x.CurrentZone, isInitialDraw)) z = 1;
+                    return z;
+                }, (x, y) =>
+                {
+                    y.BoundingBox = x.BoundingBox;
+                    y.NormalizedBoundingBox = x.NormalizedBoundingBox;
+                    y.NormalizedCenter = x.NormalizedCenter;
+                    return y;
+                }));
+            }
+
+            // For each card in next, look for approved transitions from deck
+            movedResult.AddRange(CardList<CardInPlay>.Extract(ref next, ref current[(int)PlayZone.Deck], (x, y) =>
+            {
+                // Skip values in next that are incorrect zone
+                int z = x.TheCard.Cost - y.TheCard.Cost;
+                if (z == 0) z = x.TheCard.Name.CompareTo(y.TheCard.Name);
+                if (z == 0 && GameBoard.TransitionResult.Proceed != GameBoard.TransitionAllowed(y.LastNonEtherZone, x.CurrentZone, isInitialDraw)) z = 1;
+                return z;
+            }, (x, y) =>
+            {
+                x.SetLastZone(y.CurrentZone);
+                return x;
+            }));
 
             // Move not in deck to ether
-            for (int i = 0; i < current.Count; i++)
+            for (int i = 0; i < NumZones; i++)
             {
-                switch (current[i].CurrentZone)
+                PlayZone newZone = PlayZone.Ether;
+                if (i == (int)PlayZone.Deck || i == (int)PlayZone.Graveyard || i == (int)PlayZone.Ether)
                 {
-                    case PlayZone.Ether:
-                    case PlayZone.Deck:
-                    case PlayZone.Graveyard:
-                        // Leave as is
-                        continue;
-                    case PlayZone.Stage:
-                        if (!isInitialDraw)
-                        {
-                            goto case default;
-                        }
-                        // Put back to deck
-                        current[i].MoveToZone(PlayZone.Deck);
-                        result.Add(current[i]);
-                        break;
-                    default:
-                        current[i].MoveToZone(PlayZone.Ether);
-                        result.Add(current[i]);
-                        break;
+                    continue;
                 }
-                LogMove(current[i], false);
-            }
-
-            current.AddRange(stationaryCards);
-            current.AddRange(declinedCards);
-
-            foreach (var card in etherTransitions) LogMove(card, true);
-            current.AddRange(etherStationaryCards);
-
-            foreach (var card in addedFromDeck)
-            {
-                LogMove(card, true);
-            }
-            current.AddRange(addedFromDeck);
-
-            foreach (var card in etherTransitions)
-            {
-                LogMove(card, true);
-            }
-            current.AddRange(etherTransitions);
-
-            foreach (var card in movedCards)
-            {
-                if (card.LastZone != card.CurrentZone)
+                if (i == (int) PlayZone.Stage && isInitialDraw)
                 {
-                    LogMove(card, true);
+                    newZone = PlayZone.Deck;
                 }
+
+                for (int j = 0; j < current[i].Count; j++)
+                {
+                    current[i][j].MoveToZone(newZone);
+                }
+                movedResult.AddRange(current[i]);
+                current[i].Clear();
             }
-            current.AddRange(movedCards);
 
             // Remove cards in next that are in a zone that does not accept from Unknown
-            next = next.FindAll(x => TransitionResult.Proceed == TransitionAllowed(x.LastNonEtherZone, x.CurrentZone, isInitialDraw)).ToList();
+            next = next.GetSubset(x => GameBoard.TransitionResult.Proceed == GameBoard.TransitionAllowed(x.LastNonEtherZone, x.CurrentZone, isInitialDraw));
             foreach (var card in next)
             {
                 LogMove(card, true);
             }
-            current.AddRange(next);
 
-            result.AddRange(etherTransitions);
-            result.AddRange(movedCards);
-            result.AddRange(next);
-            int num = current.FindAll(x => x.LastNonEtherZone == PlayZone.Unknown && x.CurrentZone == PlayZone.Attack).Count();
-            return result;
+            // Add remaining cards to the moved set
+            movedResult.AddRange(next);
+
+            // Log all moves
+            foreach (var card in movedResult)
+            {
+                LogMove(card, card.CurrentZone != PlayZone.Ether);
+            }
+
+            // Re-add all the cars to the zones
+            for (int i = 0; i < NumZones; i++)
+            {
+                current[i].AddRange(stationaryResult.GetSubset(x => (int)x.CurrentZone == i));
+                current[i].AddRange(movedResult.GetSubset(x => (int)x.CurrentZone == i));
+            }
         }
 
         private void LogMove(CardInPlay card, bool logPosition = false)
@@ -493,40 +558,19 @@ namespace LoRSideTracker
             }
         }
 
-        private List<CardInPlay> CleanUpEther(ref List<CardInPlay> current, bool doThoroughCleanUp = false)
+        private CardList<CardInPlay> CleanUpEther(ref CardList<CardInPlay> currentEther, bool doThoroughCleanUp = false)
         {
-            List<CardInPlay> result = new List<CardInPlay>();
+            CardList<CardInPlay> result = new CardList<CardInPlay>();
 
             // First, clean up all the spells that were cast
-            int index = -1;
-            while (current.Count > 0 && index < current.Count)
-            {
-                index = current.FindIndex(index + 1, x => x.CurrentZone == PlayZone.Ether && x.LastZone == PlayZone.Cast);
-                if (index == -1)
-                {
-                    break;
-                }
-                result.Add(current[index]);
-                current.RemoveAt(index);
-            }
+            result.AddRange(currentEther.ExtractSubset(x => x.LastZone == PlayZone.Cast));
 
             // Next, clean up all the units from hand or tossing that have been here even longer
             // Only do this if we are asked to do a thorough cleanup
             if (doThoroughCleanUp)
             {
                 DateTime now = DateTime.Now;
-                index = -1;
-                while (current.Count > 0 && index < current.Count)
-                {
-                    index = current.FindIndex(index + 1, x => x.CurrentZone == PlayZone.Ether
-                        && (now - x.EtherStartTime).TotalMilliseconds > 4000);
-                    if (index == -1)
-                    {
-                        break;
-                    }
-                    result.Add(current[index]);
-                    current.RemoveAt(index);
-                }
+                result.AddRange(currentEther.ExtractSubset(x => (now - x.EtherStartTime).TotalMilliseconds > 4000));
             }
 
             for (int i = 0; i < result.Count; i++)
@@ -534,256 +578,7 @@ namespace LoRSideTracker
                 result[i].MoveToZone(PlayZone.Graveyard);
                 LogMove(result[i], false);
             }
-            current.AddRange(result);
             return result;
-        }
-
-
-        private List<CardInPlay> RemoveStationary(ref List<CardInPlay> current, ref List<CardInPlay> next)
-        {
-            List<CardInPlay> result = new List<CardInPlay>();
-            for (int i = next.Count - 1; i >= 0; i--)
-            {
-                var code = next[i].CardCode;
-                var zone = next[i].CurrentZone;
-                int j = current.FindIndex(x => x.CurrentZone == zone && x.MatchesCode(code));
-                if (j >= 0)
-                {
-                    current[j].BoundingBox = next[i].BoundingBox;
-                    current[j].NormalizedBoundingBox = next[i].NormalizedBoundingBox;
-                    current[j].NormalizedCenter = next[i].NormalizedCenter;
-
-                    result.Add(current[j]);
-                    current.RemoveAt(j);
-                    next.RemoveAt(i);
-                }
-            }
-
-            return result;
-        }
-
-        private List<CardInPlay> RemoveEtherStationary(ref List<CardInPlay> current, ref List<CardInPlay> next)
-        {
-            List<CardInPlay> result = new List<CardInPlay>();
-            for (int i = next.Count - 1; i >= 0; i--)
-            {
-                var code = next[i].CardCode;
-                var zone = next[i].CurrentZone;
-                int j = current.FindIndex(x => x.CurrentZone == PlayZone.Ether && x.LastNonEtherZone == zone && x.MatchesCode(code));
-                if (j >= 0)
-                {
-                    current[j].BoundingBox = next[i].BoundingBox;
-                    current[j].NormalizedBoundingBox = next[i].NormalizedBoundingBox;
-                    current[j].NormalizedCenter = next[i].NormalizedCenter;
-                    current[j].MoveToZone(next[i].CurrentZone);
-                    result.Add(current[j]);
-                    current.RemoveAt(j);
-                    next.RemoveAt(i);
-                }
-            }
-
-            return result;
-        }
-
-        private List<CardInPlay> RemoveEtherTransitions(ref List<CardInPlay> current, ref List<CardInPlay> next, bool initialDraw)
-        {
-            List<CardInPlay> result = new List<CardInPlay>();
-            for (int i = current.Count - 1; i >= 0; i--)
-            {
-                if (current[i].CurrentZone == PlayZone.Ether)
-                {
-                    var code = current[i].CardCode;
-                    var associatedCardCodes = current[i].TheCard.AssociatedCardCodes;
-                    var lastNonEtherZone = current[i].LastNonEtherZone;
-
-                    // Firs find the exact cyclical match
-                    int j = next.FindIndex(x => TransitionResult.Proceed == TransitionAllowed(lastNonEtherZone, x.CurrentZone, initialDraw)
-                        && x.MatchesCode(code));
-
-                    // Register the transition, if found
-                    if (j >= 0)
-                    {
-                        next[j].LastNonEtherZone = current[i].LastNonEtherZone;
-                        next[j].LastZone = PlayZone.Ether;
-                        result.Add(next[j]);
-                        current.RemoveAt(i);
-                        next.RemoveAt(j);
-                    }
-                }
-            }
-
-            return result;
-        }
-        private List<CardInPlay> RemoveApprovedTransitions(ref List<CardInPlay> current, ref List<CardInPlay> next, bool isInitialDraw)
-        {
-            List<CardInPlay> result = new List<CardInPlay>();
-
-            for (int i = next.Count - 1; i >= 0; i--)
-            {
-                var card = next[i];
-
-                // Look for transitions
-                int j = current.FindIndex(x => x.MatchesCode(card.CardCode)
-                    && TransitionResult.Proceed == TransitionAllowed(x.CurrentZone, card.CurrentZone, isInitialDraw));
-                if (j >= 0)
-                {
-                    next[i].SetLastZone(current[j].CurrentZone);
-                    result.Add(next[i]);
-                    current.RemoveAt(j);
-                    next.RemoveAt(i);
-                }
-            }
-            return result;
-        }
-
-        private List<CardInPlay> RemoveDeclinedTransitions(ref List<CardInPlay> current, ref List<CardInPlay> next, bool isInitialDraw)
-        {
-            List<CardInPlay> result = new List<CardInPlay>();
-
-            for (int i = next.Count - 1; i >= 0; i--)
-            {
-                var card = next[i];
-
-                // Look for transitions
-                int j = current.FindIndex(x => x.MatchesCode(card.CardCode)
-                    && TransitionResult.Stay == TransitionAllowed(x.CurrentZone, card.CurrentZone, isInitialDraw));
-                if (j >= 0)
-                {
-                    current[j].BoundingBox = next[i].BoundingBox;
-                    current[j].NormalizedBoundingBox = next[i].NormalizedBoundingBox;
-                    current[j].NormalizedCenter = next[i].NormalizedCenter;
-                    result.Add(current[j]);
-                    current.RemoveAt(j);
-                    next.RemoveAt(i);
-                }
-            }
-            return result;
-        }
-
-        enum TransitionResult
-        {
-            /// <summary>Transition not recognized/allowed</summary>
-            Disallow,
-            /// <summary>Transition recognized/allowed</summary>
-            Proceed,
-            /// <summary>Transition recognized, but card should stay in original zone</summary>
-            Stay,
-        }
-
-        private TransitionResult TransitionAllowed(PlayZone from, PlayZone to, bool initialDraw)
-        {
-            // Only allow additions to deck from stage during initial draw
-            if (to == PlayZone.Deck)
-            {
-                return (IsInitialDraw && from == PlayZone.Stage) ? TransitionResult.Proceed : TransitionResult.Disallow;
-            }
-
-            switch (from)
-            {
-                case PlayZone.Deck:
-                    if (initialDraw)
-                    {
-                        return (to == PlayZone.Hand || to == PlayZone.Stage) ? TransitionResult.Proceed : TransitionResult.Disallow;
-                    }
-                    else
-                    {
-                        return (to == PlayZone.Zoom) ? TransitionResult.Proceed : TransitionResult.Disallow;
-                    }
-                case PlayZone.Tossing:
-                    switch (to)
-                    {
-                        case PlayZone.Stage: // This is due to a bug
-                        case PlayZone.Hand: // This is due to a bug
-                        case PlayZone.Field: // This is due to a bug
-                            return TransitionResult.Proceed;
-                        default:
-                            return TransitionResult.Disallow;
-                    }
-                case PlayZone.Zoom:
-                    return (to == PlayZone.Hand) ? TransitionResult.Proceed : TransitionResult.Disallow;
-                case PlayZone.Stage:
-                    if (initialDraw)
-                    {
-                        // We only ever return to deck from initial draw
-                        switch (to)
-                        {
-                            case PlayZone.Deck: return TransitionResult.Proceed;
-                            default: return TransitionResult.Disallow;
-                        }
-                    }
-                    else
-                    {
-                        switch (to)
-                        {
-                            case PlayZone.Field: return TransitionResult.Proceed;
-                            case PlayZone.Hand: return TransitionResult.Proceed;
-                            default: return TransitionResult.Disallow;
-                        }
-                    }
-                case PlayZone.Hand:
-                    switch (to)
-                    {
-                        case PlayZone.Field: return TransitionResult.Proceed;
-                        case PlayZone.Cast: return TransitionResult.Proceed;
-                        case PlayZone.Stage: return TransitionResult.Proceed;
-                        default: return TransitionResult.Stay;
-                    }
-                case PlayZone.Cast:
-                    return (to == PlayZone.Hand) ? TransitionResult.Proceed : TransitionResult.Disallow;
-                case PlayZone.Field:
-                    switch (to)
-                    {
-                        case PlayZone.Hand: return TransitionResult.Proceed; // For recall mechanics
-                        case PlayZone.Battle: return TransitionResult.Proceed;
-                        case PlayZone.Attack: return TransitionResult.Stay;
-                        case PlayZone.Windup: return TransitionResult.Stay;
-                        case PlayZone.Tossing: return TransitionResult.Proceed; // For spell summoning, likely a bug
-                        default: return TransitionResult.Disallow;
-                    }
-                case PlayZone.Battle:
-                    switch (to)
-                    {
-                        case PlayZone.Hand: return TransitionResult.Proceed; // For recall mechanics
-                        case PlayZone.Field: return TransitionResult.Proceed;
-                        case PlayZone.Windup: return TransitionResult.Proceed;
-                        case PlayZone.Attack: return TransitionResult.Stay;
-                        default: return TransitionResult.Disallow;
-                    }
-                case PlayZone.Windup:
-                    switch (to)
-                    {
-                        case PlayZone.Field: return TransitionResult.Proceed;
-                        case PlayZone.Battle: return TransitionResult.Stay;
-                        case PlayZone.Attack: return TransitionResult.Proceed;
-                        default: return TransitionResult.Disallow;
-                    }
-                case PlayZone.Attack:
-                    switch (to)
-                    {
-                        case PlayZone.Field: return TransitionResult.Proceed;
-                        case PlayZone.Battle: return TransitionResult.Stay;
-                        case PlayZone.Windup: return TransitionResult.Stay;
-                        default: return TransitionResult.Disallow;
-                    }
-                case PlayZone.Graveyard:
-                    return TransitionResult.Disallow;
-                case PlayZone.Unknown:
-                    // We only allow cetain zones to accept cards from unknown
-                    switch (to)
-                    {
-                        case PlayZone.Field:
-                        case PlayZone.Battle:
-                        case PlayZone.Stage:
-                        case PlayZone.Cast:
-                        case PlayZone.Tossing:
-                        case PlayZone.Hand:
-                            return TransitionResult.Proceed;
-                        default: return TransitionResult.Disallow;
-                    }
-                case PlayZone.Ether:
-                    return TransitionResult.Disallow;
-            }
-            return TransitionResult.Disallow;
         }
     }
 }

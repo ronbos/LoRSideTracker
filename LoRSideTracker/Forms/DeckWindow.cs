@@ -69,6 +69,7 @@ namespace LoRSideTracker
             if (!allCards.SequenceEqual(AllCards))
             {
                 AllCards = Utilities.Clone(allCards);
+                CurrentCards = Utilities.Clone(allCards);
                 UpdateDeck();
             }
         }
