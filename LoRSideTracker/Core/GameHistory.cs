@@ -66,7 +66,7 @@ namespace LoRSideTracker
             if (Directory.Exists(Constants.GetLocalGamesPath()))
             {
                 DirectoryInfo dirInfo = new DirectoryInfo(Constants.GetLocalGamesPath());
-                FileInfo[] files = dirInfo.GetFiles();
+                FileInfo[] files = dirInfo.GetFiles("*.txt");
 
                 foreach (FileInfo fi in files.OrderBy(x => x.CreationTime))
                 {
@@ -89,7 +89,7 @@ namespace LoRSideTracker
         public static void AddGameRecord(GameRecord gr)
         {
             try { gr.OpponentName = AIDeckNames[gr.OpponentName]; } catch { }
-            Games.Insert(0, (GameRecord)gr.Clone());
+            Games.Insert(0, gr);
         }
 
         /// <summary>

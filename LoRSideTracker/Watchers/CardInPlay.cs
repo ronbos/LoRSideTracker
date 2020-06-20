@@ -45,7 +45,7 @@ namespace LoRSideTracker
         /// <summary></summary>
         public PlayZone LastNonEtherZone { get; set; }
         /// <summary></summary>
-        public DateTime EtherStartTime { get; set; }
+        public double EtherStartTime { get; set; }
 
         /// <summary>
         /// Constructor
@@ -64,7 +64,6 @@ namespace LoRSideTracker
             CurrentZone = currentZone;
             LastZone = PlayZone.Unknown;
             LastNonEtherZone = PlayZone.Unknown;
-            EtherStartTime = DateTime.Now;
         }
 
         /// <summary>
@@ -73,18 +72,20 @@ namespace LoRSideTracker
         /// <param name="dict"></param>
         /// <param name="screenWidth"></param>
         /// <param name="screenHeight"></param>
+        /// <param name="correctionOffset"></param>
         /// <param name="screenHeightForNormalized"></param>
         public CardInPlay(Dictionary<string, JsonElement> dict,
             int screenWidth,
             int screenHeight,
+            Point correctionOffset,
             float screenHeightForNormalized)
         {
             CardCode = dict["CardCode"].GetString();
             TheCard = CardLibrary.GetCard(CardCode);
             Owner = dict["LocalPlayer"].GetBoolean() ? PlayerType.LocalPlayer : PlayerType.Opponent;
             BoundingBox = new Rectangle(
-                dict["TopLeftX"].GetInt32(),
-                screenHeight - dict["TopLeftY"].GetInt32(), // Elements are reported upside down for some reason
+                dict["TopLeftX"].GetInt32() + correctionOffset.X,
+                screenHeight - dict["TopLeftY"].GetInt32() - correctionOffset.Y, // Elements are reported upside down for some reason
                 dict["Width"].GetInt32(),
                 dict["Height"].GetInt32());
 
@@ -114,14 +115,15 @@ namespace LoRSideTracker
         /// Move card to a new zone and propagate last zone parameters
         /// </summary>
         /// <param name="zone"></param>
-        public void MoveToZone(PlayZone zone)
+        /// <param name="timestamp"></param>
+        public void MoveToZone(PlayZone zone, double timestamp)
         {
             if (CurrentZone != zone)
             {
                 SetLastZone(CurrentZone);
                 if (zone == PlayZone.Ether)
                 {
-                    EtherStartTime = DateTime.Now;
+                    EtherStartTime = timestamp;
                 }
                 CurrentZone = zone;
             }

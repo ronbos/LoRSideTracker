@@ -105,7 +105,8 @@ namespace LoRSideTracker
         /// Process newly updated web string to generate new expedition state
         /// </summary>
         /// <param name="newValue">new web string</param>
-        public void OnWebStringUpdated(string newValue)
+        /// <param name="timestamp">associated timestamp</param>
+        public void OnWebStringUpdated(string newValue, double timestamp)
         {
             if (Utilities.IsJsonStringValid(newValue))
             {
@@ -162,17 +163,9 @@ namespace LoRSideTracker
         public string GetSignature()
         {
             string result = "";
-            for (int i = 0; DraftPicks != null && i < DraftPicks.Length && i < 15; i++)
+            for (int i = 0; DraftPicks != null && i < DraftPicks.Length && i < 14; i++)
             {
-                if (DraftPicks[i].DraftPicks != null)
-                {
-                    result += string.Join("", DraftPicks[i].DraftPicks);
-                }
-                else
-                {
-                    result += string.Join("", DraftPicks[i].SwappedIn);
-                    result += string.Join("", DraftPicks[i].SwappedOut);
-                }
+                result += string.Join("", DraftPicks[i].DraftPicks);
             }
             return result;
         }

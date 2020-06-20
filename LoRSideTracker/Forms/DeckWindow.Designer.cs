@@ -47,6 +47,7 @@
             // 
             // MyDeckControl
             // 
+            this.MyDeckControl.BorderSize = 1;
             this.MyDeckControl.IsMinimized = false;
             this.MyDeckControl.Location = new System.Drawing.Point(0, 0);
             this.MyDeckControl.Name = "MyDeckControl";
@@ -63,6 +64,7 @@
             this.ClientSize = new System.Drawing.Size(150, 266);
             this.Controls.Add(this.MyDeckStatsDisplay);
             this.Controls.Add(this.MyDeckControl);
+            this.DoubleBuffered = true;
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
             this.Name = "DeckWindow";
             this.ShowInTaskbar = false;

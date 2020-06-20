@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
@@ -48,7 +49,8 @@ namespace LoRSideTracker
         /// Process newly updated web string to generate new deck contents
         /// </summary>
         /// <param name="newValue">new web string</param>
-        public void OnWebStringUpdated(string newValue)
+        /// <param name="timestamp">associated timestamp</param>
+        public void OnWebStringUpdated(string newValue, double timestamp)
         {
             Cards = new List<CardWithCount>();
             string deckCode = "";

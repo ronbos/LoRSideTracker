@@ -93,10 +93,7 @@ namespace LoRSideTracker
         /// <param name="opponentBattlingUnits">Opponent's battling units, used to find opposing unit in attack</param>
         private void LogMove(CardInPlay card, CardList<CardInPlay> opponentBattlingUnits)
         {
-            //if (card.LastNonEtherZone == card.CurrentZone)
-            //{
-            //    continue;
-            //}
+            int index;
             LogType logType = (card.Owner == PlayerType.LocalPlayer) ? LogType.Player : LogType.Opponent;
             string action = null;
             string target = "";
@@ -134,21 +131,40 @@ namespace LoRSideTracker
                     //action = "Placed";
                     break;
                 case PlayZone.Windup:
-                    logType = LogType.Debug;
-                    action = "Attacking";
+                    if (card.LastNonEtherZone != PlayZone.Attack)
+                    {
+                        action = "Attacking";
+                        logType = LogType.Debug;
+                    }
+                    /*index = opponentBattlingUnits.FindIndex(x => Math.Abs(card.NormalizedCenter.X - x.NormalizedCenter.X) < 0.05);
+                    if (index == -1)
+                    {
+                        target = " against Face";
+                    }
+                    else
+                    {
+                        target = string.Format(" against {0}", opponentBattlingUnits[index].TheCard.Name);
+                    }*/
                     break;
                 case PlayZone.Attack:
                     // Look for the opposing card the opposing 
                     action = "Attacked";
-                    int index = opponentBattlingUnits.FindIndex(x => Math.Abs(card.NormalizedCenter.X - x.NormalizedCenter.X) < 0.05);
-                    if (index == -1)
+                    //if (card.LastNonEtherZone != PlayZone.Windup)
                     {
-                        target = " hits Face";
+                        index = opponentBattlingUnits.FindIndex(x => Math.Abs(card.NormalizedCenter.X - x.NormalizedCenter.X) < 0.05);
+                        if (index == -1)
+                        {
+                            target = " hits Face";
+                        }
+                        else
+                        {
+                            target = string.Format(" hits {0}", opponentBattlingUnits[index].TheCard.Name);
+                        }
                     }
-                    else
-                    {
-                        target = string.Format(" hits {0}", opponentBattlingUnits[index].TheCard.Name);
-                    }
+                    //else
+                    //{
+                    //    logType = LogType.Debug;
+                    //}
                     break;
                 case PlayZone.Graveyard:
                     logType = LogType.Debug;

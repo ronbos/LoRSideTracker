@@ -4,9 +4,11 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Net;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Windows.Forms;
@@ -335,6 +337,37 @@ namespace LoRSideTracker
             SetWindowPos(frm.Handle.ToInt32(), HWND_TOPMOST,
             frm.Left, frm.Top, frm.Width, frm.Height,
             SWP_NOACTIVATE);
+        }
+
+        public static byte[] ZipFromStringList(List<string> strList)
+        {
+            var outputStream = new MemoryStream();
+            var gzipStream = new GZipStream(outputStream, CompressionMode.Compress);
+            using (var writer = new StreamWriter(gzipStream, Encoding.UTF8))
+            {
+                foreach (var str in strList)
+                {
+                    writer.WriteLine(str);
+                }
+            }
+
+            return outputStream.ToArray();
+        }
+
+        public static List<string> UnzipToStringList(byte[] bytes)
+        {
+            var inputStream = new MemoryStream(bytes);
+            var gzipStream = new GZipStream(inputStream, CompressionMode.Decompress);
+            List<string> result = new List<string>();
+            using (var reader = new StreamReader(gzipStream, Encoding.UTF8))
+            {
+                string line;
+                while ((line = reader.ReadLine()) != null)
+                {
+                    result.Add(line);
+                }
+            }
+            return result;
         }
     }
 }

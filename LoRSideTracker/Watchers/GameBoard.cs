@@ -53,9 +53,13 @@ namespace LoRSideTracker
         /// <returns></returns>
         public static PlayZone FindPlayZone(PointF normalizedCenter, RectangleF normalizedBoundingBox)
         {
-
             // Find the zone for each card
-            if (normalizedCenter.Y > 1.0f)
+            if (normalizedBoundingBox.Height < 0)
+            {
+                // This looks like a definite bug, ignore cards with negative dimensions
+                return PlayZone.Unknown;
+            }
+            else if (normalizedCenter.Y > 1.0f)
             {
                 // Card in hand is at 0.22-0.235 height when in hand
                 // When hand is moused over, it grows to ~0.28-0.295
@@ -91,7 +95,7 @@ namespace LoRSideTracker
 
                 // Camp, Battle, Attack zones all use nominal size of 0.145-0.1485
                 //For camp, normalized center Y is ~ 0.83
-                if (normalizedBoundingBox.Height > 0.155f || normalizedCenter.Y > 0.8f)
+                if (normalizedBoundingBox.Height > 0.155f || normalizedCenter.Y > 0.82f)
                 {
                     return PlayZone.Field;
                 }
@@ -220,7 +224,8 @@ namespace LoRSideTracker
                     {
                         case PlayZone.Field: return TransitionResult.Proceed;
                         case PlayZone.Battle: return TransitionResult.Stay;
-                        case PlayZone.Windup: return TransitionResult.Stay;
+                        case PlayZone.Windup: return TransitionResult.Proceed;
+                        case PlayZone.Hand: return TransitionResult.Proceed; // Katarina-style recall mechanics
                         default: return TransitionResult.Disallow;
                     }
                 case PlayZone.Graveyard:

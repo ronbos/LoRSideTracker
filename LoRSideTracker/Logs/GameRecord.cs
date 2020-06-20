@@ -39,6 +39,9 @@ namespace LoRSideTracker
         /// <summary>Game Record display string</summary>
         public string DisplayString { get; set; } = "???";
 
+        /// <summary>Game Playback File</summary>
+        public string GamePlaybackFile { get; set; }
+
         /// <summary>
         ///  Constructor
         /// </summary>
@@ -108,6 +111,11 @@ namespace LoRSideTracker
             result.Notes = gameRecord["Notes"].ToString();
             result.Timestamp = gameRecord["Timestamp"].ToObject<DateTime>();
             result.Log = gameRecord["Log"].ToString();
+            result.GamePlaybackFile = path.Substring(0, path.Length - 4) + ".playback";
+            if (!File.Exists(result.GamePlaybackFile))
+            {
+                result.GamePlaybackFile = "";
+            }
             return result;
         }
 

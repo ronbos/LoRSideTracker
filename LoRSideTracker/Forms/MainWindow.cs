@@ -31,12 +31,17 @@ namespace LoRSideTracker
         private LogWindow ActiveLogWindow;
         private GameBoardWatchWindow OverlayWindow;
 
+        private string PlayBackDeckPath;
+
         private GameRecord CurrentGameRecord = new GameRecord();
+
         /// <summary>
         /// Constructor
         /// </summary>
         public MainWindow()
         {
+            PlayBackDeckPath = @"2020_6_20_15_49_27.playback";
+
             InitializeComponent();
             this.ResizeRedraw = true;
             HighlightedDeckControl.CustomDeckScale = DeckControl.DeckScale.Small;
@@ -224,23 +229,28 @@ namespace LoRSideTracker
                     gameRecord.Result = "unknown";
                 }
 
-                // Save game record to file
-                gameRecord.Timestamp = DateTime.Now;
-                gameRecord.Log = Log.CurrentLogRtf;
-                string filePath = string.Format(@"{0}\{1}_{2}_{3}_{4}_{5}_{6}.txt", 
-                    Constants.GetLocalGamesPath(),
-                    gameRecord.Timestamp.Year,
-                    gameRecord.Timestamp.Month,
-                    gameRecord.Timestamp.Day,
-                    gameRecord.Timestamp.Hour,
-                    gameRecord.Timestamp.Minute,
-                    gameRecord.Timestamp.Second);
-                gameRecord.SaveToFile(filePath);
-                GameHistory.AddGameRecord(gameRecord);
-                Utilities.CallActionSafelyAndWait(DecksListCtrl, new Action (() => 
+                if (PlayBackDeckPath == null)
                 {
-                    DecksListCtrl.AddToDeckList(gameRecord, true);
-                }));
+                    // Save game record to file
+                    gameRecord.Timestamp = DateTime.Now;
+                    gameRecord.Log = Log.CurrentLogRtf;
+                    string fileName = string.Format(@"{0}_{1}_{2}_{3}_{4}_{5}",
+                        gameRecord.Timestamp.Year,
+                        gameRecord.Timestamp.Month,
+                        gameRecord.Timestamp.Day,
+                        gameRecord.Timestamp.Hour,
+                        gameRecord.Timestamp.Minute,
+                        gameRecord.Timestamp.Second);
+                    gameRecord.SaveToFile(Constants.GetLocalGamesPath() + "\\" + fileName + ".txt");
+
+                    CurrentPlayState.SaveGameLog(Constants.GetLocalGamesPath() + "\\" + fileName + ".playback");
+
+                    GameHistory.AddGameRecord(gameRecord);
+                    Utilities.CallActionSafelyAndWait(DecksListCtrl, new Action(() =>
+                   {
+                       DecksListCtrl.AddToDeckList(gameRecord, true);
+                   }));
+                }
             }
         }
 
@@ -372,15 +382,18 @@ namespace LoRSideTracker
             Log.SetLogWindow(ActiveLogWindow);
 
             // Special debigging window is shown if D key is held during load
-            if (Keyboard.IsKeyDown(Key.LeftCtrl))
+            if (PlayBackDeckPath != null || Keyboard.IsKeyDown(Key.LeftCtrl))
             {
                 OverlayWindow = new GameBoardWatchWindow();
                 OverlayWindow.Show();
             }
 
             CurrentPlayState = new CardsInPlayWorker(this);
-            CurrentDeck = new StaticDeck(this);
-            CurrentExpedition = new Expedition(this);
+            if (PlayBackDeckPath == null)
+            {
+                CurrentDeck = new StaticDeck(this);
+                CurrentExpedition = new Expedition(this);
+            }
 
             // Hide the progress display and make all the other UI elements visible
             MyProgressDisplay.Visible = false;
@@ -396,6 +409,11 @@ namespace LoRSideTracker
             }
 
             Utilities.CallActionSafelyAndWait(DecksListCtrl, new Action(() => { DecksListCtrl.SwitchDeckView(false); }));
+
+            if (PlayBackDeckPath != null)
+            {
+                CurrentPlayState.SetTestDeck(Constants.GetLocalGamesPath() + "\\" +  PlayBackDeckPath);
+            }
         }
 
         private void MainWindow_Load(object sender, EventArgs e)

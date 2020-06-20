@@ -92,7 +92,7 @@ namespace LoRSideTracker
                     (int)(0.5f + el.BoundingBox.Height * scale));
                 r.Offset(screenRect.X, screenRect.Y);
                 e.Graphics.DrawRectangle(new Pen(Color.Blue, 2), r);
-                string text = string.Format("{0}\r\n{1}\r\n{2}", CardLibrary.GetCard(el.CardCode).Name, el.CardCode, el.NormalizedBoundingBox.Height);
+                string text = string.Format("{0}\r\n{1}\r\n{2}\r\n{3}", CardLibrary.GetCard(el.CardCode).Name, el.CardCode, el.NormalizedCenter.Y, el.NormalizedBoundingBox.Height);
                 TextRenderer.DrawText(e.Graphics, text, this.Font, r, Color.Blue, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
             }
 
@@ -106,7 +106,7 @@ namespace LoRSideTracker
                     (int)(0.5f + el.BoundingBox.Height * scale));
                 r.Offset(screenRect.X, screenRect.Y);
                 e.Graphics.DrawRectangle(new Pen(Color.Red, 2), r);
-                string text = string.Format("{0}\r\n{1} {2}", CardLibrary.GetCard(el.CardCode).Name, el.CardCode, el.NormalizedBoundingBox.Height);
+                string text = string.Format("{0}\r\n{1}\r\n{2}\r\n{3}", CardLibrary.GetCard(el.CardCode).Name, el.CardCode, el.NormalizedCenter.Y, el.NormalizedBoundingBox.Height);
                 TextRenderer.DrawText(e.Graphics, text, this.Font, r, Color.Red, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
             }
         }

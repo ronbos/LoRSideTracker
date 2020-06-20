@@ -180,47 +180,47 @@
             // myDeckToolStripMenuItem
             // 
             this.myDeckToolStripMenuItem.Name = "myDeckToolStripMenuItem";
-            this.myDeckToolStripMenuItem.Size = new System.Drawing.Size(199, 22);
+            this.myDeckToolStripMenuItem.Size = new System.Drawing.Size(195, 22);
             this.myDeckToolStripMenuItem.Text = "My Deck";
             this.myDeckToolStripMenuItem.Click += new System.EventHandler(this.myDeckToolStripMenuItem_Click);
             // 
             // drawnCardsToolStripMenuItem
             // 
             this.drawnCardsToolStripMenuItem.Name = "drawnCardsToolStripMenuItem";
-            this.drawnCardsToolStripMenuItem.Size = new System.Drawing.Size(199, 22);
-            this.drawnCardsToolStripMenuItem.Text = "Drawn Cards";
+            this.drawnCardsToolStripMenuItem.Size = new System.Drawing.Size(195, 22);
+            this.drawnCardsToolStripMenuItem.Text = "My Drawn Cards";
             this.drawnCardsToolStripMenuItem.Click += new System.EventHandler(this.drawnCardsToolStripMenuItem_Click);
             // 
             // playedCardsToolStripMenuItem
             // 
             this.playedCardsToolStripMenuItem.Name = "playedCardsToolStripMenuItem";
-            this.playedCardsToolStripMenuItem.Size = new System.Drawing.Size(199, 22);
-            this.playedCardsToolStripMenuItem.Text = "Played Cards";
+            this.playedCardsToolStripMenuItem.Size = new System.Drawing.Size(195, 22);
+            this.playedCardsToolStripMenuItem.Text = "My Graveyard";
             this.playedCardsToolStripMenuItem.Click += new System.EventHandler(this.playedCardsToolStripMenuItem_Click);
             // 
             // opponentPlayedCardsToolStripMenuItem
             // 
             this.opponentPlayedCardsToolStripMenuItem.Name = "opponentPlayedCardsToolStripMenuItem";
-            this.opponentPlayedCardsToolStripMenuItem.Size = new System.Drawing.Size(199, 22);
-            this.opponentPlayedCardsToolStripMenuItem.Text = "Opponent Played Cards";
+            this.opponentPlayedCardsToolStripMenuItem.Size = new System.Drawing.Size(195, 22);
+            this.opponentPlayedCardsToolStripMenuItem.Text = "Opponent Graveyard";
             this.opponentPlayedCardsToolStripMenuItem.Click += new System.EventHandler(this.opponentPlayedCardsToolStripMenuItem_Click);
             // 
             // toolStripMenuItem3
             // 
             this.toolStripMenuItem3.Name = "toolStripMenuItem3";
-            this.toolStripMenuItem3.Size = new System.Drawing.Size(196, 6);
+            this.toolStripMenuItem3.Size = new System.Drawing.Size(192, 6);
             // 
             // hideZeroCountCardsToolStripMenuItem
             // 
             this.hideZeroCountCardsToolStripMenuItem.Name = "hideZeroCountCardsToolStripMenuItem";
-            this.hideZeroCountCardsToolStripMenuItem.Size = new System.Drawing.Size(199, 22);
+            this.hideZeroCountCardsToolStripMenuItem.Size = new System.Drawing.Size(195, 22);
             this.hideZeroCountCardsToolStripMenuItem.Text = "Hide Zero Count Cards";
             this.hideZeroCountCardsToolStripMenuItem.Click += new System.EventHandler(this.hideZeroCountCardsToolStripMenuItem_Click);
             // 
             // toolStripMenuItem2
             // 
             this.toolStripMenuItem2.Name = "toolStripMenuItem2";
-            this.toolStripMenuItem2.Size = new System.Drawing.Size(196, 6);
+            this.toolStripMenuItem2.Size = new System.Drawing.Size(192, 6);
             // 
             // deckWindowSizeToolStripMenuItem
             // 
@@ -229,7 +229,7 @@
             this.mediumDeckSizeToolStripMenuItem,
             this.largeDeckSizeToolStripMenuItem});
             this.deckWindowSizeToolStripMenuItem.Name = "deckWindowSizeToolStripMenuItem";
-            this.deckWindowSizeToolStripMenuItem.Size = new System.Drawing.Size(199, 22);
+            this.deckWindowSizeToolStripMenuItem.Size = new System.Drawing.Size(195, 22);
             this.deckWindowSizeToolStripMenuItem.Text = "Deck Window Size";
             // 
             // smallDeckSizeToolStripMenuItem
@@ -262,7 +262,7 @@
             this.deckOpacity80ToolStripMenuItem,
             this.deckOpacity100ToolStripMenuItem});
             this.deckOpacityToolStripMenuItem.Name = "deckOpacityToolStripMenuItem";
-            this.deckOpacityToolStripMenuItem.Size = new System.Drawing.Size(199, 22);
+            this.deckOpacityToolStripMenuItem.Size = new System.Drawing.Size(195, 22);
             this.deckOpacityToolStripMenuItem.Text = "Deck Opacity";
             // 
             // deckOpacity20ToolStripMenuItem
@@ -303,12 +303,12 @@
             // toolStripMenuItem1
             // 
             this.toolStripMenuItem1.Name = "toolStripMenuItem1";
-            this.toolStripMenuItem1.Size = new System.Drawing.Size(196, 6);
+            this.toolStripMenuItem1.Size = new System.Drawing.Size(192, 6);
             // 
             // snapDecksToolStripMenuItem
             // 
             this.snapDecksToolStripMenuItem.Name = "snapDecksToolStripMenuItem";
-            this.snapDecksToolStripMenuItem.Size = new System.Drawing.Size(199, 22);
+            this.snapDecksToolStripMenuItem.Size = new System.Drawing.Size(195, 22);
             this.snapDecksToolStripMenuItem.Text = "Snap Decks";
             this.snapDecksToolStripMenuItem.Click += new System.EventHandler(this.snapDecksToolStripMenuItem_Click);
             // 

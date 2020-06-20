@@ -247,5 +247,14 @@ namespace LoRSideTracker
                 Hide();
             }
         }
+
+        /// <summary>
+        /// Reduce flicker
+        /// </summary>
+        /// <param name="e"></param>
+        protected override void OnPaintBackground(PaintEventArgs e)
+        {
+            //empty implementation
+        }
     }
 }

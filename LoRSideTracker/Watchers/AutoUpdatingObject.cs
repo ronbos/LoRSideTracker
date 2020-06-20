@@ -41,7 +41,7 @@ namespace LoRSideTracker
         /// Start the timer to trigger AutoUpdate() callbacks
         /// </summary>
         /// <param name="intervalMs">Timer interval in milliseconds</param>
-        public void Start(int intervalMs)
+        public virtual void Start(int intervalMs)
         {
             IntervalMs = intervalMs;
             if (!IsUpdaterTaskActive)
@@ -54,7 +54,7 @@ namespace LoRSideTracker
         /// <summary>
         /// Stop the time that driver AutoUpdate() calls
         /// </summary>
-        public void Stop()
+        public virtual void Stop()
         {
             if (UpdaterTask != null)
             {

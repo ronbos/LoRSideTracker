@@ -1,7 +1,11 @@
 ﻿#define USE_DECK_LISTS
+#if DEBUG
+#define ALLOW_GAME_RECORDING
+#endif
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
@@ -86,6 +90,7 @@ namespace LoRSideTracker
         private CardList<CardInPlay> FullPlayerDeck = new CardList<CardInPlay>();
 
         private bool IsInitialDraw;
+        private Point LocalPlayerFace;
 
         private readonly ICardsInPlayCallback Callback;
         private AutoUpdatingWebString WebString;
@@ -100,6 +105,7 @@ namespace LoRSideTracker
 
         private CardInPlayMoveLogger MoveLogger = new CardInPlayMoveLogger();
 
+        private bool TestMode = false;
 
         /// <summary>
         /// Constructor
@@ -147,6 +153,10 @@ namespace LoRSideTracker
                 InGame = true;
                 Log.Clear();
                 Log.WriteLine("New Game: {0} vs {1}", PlayerName, OpponentName);
+
+#if ALLOW_GAME_RECORDING
+                WebString.StartLog();
+#endif
             }
         }
 
@@ -167,6 +177,22 @@ namespace LoRSideTracker
         }
 
         /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="filePath"></param>
+        public void SaveGameLog(string filePath)
+        {
+            string codes = "";
+            for (int i = 0; i < FullPlayerDeck.Count; i++)
+            {
+                codes += FullPlayerDeck[i].CardCode + " ";
+            }
+            List<string> gameLog = WebString.StopLog();
+            gameLog.Insert(0, codes);
+            File.WriteAllBytes(filePath, Utilities.ZipFromStringList(gameLog));
+        }
+
+        /// <summary>
         /// Set the local player full deck
         /// </summary>
         /// <param name="deck"></param>
@@ -174,7 +200,7 @@ namespace LoRSideTracker
         {
             if (WebString == null)
             {
-                WebString = new AutoUpdatingWebString(Constants.OverlayStateURL(), 16, this, 100);
+                WebString = new AutoUpdatingWebString(Constants.OverlayStateURL(), 10, this, 100, true);
             }
             if (!InGame || FullPlayerDeck.Count == 0)
             {
@@ -197,19 +223,57 @@ namespace LoRSideTracker
         }
 
         /// <summary>
+        /// Set the local player full deck
+        /// </summary>
+        /// <param name="gameLogFilePath"></param>
+        public void SetTestDeck(string gameLogFilePath)
+        {
+            List<string> gameLog = Utilities.UnzipToStringList(File.ReadAllBytes(gameLogFilePath));
+            TestMode = true;
+            FullPlayerDeck.Clear();
+            for (int i = 0; i < NumZones; i++)
+            {
+                PlayerCards[i].Clear();
+                OpponentCards[i].Clear();
+            }
+
+            // Process the deck
+            char[] charSeparators = new char[] { ' ' };
+            var codes = gameLog[0].Split(charSeparators);
+            foreach (var code in codes)
+            {
+                if (code.Length > 0)
+                {
+                    var card = CardLibrary.GetCard(code);
+                    FullPlayerDeck.Add(card.Cost, card.Name, new CardInPlay(PlayerType.LocalPlayer, card, PlayZone.Deck));
+                }
+            }
+            PlayerCards[(int)PlayZone.Deck] = FullPlayerDeck.Clone();
+            IsInitialDraw = true;
+            gameLog.RemoveAt(0);
+
+            if (WebString != null)
+            {
+                WebString.Stop();
+            }
+            WebString = new AutoUpdatingWebString(gameLog, 10, this, 100);
+        }
+
+        /// <summary>
         /// Process newly updated web string to generate new overlay state
         /// </summary>
         /// <param name="newValue">new web string</param>
-        public void OnWebStringUpdated(string newValue)
+        /// <param name="timestamp">associated timestamp</param>
+        public void OnWebStringUpdated(string newValue, double timestamp)
         {
             if (Utilities.IsJsonStringValid(newValue))
             {
                 NotRespondingHasBeenReported = false;
                 var dict = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(newValue);
                 UpdateGameState(dict);
-                if (GameState == "InProgress" && !Control.MouseButtons.HasFlag(MouseButtons.Left))
+                if (GameState == "InProgress")
                 {
-                    ProcessNext(dict);
+                    ProcessNext(dict, timestamp);
                 }
             }
             else
@@ -231,10 +295,13 @@ namespace LoRSideTracker
 
             if (currentOverlay != null)
             {
-                PlayerName = currentOverlay["PlayerName"].GetString();
-                OpponentName = currentOverlay["OpponentName"].GetString();
                 GameState = currentOverlay["GameState"].GetString();
                 if (GameState == null) GameState = oldGameState;
+                else if (GameState == "InProgress")
+                {
+                    PlayerName = currentOverlay["PlayerName"].GetString();
+                    OpponentName = currentOverlay["OpponentName"].GetString();
+                }
             }
             else
             {
@@ -243,6 +310,8 @@ namespace LoRSideTracker
 
             if (oldGameState != GameState)
             {
+                Callback.OnGameStateChanged(oldGameState, GameState);
+
                 if (GameState == "InProgress")
                 {
                     GameStarted();
@@ -252,8 +321,6 @@ namespace LoRSideTracker
                     GameEnded();
                     NotifyCardSetUpdates();
                 }
-
-                Callback.OnGameStateChanged(oldGameState, GameState);
             }
         }
 
@@ -261,17 +328,19 @@ namespace LoRSideTracker
         /// Process next rectangle layout
         /// </summary>
         /// <param name="overlay"></param>
-        public void ProcessNext(Dictionary<string, JsonElement> overlay)
+        /// <param name="timestamp"></param>
+        public void ProcessNext(Dictionary<string, JsonElement> overlay, double timestamp)
         {
             TimeCounter++;
 
-            if (PlayerCards[(int)PlayZone.Deck].Count == 0 && PlayerCards[(int)PlayZone.Graveyard].Count == 0)
+            if (!TestMode && PlayerCards[(int)PlayZone.Deck].Count == 0 && PlayerCards[(int)PlayZone.Graveyard].Count == 0)
             {
                 // Have not received the deck yet
                 return;
             }
             CardList<CardInPlay> cardsInPlay = new CardList<CardInPlay>();
 
+            bool isChampionUpgrading = false;
             if (overlay != null)
             {
                 var screen = overlay["Screen"].ToObject<Dictionary<string, JsonElement>>();
@@ -287,13 +356,29 @@ namespace LoRSideTracker
                     normalizedScreenHeight = (int)(0.5 + ScreenWidth * 0.658);
                 }
 
+                Point correctionOffset = new Point(0, 0);
                 var rectangles = overlay["Rectangles"].ToObject<Dictionary<string, JsonElement>[]>();
                 foreach (var dict in rectangles)
                 {
                     string cardCode = dict["CardCode"].GetString();
                     if (cardCode == "face")
                     {
-                        // ignore face
+                        if (dict["LocalPlayer"].GetBoolean())
+                        {
+                            int x = dict["TopLeftX"].GetInt32();
+                            int y = dict["TopLeftY"].GetInt32();
+                            if (IsInitialDraw)
+                            {
+                                LocalPlayerFace = new Point(x, y);
+                            }
+                            else
+                            {
+                                correctionOffset.X = LocalPlayerFace.X - x;
+                                correctionOffset.Y = LocalPlayerFace.Y - y;
+                            }
+                        }
+
+                        // We don't process face
                         continue;
                     }
                     Card card = CardLibrary.GetCard(cardCode);
@@ -301,7 +386,13 @@ namespace LoRSideTracker
                     // Also ignore abilities
                     if (card.Type != "Ability")
                     {
-                        cardsInPlay.Add(card.Cost, card.Name, new CardInPlay(dict, ScreenWidth, ScreenHeight, normalizedScreenHeight));
+                        CardInPlay c = new CardInPlay(dict, ScreenWidth, ScreenHeight, correctionOffset, normalizedScreenHeight);
+                        cardsInPlay.Add(card.Cost, card.Name, c);
+                        if (c.CurrentZone == PlayZone.Hand && c.NormalizedCenter.Y > 1.3f)
+                        {
+                            // Champion is upgrading
+                            isChampionUpgrading = true;
+                        }
                     }
                 }
             }
@@ -311,15 +402,20 @@ namespace LoRSideTracker
             CardList<CardInPlay> nextOpponentCards = new CardList<CardInPlay>();
             cardsInPlay.Split(ref nextPlayerCards, ref nextOpponentCards, x => x.Owner == PlayerType.LocalPlayer && x.CurrentZone != PlayZone.Unknown);
             Callback.OnElementsUpdate(nextPlayerCards, nextOpponentCards, ScreenWidth, ScreenHeight);
+            if (isChampionUpgrading)
+            {
+                // Bail, champion is upgrading
+                return;
+            }
 
-            MoveToNext(ref PlayerCards, nextPlayerCards, IsInitialDraw);
+            MoveToNext(ref PlayerCards, nextPlayerCards, timestamp, IsInitialDraw);
             if (IsInitialDraw)
             {
                 // Initial draw until we add some cards to hand
                 IsInitialDraw = (PlayerCards[(int)PlayZone.Hand].Count() == 0);
             }
 
-            MoveToNext(ref OpponentCards, nextOpponentCards);
+            MoveToNext(ref OpponentCards, nextOpponentCards, timestamp, false);
 
             // Purge Ether of spells that have been cast
             bool thoroughCleanUp = false;
@@ -328,8 +424,8 @@ namespace LoRSideTracker
             {
                 thoroughCleanUp = true;
             }
-            PlayerCards[(int)PlayZone.Graveyard].AddRange(CleanUpEther(ref PlayerCards[(int)PlayZone.Ether], thoroughCleanUp));
-            OpponentCards[(int)PlayZone.Graveyard].AddRange(CleanUpEther(ref OpponentCards[(int)PlayZone.Ether], thoroughCleanUp));
+            PlayerCards[(int)PlayZone.Graveyard].AddRange(CleanUpEther(ref PlayerCards[(int)PlayZone.Ether], timestamp, thoroughCleanUp));
+            OpponentCards[(int)PlayZone.Graveyard].AddRange(CleanUpEther(ref OpponentCards[(int)PlayZone.Ether], timestamp, thoroughCleanUp));
 
             NotifyCardSetUpdates();
 
@@ -385,7 +481,7 @@ namespace LoRSideTracker
             return GetDeck(allCards);
         }
 
-        void MoveToNext(ref CardList<CardInPlay>[] current, CardList<CardInPlay> next, bool isInitialDraw = false)
+        void MoveToNext(ref CardList<CardInPlay>[] current, CardList<CardInPlay> next, double timestamp, bool isInitialDraw)
         {
             CardList<CardInPlay> stationaryResult = new CardList<CardInPlay>();
             CardList<CardInPlay> movedResult = new CardList<CardInPlay>();
@@ -405,7 +501,7 @@ namespace LoRSideTracker
             }
 
             // For each card in next, look for a card in 'current' Ether zone that may have returned to the same zone
-            stationaryResult.AddRange(CardList<CardInPlay>.Extract(ref next, ref current[(int)PlayZone.Ether], (x, y) =>
+            movedResult.AddRange(CardList<CardInPlay>.Extract(ref next, ref current[(int)PlayZone.Ether], (x, y) =>
             {
                 // Skip values in next that are incorrect zone
                 if (y.CurrentZone != PlayZone.Ether) return -1;
@@ -419,7 +515,7 @@ namespace LoRSideTracker
                 y.BoundingBox = x.BoundingBox;
                 y.NormalizedBoundingBox = x.NormalizedBoundingBox;
                 y.NormalizedCenter = x.NormalizedCenter;
-                y.MoveToZone(x.CurrentZone);
+                y.MoveToZone(x.CurrentZone, timestamp);
                 return y;
             }));
 
@@ -431,7 +527,7 @@ namespace LoRSideTracker
                 int z = x.TheCard.Cost - y.TheCard.Cost;
                 if (z == 0) z = x.TheCard.Name.CompareTo(y.TheCard.Name);
                 // Skip values in current that are incorrect zone
-                if (z == 0 && GameBoard.TransitionResult.Proceed != GameBoard.TransitionAllowed(y.LastNonEtherZone, x.CurrentZone, isInitialDraw)) z = 1;
+                if (z == 0 && GameBoard.TransitionResult.Proceed != GameBoard.TransitionAllowed(y.LastNonEtherZone, x.CurrentZone, isInitialDraw)) z = -1;
                 return z;
             }, (x, y) =>
             {
@@ -453,7 +549,7 @@ namespace LoRSideTracker
                     // Skip values in next that are incorrect zone
                     int z = x.TheCard.Cost - y.TheCard.Cost;
                     if (z == 0) z = x.TheCard.Name.CompareTo(y.TheCard.Name);
-                    if (z == 0 && GameBoard.TransitionResult.Proceed != GameBoard.TransitionAllowed(y.LastNonEtherZone, x.CurrentZone, isInitialDraw)) z = 1;
+                    if (z == 0 && GameBoard.TransitionResult.Proceed != GameBoard.TransitionAllowed(y.CurrentZone, x.CurrentZone, isInitialDraw)) z = -1;
                     return z;
                 }, (x, y) =>
                 {
@@ -470,7 +566,7 @@ namespace LoRSideTracker
                     // Skip values in next that are incorrect zone
                     int z = x.TheCard.Cost - y.TheCard.Cost;
                     if (z == 0) z = x.TheCard.Name.CompareTo(y.TheCard.Name);
-                    if (z == 0 && GameBoard.TransitionResult.Stay != GameBoard.TransitionAllowed(y.LastNonEtherZone, x.CurrentZone, isInitialDraw)) z = 1;
+                    if (z == 0 && GameBoard.TransitionResult.Stay != GameBoard.TransitionAllowed(y.CurrentZone, x.CurrentZone, isInitialDraw)) z = -1;
                     return z;
                 }, (x, y) =>
                 {
@@ -487,7 +583,7 @@ namespace LoRSideTracker
                 // Skip values in next that are incorrect zone
                 int z = x.TheCard.Cost - y.TheCard.Cost;
                 if (z == 0) z = x.TheCard.Name.CompareTo(y.TheCard.Name);
-                if (z == 0 && GameBoard.TransitionResult.Proceed != GameBoard.TransitionAllowed(y.LastNonEtherZone, x.CurrentZone, isInitialDraw)) z = 1;
+                if (z == 0 && GameBoard.TransitionResult.Proceed != GameBoard.TransitionAllowed(y.CurrentZone, x.CurrentZone, isInitialDraw)) z = -1;
                 return z;
             }, (x, y) =>
             {
@@ -510,7 +606,7 @@ namespace LoRSideTracker
 
                 for (int j = 0; j < current[i].Count; j++)
                 {
-                    current[i][j].MoveToZone(newZone);
+                    current[i][j].MoveToZone(newZone, timestamp);
                 }
                 movedResult.AddRange(current[i]);
                 current[i].Clear();
@@ -518,10 +614,6 @@ namespace LoRSideTracker
 
             // Remove cards in next that are in a zone that does not accept from Unknown
             next = next.GetSubset(x => GameBoard.TransitionResult.Proceed == GameBoard.TransitionAllowed(x.LastNonEtherZone, x.CurrentZone, isInitialDraw));
-            foreach (var card in next)
-            {
-                LogMove(card, true);
-            }
 
             // Add remaining cards to the moved set
             movedResult.AddRange(next);
@@ -558,24 +650,23 @@ namespace LoRSideTracker
             }
         }
 
-        private CardList<CardInPlay> CleanUpEther(ref CardList<CardInPlay> currentEther, bool doThoroughCleanUp = false)
+        private CardList<CardInPlay> CleanUpEther(ref CardList<CardInPlay> currentEther, double timestamp, bool doThoroughCleanUp = false)
         {
             CardList<CardInPlay> result = new CardList<CardInPlay>();
 
             // First, clean up all the spells that were cast
-            result.AddRange(currentEther.ExtractSubset(x => x.LastZone == PlayZone.Cast));
+            result.AddRange(currentEther.ExtractSubset(x => x.LastZone == PlayZone.Cast && timestamp - x.EtherStartTime > 100));
 
             // Next, clean up all the units from hand or tossing that have been here even longer
             // Only do this if we are asked to do a thorough cleanup
             if (doThoroughCleanUp)
             {
-                DateTime now = DateTime.Now;
-                result.AddRange(currentEther.ExtractSubset(x => (now - x.EtherStartTime).TotalMilliseconds > 4000));
+                result.AddRange(currentEther.ExtractSubset(x => timestamp - x.EtherStartTime > 7000));
             }
 
             for (int i = 0; i < result.Count; i++)
             {
-                result[i].MoveToZone(PlayZone.Graveyard);
+                result[i].MoveToZone(PlayZone.Graveyard, timestamp);
                 LogMove(result[i], false);
             }
             return result;

@@ -30,6 +30,10 @@
         {
             this.CloseButton = new System.Windows.Forms.Button();
             this.DeckOptionsGroupBox = new System.Windows.Forms.GroupBox();
+            this.LargeDeckSizeRadioButton = new System.Windows.Forms.RadioButton();
+            this.MediumDeckSizeRadioButton = new System.Windows.Forms.RadioButton();
+            this.SmallDeckSizeRadioButton = new System.Windows.Forms.RadioButton();
+            this.label4 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
@@ -40,10 +44,6 @@
             this.HideZeroCountCheckBox = new System.Windows.Forms.CheckBox();
             this.PlayerDrawnCheckBox = new System.Windows.Forms.CheckBox();
             this.PlayerDeckCheckBox = new System.Windows.Forms.CheckBox();
-            this.label4 = new System.Windows.Forms.Label();
-            this.SmallDeckSizeRadioButton = new System.Windows.Forms.RadioButton();
-            this.MediumDeckSizeRadioButton = new System.Windows.Forms.RadioButton();
-            this.LargeDeckSizeRadioButton = new System.Windows.Forms.RadioButton();
             this.DeckOptionsGroupBox.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.TransparencyTrackBar)).BeginInit();
             this.SuspendLayout();
@@ -85,6 +85,51 @@
             this.DeckOptionsGroupBox.TabIndex = 5;
             this.DeckOptionsGroupBox.TabStop = false;
             this.DeckOptionsGroupBox.Text = "Show Decks";
+            // 
+            // LargeDeckSizeRadioButton
+            // 
+            this.LargeDeckSizeRadioButton.AutoSize = true;
+            this.LargeDeckSizeRadioButton.Location = new System.Drawing.Point(250, 232);
+            this.LargeDeckSizeRadioButton.Name = "LargeDeckSizeRadioButton";
+            this.LargeDeckSizeRadioButton.Size = new System.Drawing.Size(52, 17);
+            this.LargeDeckSizeRadioButton.TabIndex = 10;
+            this.LargeDeckSizeRadioButton.TabStop = true;
+            this.LargeDeckSizeRadioButton.Text = "Large";
+            this.LargeDeckSizeRadioButton.UseVisualStyleBackColor = true;
+            this.LargeDeckSizeRadioButton.CheckedChanged += new System.EventHandler(this.LargeDeckSizeRadioButton_CheckedChanged);
+            // 
+            // MediumDeckSizeRadioButton
+            // 
+            this.MediumDeckSizeRadioButton.AutoSize = true;
+            this.MediumDeckSizeRadioButton.Location = new System.Drawing.Point(140, 232);
+            this.MediumDeckSizeRadioButton.Name = "MediumDeckSizeRadioButton";
+            this.MediumDeckSizeRadioButton.Size = new System.Drawing.Size(62, 17);
+            this.MediumDeckSizeRadioButton.TabIndex = 10;
+            this.MediumDeckSizeRadioButton.TabStop = true;
+            this.MediumDeckSizeRadioButton.Text = "Medium";
+            this.MediumDeckSizeRadioButton.UseVisualStyleBackColor = true;
+            this.MediumDeckSizeRadioButton.CheckedChanged += new System.EventHandler(this.MediumDeckSizeRadioButton_CheckedChanged);
+            // 
+            // SmallDeckSizeRadioButton
+            // 
+            this.SmallDeckSizeRadioButton.AutoSize = true;
+            this.SmallDeckSizeRadioButton.Location = new System.Drawing.Point(30, 232);
+            this.SmallDeckSizeRadioButton.Name = "SmallDeckSizeRadioButton";
+            this.SmallDeckSizeRadioButton.Size = new System.Drawing.Size(50, 17);
+            this.SmallDeckSizeRadioButton.TabIndex = 10;
+            this.SmallDeckSizeRadioButton.TabStop = true;
+            this.SmallDeckSizeRadioButton.Text = "Small";
+            this.SmallDeckSizeRadioButton.UseVisualStyleBackColor = true;
+            this.SmallDeckSizeRadioButton.CheckedChanged += new System.EventHandler(this.SmallDeckSizeRadioButton_CheckedChanged);
+            // 
+            // label4
+            // 
+            this.label4.AutoSize = true;
+            this.label4.Location = new System.Drawing.Point(7, 214);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(59, 13);
+            this.label4.TabIndex = 9;
+            this.label4.Text = "Deck Size:";
             // 
             // label3
             // 
@@ -145,9 +190,9 @@
             this.OpponentPlayedCheckBox.AutoSize = true;
             this.OpponentPlayedCheckBox.Location = new System.Drawing.Point(7, 112);
             this.OpponentPlayedCheckBox.Name = "OpponentPlayedCheckBox";
-            this.OpponentPlayedCheckBox.Size = new System.Drawing.Size(138, 17);
+            this.OpponentPlayedCheckBox.Size = new System.Drawing.Size(125, 17);
             this.OpponentPlayedCheckBox.TabIndex = 4;
-            this.OpponentPlayedCheckBox.Text = "Opponent Played Cards";
+            this.OpponentPlayedCheckBox.Text = "Opponent Graveyard";
             this.OpponentPlayedCheckBox.UseVisualStyleBackColor = true;
             this.OpponentPlayedCheckBox.CheckedChanged += new System.EventHandler(this.OpponentPlayedCheckBox_CheckedChanged);
             // 
@@ -156,9 +201,9 @@
             this.PlayerPlayedCheckBox.AutoSize = true;
             this.PlayerPlayedCheckBox.Location = new System.Drawing.Point(7, 89);
             this.PlayerPlayedCheckBox.Name = "PlayerPlayedCheckBox";
-            this.PlayerPlayedCheckBox.Size = new System.Drawing.Size(88, 17);
+            this.PlayerPlayedCheckBox.Size = new System.Drawing.Size(92, 17);
             this.PlayerPlayedCheckBox.TabIndex = 3;
-            this.PlayerPlayedCheckBox.Text = "Played Cards";
+            this.PlayerPlayedCheckBox.Text = "My Graveyard";
             this.PlayerPlayedCheckBox.UseVisualStyleBackColor = true;
             this.PlayerPlayedCheckBox.CheckedChanged += new System.EventHandler(this.PlayerPlayedCheckBox_CheckedChanged);
             // 
@@ -178,9 +223,9 @@
             this.PlayerDrawnCheckBox.AutoSize = true;
             this.PlayerDrawnCheckBox.Location = new System.Drawing.Point(7, 66);
             this.PlayerDrawnCheckBox.Name = "PlayerDrawnCheckBox";
-            this.PlayerDrawnCheckBox.Size = new System.Drawing.Size(87, 17);
+            this.PlayerDrawnCheckBox.Size = new System.Drawing.Size(104, 17);
             this.PlayerDrawnCheckBox.TabIndex = 2;
-            this.PlayerDrawnCheckBox.Text = "Drawn Cards";
+            this.PlayerDrawnCheckBox.Text = "My Drawn Cards";
             this.PlayerDrawnCheckBox.UseVisualStyleBackColor = true;
             this.PlayerDrawnCheckBox.CheckedChanged += new System.EventHandler(this.PlayerDrawnCheckBox_CheckedChanged);
             // 
@@ -191,56 +236,11 @@
             this.PlayerDeckCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
             this.PlayerDeckCheckBox.Location = new System.Drawing.Point(7, 20);
             this.PlayerDeckCheckBox.Name = "PlayerDeckCheckBox";
-            this.PlayerDeckCheckBox.Size = new System.Drawing.Size(114, 17);
+            this.PlayerDeckCheckBox.Size = new System.Drawing.Size(106, 17);
             this.PlayerDeckCheckBox.TabIndex = 0;
-            this.PlayerDeckCheckBox.Text = "Your Current Deck";
+            this.PlayerDeckCheckBox.Text = "My Current Deck";
             this.PlayerDeckCheckBox.UseVisualStyleBackColor = true;
             this.PlayerDeckCheckBox.CheckedChanged += new System.EventHandler(this.PlayerDeckCheckBox_CheckedChanged);
-            // 
-            // label4
-            // 
-            this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(7, 214);
-            this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(59, 13);
-            this.label4.TabIndex = 9;
-            this.label4.Text = "Deck Size:";
-            // 
-            // SmallDeckSizeRadioButton
-            // 
-            this.SmallDeckSizeRadioButton.AutoSize = true;
-            this.SmallDeckSizeRadioButton.Location = new System.Drawing.Point(30, 232);
-            this.SmallDeckSizeRadioButton.Name = "SmallDeckSizeRadioButton";
-            this.SmallDeckSizeRadioButton.Size = new System.Drawing.Size(50, 17);
-            this.SmallDeckSizeRadioButton.TabIndex = 10;
-            this.SmallDeckSizeRadioButton.TabStop = true;
-            this.SmallDeckSizeRadioButton.Text = "Small";
-            this.SmallDeckSizeRadioButton.UseVisualStyleBackColor = true;
-            this.SmallDeckSizeRadioButton.CheckedChanged += new System.EventHandler(this.SmallDeckSizeRadioButton_CheckedChanged);
-            // 
-            // MediumDeckSizeRadioButton
-            // 
-            this.MediumDeckSizeRadioButton.AutoSize = true;
-            this.MediumDeckSizeRadioButton.Location = new System.Drawing.Point(140, 232);
-            this.MediumDeckSizeRadioButton.Name = "MediumDeckSizeRadioButton";
-            this.MediumDeckSizeRadioButton.Size = new System.Drawing.Size(62, 17);
-            this.MediumDeckSizeRadioButton.TabIndex = 10;
-            this.MediumDeckSizeRadioButton.TabStop = true;
-            this.MediumDeckSizeRadioButton.Text = "Medium";
-            this.MediumDeckSizeRadioButton.UseVisualStyleBackColor = true;
-            this.MediumDeckSizeRadioButton.CheckedChanged += new System.EventHandler(this.MediumDeckSizeRadioButton_CheckedChanged);
-            // 
-            // LargeDeckSizeRadioButton
-            // 
-            this.LargeDeckSizeRadioButton.AutoSize = true;
-            this.LargeDeckSizeRadioButton.Location = new System.Drawing.Point(250, 232);
-            this.LargeDeckSizeRadioButton.Name = "LargeDeckSizeRadioButton";
-            this.LargeDeckSizeRadioButton.Size = new System.Drawing.Size(52, 17);
-            this.LargeDeckSizeRadioButton.TabIndex = 10;
-            this.LargeDeckSizeRadioButton.TabStop = true;
-            this.LargeDeckSizeRadioButton.Text = "Large";
-            this.LargeDeckSizeRadioButton.UseVisualStyleBackColor = true;
-            this.LargeDeckSizeRadioButton.CheckedChanged += new System.EventHandler(this.LargeDeckSizeRadioButton_CheckedChanged);
             // 
             // OptionsWindow
             // 
