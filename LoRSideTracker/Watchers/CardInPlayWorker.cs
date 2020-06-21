@@ -1,5 +1,5 @@
-﻿#define USE_DECK_LISTS
-#if DEBUG
+﻿#if DEBUG
+#define USE_DECK_LISTS
 #define ALLOW_GAME_RECORDING
 #endif
 using System;
