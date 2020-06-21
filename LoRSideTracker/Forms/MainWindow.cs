@@ -40,7 +40,7 @@ namespace LoRSideTracker
         /// </summary>
         public MainWindow()
         {
-            //PlayBackDeckPath = @"2020_6_20_15_49_27.playback";
+            //PlayBackDeckPath = @"2020_6_21_15_53_52.playback";
 
             InitializeComponent();
             this.ResizeRedraw = true;
@@ -195,7 +195,8 @@ namespace LoRSideTracker
         public void OnGameStateChanged(string oldGameState, string newGameState)
         {
             Log.WriteLine("Game state changed from {0} to {1}", oldGameState, newGameState);
-            if (oldGameState == "InProgress")
+            // In some cases, game exits immediately before we are able to set any info
+            if (oldGameState == "InProgress" && CurrentGameRecord.MyDeckName != null)
             {
                 GameRecord gameRecord = (GameRecord)CurrentGameRecord.Clone();
                 // Game ended. Grab game result

@@ -91,6 +91,7 @@ namespace LoRSideTracker
 
         private bool IsInitialDraw;
         private Point LocalPlayerFace;
+        private PlayerType AttackingPlayer = PlayerType.None;
 
         private readonly ICardsInPlayCallback Callback;
         private AutoUpdatingWebString WebString;
@@ -429,6 +430,20 @@ namespace LoRSideTracker
 
             NotifyCardSetUpdates();
 
+            // Update attacking player
+            int numPlayerAttackers = PlayerCards[(int)PlayZone.Battle].Count + PlayerCards[(int)PlayZone.Windup].Count + PlayerCards[(int)PlayZone.Attack].Count;
+            int numOpponentAttackers = OpponentCards[(int)PlayZone.Battle].Count + OpponentCards[(int)PlayZone.Windup].Count + OpponentCards[(int)PlayZone.Attack].Count;
+            if (AttackingPlayer == PlayerType.None)
+            {
+                if (numPlayerAttackers != numOpponentAttackers)
+                {
+                    AttackingPlayer = numPlayerAttackers > numOpponentAttackers ? PlayerType.LocalPlayer : PlayerType.Opponent;
+                }
+            }
+            else if (numPlayerAttackers == 0 && numOpponentAttackers == 0)
+            {
+                AttackingPlayer = PlayerType.None;
+            }
         }
 
         private void NotifyCardSetUpdates()
@@ -439,7 +454,7 @@ namespace LoRSideTracker
 #endif
 
             // Log all moves
-            MoveLogger.LogMoves(PlayerCards, OpponentCards);
+            MoveLogger.LogMoves(PlayerCards, OpponentCards, AttackingPlayer);
 
             // Send deck updates
             Callback.OnPlayerDeckChanged(GetDeck(PlayerCards[(int)PlayZone.Deck]));

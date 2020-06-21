@@ -44,7 +44,7 @@ namespace LoRSideTracker
         /// </summary>
         /// <param name="playerZones">Array of player zone contents</param>
         /// <param name="opponentZones">Array of opponent zone contents</param>
-        public void LogMoves(CardList<CardInPlay>[] playerZones, CardList<CardInPlay>[] opponentZones)
+        public void LogMoves(CardList<CardInPlay>[] playerZones, CardList<CardInPlay>[] opponentZones, PlayerType attackingPlayer)
         {
             CardList<CardInPlay> playerBattlingUnits = new CardList<CardInPlay>();
             CardList<CardInPlay> opponentBattlingUnits = new CardList<CardInPlay>();
@@ -57,8 +57,17 @@ namespace LoRSideTracker
 
             for (int i = 0; i < NumZones; i++)
             {
-                LogMovedInCards(LastPlayerZones[i], playerZones[i], opponentBattlingUnits);
-                LogMovedInCards(LastOppponentZones[i], opponentZones[i], playerBattlingUnits);
+                // Log attacking player moves first
+                if (attackingPlayer == PlayerType.Opponent)
+                {
+                    LogMovedInCards(LastOppponentZones[i], opponentZones[i], playerBattlingUnits, attackingPlayer == PlayerType.Opponent);
+                    LogMovedInCards(LastPlayerZones[i], playerZones[i], opponentBattlingUnits, attackingPlayer == PlayerType.LocalPlayer);
+                }
+                else
+                {
+                    LogMovedInCards(LastPlayerZones[i], playerZones[i], opponentBattlingUnits, attackingPlayer == PlayerType.LocalPlayer);
+                    LogMovedInCards(LastOppponentZones[i], opponentZones[i], playerBattlingUnits, attackingPlayer == PlayerType.Opponent);
+                }
                 LastPlayerZones[i] = playerZones[i].Clone();
                 LastOppponentZones[i] = opponentZones[i].Clone();
             }
@@ -70,10 +79,28 @@ namespace LoRSideTracker
         /// <param name="last"></param>
         /// <param name="current"></param>
         /// <param name="opponentBattlingUnits"></param>
-        private void LogMovedInCards(CardList<CardInPlay> last, CardList<CardInPlay> current, CardList<CardInPlay> opponentBattlingUnits)
+        private void LogMovedInCards(CardList<CardInPlay> last, CardList<CardInPlay> current, CardList<CardInPlay> opponentBattlingUnits, bool isPlayerAttacking)
         {
-            foreach (var card in current)
+            bool[] logged = Enumerable.Repeat(false, current.Count).ToArray();
+            // First remove exact mathces. This is important when multiple of the same card are in the same zone
+            // Order of matching in that case does matter
+            for (int i = 0; i < current.Count; i++)
             {
+                CardInPlay card = current[i];
+                int index = last.FindIndex(x => x.CardCode == card.CardCode && x.LastNonEtherZone == card.LastNonEtherZone && x.LastZone == card.LastZone);
+                if (index >= 0)
+                {
+                    last.RemoveAt(index);
+                    logged[i] = true;
+                }
+            }
+
+            // Now look for moved cards
+            for (int i = 0; i < current.Count; i++)
+            {
+                if (logged[i]) continue;
+
+                CardInPlay card = current[i];
                 int index = last.FindIndex(x => x.CardCode == card.CardCode);
                 if (index >= 0)
                 {
@@ -81,7 +108,7 @@ namespace LoRSideTracker
                 }
                 else if (card.CurrentZone != card.LastNonEtherZone)
                 {
-                    LogMove(card, opponentBattlingUnits);
+                    LogMove(card, opponentBattlingUnits, isPlayerAttacking);
                 }
             }
         }
@@ -91,7 +118,7 @@ namespace LoRSideTracker
         /// </summary>
         /// <param name="card">Card to log</param>
         /// <param name="opponentBattlingUnits">Opponent's battling units, used to find opposing unit in attack</param>
-        private void LogMove(CardInPlay card, CardList<CardInPlay> opponentBattlingUnits)
+        private void LogMove(CardInPlay card, CardList<CardInPlay> opponentBattlingUnits, bool isPlayerAttacking)
         {
             int index;
             LogType logType = (card.Owner == PlayerType.LocalPlayer) ? LogType.Player : LogType.Opponent;
@@ -148,7 +175,7 @@ namespace LoRSideTracker
                     break;
                 case PlayZone.Attack:
                     // Look for the opposing card the opposing 
-                    action = "Attacked";
+                    action = isPlayerAttacking ? "Attacked" : "Defended";
                     //if (card.LastNonEtherZone != PlayZone.Windup)
                     {
                         index = opponentBattlingUnits.FindIndex(x => Math.Abs(card.NormalizedCenter.X - x.NormalizedCenter.X) < 0.05);

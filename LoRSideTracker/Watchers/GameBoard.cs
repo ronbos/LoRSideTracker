@@ -1,4 +1,5 @@
-﻿using System;
+﻿//#define TRACK_TOSSING_ZONE
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -7,6 +8,19 @@ using System.Threading.Tasks;
 
 namespace LoRSideTracker
 {
+    /// <summary>
+    /// Player type
+    /// </summary>
+    public enum PlayerType
+    {
+        /// <summary>Local Player</summary>
+        LocalPlayer,
+        /// <summary>Remote Opponent</summary>
+        Opponent,
+        /// <summary>Neither local or remote player</summary>
+        None,
+    }
+
     /// <summary>
     /// Play zones on the screen
     /// </summary>
@@ -54,7 +68,11 @@ namespace LoRSideTracker
         public static PlayZone FindPlayZone(PointF normalizedCenter, RectangleF normalizedBoundingBox)
         {
             // Find the zone for each card
+#if TRACK_TOSSING_ZONE
             if (normalizedBoundingBox.Height < 0)
+#else
+            if (normalizedBoundingBox.Height <= 0)
+#endif
             {
                 // This looks like a definite bug, ignore cards with negative dimensions
                 return PlayZone.Unknown;
@@ -76,7 +94,7 @@ namespace LoRSideTracker
                 // Cards are presented very large (~0.49 height) when being drawn
                 return PlayZone.Zoom;
             }
-            else if (normalizedBoundingBox.Height > 0.31f)
+            else if (normalizedBoundingBox.Height > 0.31f && normalizedCenter.Y < 0.7f)
             {
                 // Cards are presented fairly large (~0.345 height) when being presented for mulligan
                 // This size is also used when playing a unit

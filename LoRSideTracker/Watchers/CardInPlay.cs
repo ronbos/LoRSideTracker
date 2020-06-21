@@ -11,17 +11,6 @@ using System.Threading.Tasks;
 namespace LoRSideTracker
 {
     /// <summary>
-    /// Player type
-    /// </summary>
-    public enum PlayerType
-    {
-        /// <summary>Local Player</summary>
-        LocalPlayer,
-        /// <summary>Remote Opponent</summary>
-        Opponent,
-    }
-
-    /// <summary>
     /// 
     /// </summary>
     public class CardInPlay : ICloneable
