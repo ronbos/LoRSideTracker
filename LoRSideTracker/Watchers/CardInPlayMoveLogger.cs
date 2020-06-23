@@ -44,6 +44,7 @@ namespace LoRSideTracker
         /// </summary>
         /// <param name="playerZones">Array of player zone contents</param>
         /// <param name="opponentZones">Array of opponent zone contents</param>
+        /// <param name="attackingPlayer">Attacking player, for battle logging</param>
         public void LogMoves(CardList<CardInPlay>[] playerZones, CardList<CardInPlay>[] opponentZones, PlayerType attackingPlayer)
         {
             CardList<CardInPlay> playerBattlingUnits = new CardList<CardInPlay>();
@@ -78,7 +79,8 @@ namespace LoRSideTracker
         /// </summary>
         /// <param name="last"></param>
         /// <param name="current"></param>
-        /// <param name="opponentBattlingUnits"></param>
+        /// <param name="opponentBattlingUnits">Opponent's battling units, used to find opposing unit in attack</param>
+        /// <param name="isPlayerAttacking">If true, this player is attacking</param>
         private void LogMovedInCards(CardList<CardInPlay> last, CardList<CardInPlay> current, CardList<CardInPlay> opponentBattlingUnits, bool isPlayerAttacking)
         {
             bool[] logged = Enumerable.Repeat(false, current.Count).ToArray();
@@ -118,6 +120,7 @@ namespace LoRSideTracker
         /// </summary>
         /// <param name="card">Card to log</param>
         /// <param name="opponentBattlingUnits">Opponent's battling units, used to find opposing unit in attack</param>
+        /// <param name="isPlayerAttacking">If true, this player is attacking</param>
         private void LogMove(CardInPlay card, CardList<CardInPlay> opponentBattlingUnits, bool isPlayerAttacking)
         {
             int index;

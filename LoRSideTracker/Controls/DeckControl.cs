@@ -171,7 +171,9 @@ namespace LoRSideTracker
                 Color.LightGray, TextFormatFlags.VerticalCenter | TextFormatFlags.HorizontalCenter);
 
             // Draw the name
-            TextRenderer.DrawText(g, card.Name, CustomDeckScale.CardFont, cardRect, 
+            string name = card.Name;
+            if (!card.IsFromDeck) name += "*";
+            TextRenderer.DrawText(g, name, CustomDeckScale.CardFont, cardRect, 
                 (card.TheCard.SuperType == "Champion") ? Color.Gold : Color.White, 
                 TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis);
 

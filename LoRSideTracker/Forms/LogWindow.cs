@@ -15,8 +15,6 @@ namespace LoRSideTracker
     /// </summary>
     public partial class LogWindow : Form
     {
-        private RichTextBox DebugLogTextBox;
-        private RichTextBox LogTextBox;
         /// <summary>
         /// Current unformated text (with debug)
         /// </summary>
@@ -57,37 +55,18 @@ namespace LoRSideTracker
             InitializeComponent();
         }
 
-        private RichTextBox CreateRichTextBox()
-        {
-            RichTextBox rtb = new RichTextBox();
-            rtb.Parent = this;
-            rtb.CreateControl();
-            rtb.Anchor = AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Right | AnchorStyles.Bottom;
-            rtb.SetBounds(
-                DebugLogsCheckBox.Left,
-                DebugLogsCheckBox.Left,
-                ClientRectangle.Width - 2 * DebugLogsCheckBox.Left,
-                DebugLogsCheckBox.Top - 2 * DebugLogsCheckBox.Left);
-            return rtb;
-        }
-
         private void LogWindow_Load(object sender, EventArgs e)
         {
-            if (LogTextBox == null)
+            DebugLogsCheckBox.Checked = Properties.Settings.Default.MainWindowShowDebugLog;
+            if (Properties.Settings.Default.MainWindowShowDebugLog)
             {
-                LogTextBox = CreateRichTextBox();
-                DebugLogTextBox = CreateRichTextBox();
-                DebugLogsCheckBox.Checked = Properties.Settings.Default.MainWindowShowDebugLog;
-                if (Properties.Settings.Default.MainWindowShowDebugLog)
-                {
-                    DebugLogTextBox.Show();
-                    LogTextBox.Hide();
-                }
-                else
-                {
-                    DebugLogTextBox.Hide();
-                    LogTextBox.Show();
-                }
+                DebugLogTextBox.Show();
+                LogTextBox.Hide();
+            }
+            else
+            {
+                DebugLogTextBox.Hide();
+                LogTextBox.Show();
             }
         }
 
@@ -103,29 +82,42 @@ namespace LoRSideTracker
             }
             DebugLogTextBox.Rtf = rtfText;
 
-            // Remove all "\cf2" blocks
-            int nextCf = rtfText.IndexOf(@"\cf");
-            int nextCf2 = rtfText.IndexOf(@"\cf2");
-            while (nextCf2 >= 0 && nextCf >= 0)
+            // Remove all the gray text lines
+            // First determine which color is gray. e.g.:
+            // {\colortbl ;\red0\green0\blue0;\red0\green0\blue255;\red255\green0\blue0;\red128\green128\blue128;}
+            string colorTableMarker = @"\colortbl";
+            string grayColorMarker = @"\red128\green128\blue128";
+            int colorTableOffset = rtfText.IndexOf(colorTableMarker);
+            int grayColorOffset = rtfText.IndexOf(grayColorMarker);
+            int grayColorIndex = 0;
+            for (int i = rtfText.IndexOf(";", colorTableOffset + 1); i < grayColorOffset; i = rtfText.IndexOf(";", i + 1))
             {
-                if (nextCf <= nextCf2)
+                grayColorIndex++;
+            }
+            string cfGray = string.Format("\\cf{0}", grayColorIndex);
+            int nextCf = rtfText.IndexOf(@"\cf");
+            int nextCfGray = rtfText.IndexOf(cfGray);
+            while (nextCfGray >= 0 && nextCf >= 0)
+            {
+                if (nextCf <= nextCfGray)
                 {
                     nextCf = rtfText.IndexOf(@"\cf", nextCf + 1);
                 }
                 else
                 {
                     // Ready to erase
-                    rtfText = rtfText.Remove(nextCf2, nextCf - nextCf2);
-                    nextCf = nextCf2;
-                    nextCf2 = rtfText.IndexOf(@"\cf2", nextCf2);
+                    rtfText = rtfText.Remove(nextCfGray, nextCf - nextCfGray);
+                    nextCf = nextCfGray;
+                    nextCfGray = rtfText.IndexOf(cfGray, nextCfGray);
                 }
             }
 
-            if (nextCf2 >= 0)
+            if (nextCfGray >= 0)
             {
-                rtfText = rtfText.Remove(nextCf2);
+                rtfText = rtfText.Remove(nextCfGray);
             }
-            rtfText = System.Text.RegularExpressions.Regex.Replace(rtfText, @"\\cf2.*\\cf[^2]", @"XXX");
+            rtfText = System.Text.RegularExpressions.Regex.Replace(rtfText, string.Format("\\\\cf{0}.*\\\\cf[^{0}]", grayColorIndex), @"XXX");
+            rtfText = System.Text.RegularExpressions.Regex.Replace(rtfText, @"\[..\] ", @"");
             LogTextBox.Rtf = rtfText;
         }
 

@@ -289,7 +289,7 @@ namespace LoRSideTracker
                 else
                 {
                     Card card = CardLibrary.GetCard(cardCode);
-                    cards.Add(new CardWithCount(card, 1));
+                    cards.Add(new CardWithCount(card, 1, true));
                 }
             }
             cards = cards.OrderBy(card => card.Cost).ThenBy(card => card.Name).ToList();

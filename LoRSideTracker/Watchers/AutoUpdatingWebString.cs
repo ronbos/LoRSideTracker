@@ -89,6 +89,24 @@ namespace LoRSideTracker
         }
 
         /// <summary>
+        /// Destructor
+        /// </summary>
+        ~AutoUpdatingWebString()
+        {
+            if (PlaybackThread != null)
+            {
+                ShouldStopPlayback = true;
+                PlaybackThread.Join();
+                PlaybackThread = null;
+            }
+            else
+            {
+                Stop();
+                StopLog();
+            }
+        }
+
+        /// <summary>
         /// Begins an event log
         /// </summary>
         public void StartLog()
@@ -127,24 +145,6 @@ namespace LoRSideTracker
                 time = timestamp;
             }
             ContentFromFile = null;
-        }
-
-        /// <summary>
-        /// Destructor
-        /// </summary>
-        ~AutoUpdatingWebString()
-        {
-            if (PlaybackThread != null)
-            {
-                ShouldStopPlayback = true;
-                PlaybackThread.Join();
-                PlaybackThread = null;
-            }
-            else
-            {
-                Stop();
-                StopLog();
-            }
         }
 
         /// <summary>

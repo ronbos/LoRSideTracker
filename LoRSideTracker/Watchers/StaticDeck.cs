@@ -69,7 +69,7 @@ namespace LoRSideTracker
                             string cardCode = j.Key;
                             Card card = CardLibrary.GetCard(cardCode);
                             int count = Int32.Parse(j.Value.ToString());
-                            Cards.Add(new CardWithCount(card, count));
+                            Cards.Add(new CardWithCount(card, count, true));
                         }
                         Cards = Cards.OrderBy(card => card.Cost).ThenBy(card => card.Name).ToList();
                     }

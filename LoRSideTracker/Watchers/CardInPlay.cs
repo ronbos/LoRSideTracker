@@ -35,6 +35,8 @@ namespace LoRSideTracker
         public PlayZone LastNonEtherZone { get; set; }
         /// <summary></summary>
         public double EtherStartTime { get; set; }
+        /// <summary></summary>
+        public bool IsFromDeck { get; set; }
 
         /// <summary>
         /// Constructor
@@ -42,7 +44,8 @@ namespace LoRSideTracker
         /// <param name="owner"></param>
         /// <param name="card"></param>
         /// <param name="currentZone"></param>
-        public CardInPlay(PlayerType owner, Card card, PlayZone currentZone)
+        /// <param name="isFromDeck"></param>
+        public CardInPlay(PlayerType owner, Card card, PlayZone currentZone, bool isFromDeck)
         {
             TheCard = card;
             CardCode = card.Code;
@@ -53,6 +56,7 @@ namespace LoRSideTracker
             CurrentZone = currentZone;
             LastZone = PlayZone.Unknown;
             LastNonEtherZone = PlayZone.Unknown;
+            IsFromDeck = isFromDeck;
         }
 
         /// <summary>
@@ -98,6 +102,7 @@ namespace LoRSideTracker
             LastZone = PlayZone.Unknown;
             LastNonEtherZone = PlayZone.Unknown;
             CurrentZone = GameBoard.FindPlayZone(NormalizedCenter, NormalizedBoundingBox);
+            IsFromDeck = false;
         }
 
         /// <summary>
@@ -147,7 +152,7 @@ namespace LoRSideTracker
         /// <returns></returns>
         public object Clone()
         {
-            CardInPlay result = new CardInPlay(Owner, TheCard, CurrentZone);
+            CardInPlay result = new CardInPlay(Owner, TheCard, CurrentZone, IsFromDeck);
             result.BoundingBox = BoundingBox;
             result.NormalizedBoundingBox = NormalizedBoundingBox;
             result.NormalizedCenter = NormalizedCenter;

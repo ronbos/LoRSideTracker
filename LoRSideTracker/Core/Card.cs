@@ -1,4 +1,5 @@
-﻿using System;
+﻿//#define BANNER_FROM_CROPPED_ART
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
@@ -52,6 +53,7 @@ namespace LoRSideTracker
         /// <summary>Unknown Card Stub</summary>
         static public Card UnknownCard = new Card();
 
+        private string SetPath;
         /// <summary>
         /// Constructor for default unknown card
         /// </summary>
@@ -105,17 +107,43 @@ namespace LoRSideTracker
             Attack = dict["attack"].ToObject<int>();
             Health = dict["health"].ToObject<int>();
 
-            // Load images
-            string cardArtPath = String.Format("{0}\\img\\cards\\{1}.png", setPath, Code);
-            string cardBannerPath = String.Format("{0}\\img\\cards\\{1}-full.png", setPath, Code);
-            CardArt = Image.FromFile(cardArtPath);
-            CardBanner = Image.FromFile(cardBannerPath);
+            SetPath = setPath;
 
             // Spell info
             SpellSpeed = dict["spellSpeed"].ToString();
 
             // Spell info
             AssociatedCardCodes = dict["associatedCardRefs"].ToObject<string[]>();
+        }
+
+        void LoadCardArt()
+        {
+            if (CardArt == null)
+            {
+                string cardArtPath = String.Format("{0}\\img\\cards\\{1}.png", SetPath, Code);
+                string cardBannerPath = String.Format("{0}\\img\\cards\\{1}-full.png", SetPath, Code);
+                CardArt = Image.FromFile(cardArtPath);
+#if BANNER_FROM_CROPPED_ART
+                Rectangle cropArea = new Rectangle();
+                if (Type == "Spell")
+                {
+                    cropArea.X = CardArt.Width * 64 / 256;
+                    cropArea.Y = CardArt.Width * 64 / 256;
+                    cropArea.Width = CardArt.Width * 128 / 256;
+                    cropArea.Height = CardArt.Width * 96 / 256;
+                }
+                else
+                {
+                    cropArea.X = CardArt.Width * 64 / 256;
+                    cropArea.Y = CardArt.Width * 32 / 256;
+                    cropArea.Width = CardArt.Width * 160 / 256;
+                    cropArea.Height = CardArt.Width * 120 / 256;
+                }
+                CardBanner = Utilities.CropImage(CardArt, cropArea);
+#else
+                CardBanner = Image.FromFile(cardBannerPath);
+#endif
+            }
         }
 
         /// <summary>
@@ -127,6 +155,8 @@ namespace LoRSideTracker
         {
             Image img;
             Rectangle srcRect;
+
+            LoadCardArt();
 
             img = this.CardBanner;
             if (this.Type == "Spell")
@@ -185,6 +215,8 @@ namespace LoRSideTracker
         public string Type { get { return TheCard.Type; } }
         /// <summary>Card Cost</summary>
         public int Cost { get { return TheCard.Cost; } }
+        /// <summary>Is this card from the deck, or was it generated</summary>
+        public bool IsFromDeck { get; private set; }
 
         /// <summary>Number of this card in the set</summary>
         public int Count { get; set; }
@@ -194,10 +226,12 @@ namespace LoRSideTracker
         /// </summary>
         /// <param name="card">Card object</param>
         /// <param name="count">Initial count</param>
-        public CardWithCount(Card card, int count)
+        /// <param name="isFromDeck">If true, card is from the deck</param>
+        public CardWithCount(Card card, int count, bool isFromDeck)
         {
             TheCard = card;
             Count = count;
+            IsFromDeck = isFromDeck;
         }
 
         /// <summary>
@@ -208,7 +242,7 @@ namespace LoRSideTracker
         {
             // We don't want to clone the Card, just the count, 
             // since the card contains image art and can be large
-            return new CardWithCount(TheCard, Count);
+            return new CardWithCount(TheCard, Count, IsFromDeck);
         }
 
         /// <summary>
@@ -224,7 +258,7 @@ namespace LoRSideTracker
                 return object.ReferenceEquals(b, null);
             }
 
-            return !object.ReferenceEquals(b, null) && a.Code == b.Code && a.Count == b.Count;
+            return !object.ReferenceEquals(b, null) && a.Code == b.Code && a.Count == b.Count && a.IsFromDeck == b.IsFromDeck;
         }
 
         /// <summary>
@@ -252,7 +286,7 @@ namespace LoRSideTracker
         /// <returns></returns>
         public override bool Equals(object o)
         {
-            return o != null && Code == ((CardWithCount)o).Code && Count == ((CardWithCount)o).Count;
+            return o != null && Code == ((CardWithCount)o).Code && Count == ((CardWithCount)o).Count && IsFromDeck == ((CardWithCount)o).IsFromDeck;
         }
     }
 

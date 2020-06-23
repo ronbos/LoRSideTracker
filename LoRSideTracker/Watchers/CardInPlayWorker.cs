@@ -210,7 +210,7 @@ namespace LoRSideTracker
                 {
                     for (int i = 0; i < card.Count; i++)
                     {
-                        FullPlayerDeck.Add(card.Cost, card.Name, new CardInPlay(PlayerType.LocalPlayer, card.TheCard, PlayZone.Deck));
+                        FullPlayerDeck.Add(card.Cost, card.Name, new CardInPlay(PlayerType.LocalPlayer, card.TheCard, PlayZone.Deck, true));
                     }
                 }
                 for (int i = 0; i < NumZones; i++)
@@ -246,7 +246,7 @@ namespace LoRSideTracker
                 if (code.Length > 0)
                 {
                     var card = CardLibrary.GetCard(code);
-                    FullPlayerDeck.Add(card.Cost, card.Name, new CardInPlay(PlayerType.LocalPlayer, card, PlayZone.Deck));
+                    FullPlayerDeck.Add(card.Cost, card.Name, new CardInPlay(PlayerType.LocalPlayer, card, PlayZone.Deck, true));
                 }
             }
             PlayerCards[(int)PlayZone.Deck] = FullPlayerDeck.Clone();
@@ -409,6 +409,13 @@ namespace LoRSideTracker
                 return;
             }
 
+            // Mark all opponent cards as "from deck" for now
+            // This is because we cannot reliably know which ones are not from deck yet
+            for (int i = 0; i < nextOpponentCards.Count; i++)
+            {
+                nextOpponentCards[i].IsFromDeck = true;
+            }
+
             MoveToNext(ref PlayerCards, nextPlayerCards, timestamp, IsInitialDraw);
             if (IsInitialDraw)
             {
@@ -467,17 +474,30 @@ namespace LoRSideTracker
         private List<CardWithCount> GetDeck(CardList<CardInPlay> current)
         {
             List<CardWithCount> deck = new List<CardWithCount>();
-            int count = 1;
+            int countFromDeck = 0;
+            int countNotFromDeck = 0;
             for (int i = 0; i < current.Count; i++)
             {
-                if (i + 1 < current.Count && current[i].CardCode == current[i + 1].CardCode)
+                if (current[i].IsFromDeck)
                 {
-                    count++;
+                    countFromDeck++;
                 }
                 else
                 {
-                    deck.Add(new CardWithCount(current[i].TheCard, count));
-                    count = 1;
+                    countNotFromDeck++;
+                }
+                if (i + 1 == current.Count || current[i].CardCode != current[i + 1].CardCode)
+                {
+                    if (countFromDeck > 0)
+                    {
+                        deck.Add(new CardWithCount(current[i].TheCard, countFromDeck, true));
+                    }
+                    if (countNotFromDeck > 0)
+                    {
+                        deck.Add(new CardWithCount(current[i].TheCard, countNotFromDeck, false));
+                    }
+                    countFromDeck = 0;
+                    countNotFromDeck = 0;
                 }
             }
             return deck;
@@ -512,6 +532,12 @@ namespace LoRSideTracker
                     int z = x.TheCard.Cost - y.TheCard.Cost;
                     if (z == 0) z = x.TheCard.Name.CompareTo(y.TheCard.Name);
                     return z;
+                }, (x, y) => 
+                {
+                    y.BoundingBox = x.BoundingBox;
+                    y.NormalizedBoundingBox = x.NormalizedBoundingBox;
+                    y.NormalizedCenter = x.NormalizedCenter;
+                    return y;
                 }));
             }
 
@@ -548,6 +574,7 @@ namespace LoRSideTracker
             {
                 x.LastNonEtherZone = y.LastNonEtherZone;
                 x.LastZone = PlayZone.Ether;
+                x.IsFromDeck = y.IsFromDeck;
                 return x;
             }));
 
@@ -569,6 +596,7 @@ namespace LoRSideTracker
                 }, (x, y) =>
                 {
                     x.SetLastZone(y.CurrentZone);
+                    x.IsFromDeck = y.IsFromDeck;
                     return x;
                 }));
             }
@@ -603,6 +631,7 @@ namespace LoRSideTracker
             }, (x, y) =>
             {
                 x.SetLastZone(y.CurrentZone);
+                x.IsFromDeck = y.IsFromDeck;
                 return x;
             }));
 
