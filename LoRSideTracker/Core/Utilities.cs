@@ -206,7 +206,7 @@ namespace LoRSideTracker
         private static void RecursiveDelete(DirectoryInfo baseDir)
         {
             if (!baseDir.Exists)
-            return;
+                return;
 
             foreach (var dir in baseDir.EnumerateDirectories())
             {
@@ -268,11 +268,11 @@ namespace LoRSideTracker
         }
 
         /// <summary>
-        /// Load expedition deck from a string code list
+        /// Convert string code list to deck
         /// </summary>
         /// <param name="cardCodes">List of card codes</param>
         /// <returns>Deck contents</returns>
-        public static List<CardWithCount> LoadDeckFromStringCodeList(string[] cardCodes)
+        public static List<CardWithCount> DeckFromStringCodeList(string[] cardCodes)
         {
             List<CardWithCount> cards = new List<CardWithCount>();
             if (cardCodes == null)
@@ -295,6 +295,26 @@ namespace LoRSideTracker
             cards = cards.OrderBy(card => card.Cost).ThenBy(card => card.Name).ToList();
 
             return cards;
+        }
+
+        /// <summary>
+        /// Convert deck to string code list
+        /// </summary>
+        /// <param name="deck"></param>
+        /// <returns></returns>
+        public static string[] DeckToStringCodeList(List<CardWithCount> deck)
+        {
+            int deckSize = deck.Sum(x => x.Count);
+            string[] deckList = new string[deckSize];
+            int i = 0;
+            foreach (var card in deck)
+            {
+                for (int j = 0; j < card.Count; j++)
+                {
+                    deckList[i++] = card.Code;
+                }
+            }
+            return deckList;
         }
 
         public static void CallActionSafelyAndWait(Control control, Action action)
@@ -365,6 +385,51 @@ namespace LoRSideTracker
                 while ((line = reader.ReadLine()) != null)
                 {
                     result.Add(line);
+                }
+            }
+            return result;
+        }
+
+        public static List<CardWithCount> ConvertDeck(CardList<CardInPlay> deck)
+        {
+            List<CardWithCount> result = new List<CardWithCount>();
+            int countFromDeck = 0;
+            int countNotFromDeck = 0;
+            for (int i = 0; i < deck.Count; i++)
+            {
+                if (deck[i].IsFromDeck)
+                {
+                    countFromDeck++;
+                }
+                else
+                {
+                    countNotFromDeck++;
+                }
+                if (i + 1 == deck.Count || deck[i].CardCode != deck[i + 1].CardCode)
+                {
+                    if (countFromDeck > 0)
+                    {
+                        result.Add(new CardWithCount(deck[i].TheCard, countFromDeck, true));
+                    }
+                    if (countNotFromDeck > 0)
+                    {
+                        result.Add(new CardWithCount(deck[i].TheCard, countNotFromDeck, false));
+                    }
+                    countFromDeck = 0;
+                    countNotFromDeck = 0;
+                }
+            }
+            return result;
+        }
+
+        public static CardList<CardInPlay> ConvertDeck(List<CardWithCount> deck, PlayerType owner = PlayerType.LocalPlayer, PlayZone zone = PlayZone.Deck)
+        {
+            CardList<CardInPlay> result = new CardList<CardInPlay>();
+            foreach (var c in deck)
+            {
+                for (int j = 0; j < c.Count; j++)
+                {
+                    result.Add(c.Cost, c.Name, new CardInPlay(owner, c.TheCard, zone, c.IsFromDeck));
                 }
             }
             return result;

@@ -104,9 +104,9 @@ namespace LoRSideTracker
                 try { result.MyDeckName = GameHistory.DeckNames[result.MyDeckCode]; } catch { }
             }
 
-            result.MyDeck = Utilities.LoadDeckFromStringCodeList(gameRecord["MyDeck"].ToObject<string[]>());
+            result.MyDeck = Utilities.DeckFromStringCodeList(gameRecord["MyDeck"].ToObject<string[]>());
             result.OpponentName = gameRecord["OpponentName"].ToString();
-            result.OpponentDeck = Utilities.LoadDeckFromStringCodeList(gameRecord["OpponentDeck"].ToObject<string[]>());
+            result.OpponentDeck = Utilities.DeckFromStringCodeList(gameRecord["OpponentDeck"].ToObject<string[]>());
             result.Result = gameRecord["Result"].ToString();
             result.Notes = gameRecord["Notes"].ToString();
             result.Timestamp = gameRecord["Timestamp"].ToObject<DateTime>();
@@ -146,28 +146,8 @@ namespace LoRSideTracker
             string log,
             string expeditionState)
         {
-            int myDeckSize = myDeck.Sum(x => x.Count);
-            int opponentDeckSize = opponentDeck.Sum(x => x.Count);
-
-            string[] myDeckList = new string[myDeckSize];
-            int i = 0;
-            foreach (var card in myDeck)
-            {
-                for (int j = 0; j < card.Count; j++)
-                {
-                    myDeckList[i++] = card.Code;
-                }
-            }
-
-            string[] opponentDeckList = new string[opponentDeckSize];
-            i = 0;
-            foreach (var card in opponentDeck)
-            {
-                for (int j = 0; j < card.Count; j++)
-                {
-                    opponentDeckList[i++] = card.Code;
-                }
-            }
+            string[] myDeckList = Utilities.DeckToStringCodeList(myDeck);
+            string[] opponentDeckList = Utilities.DeckToStringCodeList(opponentDeck);
 
             var json = JsonSerializer.Serialize(new
             {

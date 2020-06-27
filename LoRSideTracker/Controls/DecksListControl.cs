@@ -227,7 +227,7 @@ namespace LoRSideTracker.Controls
                 }
                 if (drawIndex >= 0)
                 {
-                    gr.MyDeck[drawIndex].TheCard.DrawCardArt(e.Graphics, rect);
+                    gr.MyDeck[drawIndex].TheCard.DrawCardBanner(e.Graphics, rect);
                     e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb(
                         e.State.HasFlag(DrawItemState.Selected) ? 128 : 192, Color.Black)), rect);
                 }

@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace LoRSideTracker
@@ -34,7 +35,7 @@ namespace LoRSideTracker
         /// <summary>
         /// Constructor
         /// </summary>
-        public static void LoadAllGames()
+        public static void LoadAllGames(IProgressDisplay pdc)
         {
             // Load all known deck names
             DeckNames = new Dictionary<string, string>();
@@ -67,17 +68,20 @@ namespace LoRSideTracker
             {
                 DirectoryInfo dirInfo = new DirectoryInfo(Constants.GetLocalGamesPath());
                 FileInfo[] files = dirInfo.GetFiles("*.txt");
-
-                foreach (FileInfo fi in files.OrderBy(x => x.CreationTime))
+                var filesInOrder = files.OrderBy(x => x.CreationTime);
+                for (int i = 0; i < filesInOrder.Count(); i++)
                 {
+                    filesInOrder.Count();
                     try
                     {
-                        AddGameRecord(GameRecord.LoadFromFile(fi.FullName));
+                        AddGameRecord(GameRecord.LoadFromFile(filesInOrder.ElementAt(i).FullName));
                     }
                     catch
                     {
                         // Skip bad records
                     }
+                    pdc.Update("Loading game records...", 100.0 * (i + 1) / filesInOrder.Count());
+                    //Thread.Yield();
                 }
             }
         }

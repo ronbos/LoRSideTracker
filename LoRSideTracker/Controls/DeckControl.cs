@@ -163,7 +163,7 @@ namespace LoRSideTracker
 
             // Draw the card and a translucent layer to make the tile darker
             // and text more readable
-            card.TheCard.DrawCardArt(g, paintRect);
+            card.TheCard.DrawCardBanner(g, paintRect);
             g.FillRectangle(new SolidBrush(Color.FromArgb(128, Color.Black)), paintRect);
 
             // Draw the cost
@@ -171,16 +171,26 @@ namespace LoRSideTracker
                 Color.LightGray, TextFormatFlags.VerticalCenter | TextFormatFlags.HorizontalCenter);
 
             // Draw the name
-            string name = card.Name;
-            if (!card.IsFromDeck) name += "*";
-            TextRenderer.DrawText(g, name, CustomDeckScale.CardFont, cardRect, 
-                (card.TheCard.SuperType == "Champion") ? Color.Gold : Color.White, 
+            Color textColor;
+            if (card.IsFromDeck)
+            {
+                textColor = (card.TheCard.SuperType == "Champion") ? Color.Gold : Color.White;
+            }
+            else
+            {
+                textColor = Color.LightGreen;
+            }
+            TextRenderer.DrawText(g, card.Name, CustomDeckScale.CardFont, cardRect, textColor, 
                 TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis);
 
             // Draw the count
             TextRenderer.DrawText(g, "x" + card.Count.ToString(), CustomDeckScale.TitleFont, countRect, 
                 Color.LightGray, TextFormatFlags.VerticalCenter | TextFormatFlags.HorizontalCenter);
 
+            if (card.Count == 0)
+            {
+                g.FillRectangle(new SolidBrush(Color.FromArgb(96, Color.Black)), paintRect);
+            }
             // If this card is highlighted, draw a border around it
             if (isHighlighted)
             {

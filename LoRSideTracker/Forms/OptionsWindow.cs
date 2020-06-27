@@ -164,7 +164,7 @@ namespace LoRSideTracker
             if (PlayerActiveDeckWindow != null)
             {
                 PlayerActiveDeckWindow.HideZeroCountCards = HideZeroCountCheckBox.Checked;
-                PlayerActiveDeckWindow.UpdateDeck();
+                PlayerActiveDeckWindow.UpdateDeck(null, null);
 
             }
         }

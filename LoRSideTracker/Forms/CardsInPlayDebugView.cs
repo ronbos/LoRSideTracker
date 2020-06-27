@@ -65,7 +65,7 @@ namespace LoRSideTracker
         }
 
         /// <summary>
-        /// 
+        /// Set all the card zone contents
         /// </summary>
         /// <param name="playerZones"></param>
         /// <param name="opponentZones"></param>

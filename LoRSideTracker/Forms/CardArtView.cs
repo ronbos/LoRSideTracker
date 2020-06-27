@@ -33,6 +33,7 @@ namespace LoRSideTracker
             Utilities.CallActionSafelyAndWait(this, new Action(() =>
             {
                 MyCard = card;
+                MyCard.LoadCardArt();
                 this.SelectBitmap(new Bitmap(MyCard.CardArt));
             }));
         }
@@ -40,6 +41,7 @@ namespace LoRSideTracker
         private void CardArtView_Paint(object sender, PaintEventArgs e)
         {
             Rectangle paintRect = this.ClientRectangle;
+            MyCard.LoadCardArt();
             if (MyCard != null)
             {
                 e.Graphics.DrawImage(MyCard.CardArt, new Point(0, 0));

@@ -31,7 +31,7 @@ namespace LoRSideTracker
         private LogWindow ActiveLogWindow;
         private GameBoardWatchWindow OverlayWindow;
 
-        private string PlayBackDeckPath;
+        private string PlayBackDeckPath = null;
 
         private GameRecord CurrentGameRecord = new GameRecord();
 
@@ -40,7 +40,7 @@ namespace LoRSideTracker
         /// </summary>
         public MainWindow()
         {
-            //PlayBackDeckPath = @"2020_6_21_15_53_52.playback";
+            //PlayBackDeckPath = @"2020_6_25_17_10_40.playback";
 
             InitializeComponent();
             this.ResizeRedraw = true;
@@ -77,7 +77,7 @@ namespace LoRSideTracker
                 PlayerActiveDeckWindow.SetCurrentDeck(cards);
                 if (CurrentPlayState != null)
                 {
-                    CurrentPlayState.SetDeck(cards);
+                    CurrentPlayState.SetDeck(cards, true);
                 }
 
                 CurrentGameRecord.MyDeck = Utilities.Clone(cards);
@@ -329,8 +329,7 @@ namespace LoRSideTracker
         public async void OnAllSetsDownloaded()
         {
             await Task.Run(() => CardLibrary.LoadAllCards(MyProgressDisplay));
-            GameHistory.LoadAllGames();
-
+            await Task.Run(() => GameHistory.LoadAllGames(MyProgressDisplay));
             DeckControl.DeckScale deckScale = DeckControl.DeckScale.Medium;
             if (Properties.Settings.Default.DeckDrawSize == 0)
             {
@@ -383,7 +382,7 @@ namespace LoRSideTracker
             Log.SetLogWindow(ActiveLogWindow);
 
             // Special debigging window is shown if D key is held during load
-            if (PlayBackDeckPath != null || Keyboard.IsKeyDown(Key.LeftCtrl))
+            if (PlayBackDeckPath != null || Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl))
             {
                 OverlayWindow = new GameBoardWatchWindow();
                 OverlayWindow.Show();
@@ -535,7 +534,7 @@ namespace LoRSideTracker
                 }
                 if (drawIndex >= 0)
                 {
-                    gr.MyDeck[drawIndex].TheCard.DrawCardArt(e.Graphics, rect);
+                    gr.MyDeck[drawIndex].TheCard.DrawCardBanner(e.Graphics, rect);
                     e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb(
                         e.State.HasFlag(DrawItemState.Selected) ? 128 : 192, Color.Black)), rect);
                 }
@@ -746,6 +745,7 @@ namespace LoRSideTracker
         private void hideZeroCountCardsToolStripMenuItem_Click(object sender, EventArgs e)
         {
             PlayerActiveDeckWindow.HideZeroCountCards = !PlayerActiveDeckWindow.HideZeroCountCards;
+            PlayerActiveDeckWindow.UpdateDeck(null, null);
         }
 
         private void ChangeCustomDeckScale(DeckControl.DeckScale deckScale)

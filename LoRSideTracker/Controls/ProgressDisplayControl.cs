@@ -45,19 +45,11 @@ namespace LoRSideTracker
         public void Update(string message, double percentage)
         {
             // Make sure update is done on the UI thread
-            if (InvokeRequired)
-            {
-                Invoke(new Action(() => 
-                {
-                    MyLabel.Text = message;
-                    PercentageLabel.Text = string.Format("{0}%", (int)(0.5 + percentage));
-                }));
-            }
-            else
+            Utilities.CallActionSafelyAndWait(this, new Action(() =>
             {
                 MyLabel.Text = message;
                 PercentageLabel.Text = string.Format("{0}%", (int)(0.5 + percentage));
-            }
+            }));
         }
     }
 }

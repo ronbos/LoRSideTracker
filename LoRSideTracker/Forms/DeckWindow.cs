@@ -68,9 +68,7 @@ namespace LoRSideTracker
         {
             if (!allCards.SequenceEqual(AllCards))
             {
-                AllCards = Utilities.Clone(allCards);
-                CurrentCards = Utilities.Clone(allCards);
-                UpdateDeck();
+                UpdateDeck(allCards, allCards);
             }
         }
 
@@ -82,33 +80,37 @@ namespace LoRSideTracker
         {
             if (!currentCards.SequenceEqual(CurrentCards))
             {
-                CurrentCards = Utilities.Clone(currentCards);
-                UpdateDeck();
+               UpdateDeck(null, currentCards);
             }
         }
 
         /// <summary>
         /// Reevaluate current deck -- useful when flipping zero count visibility
         /// </summary>
-        public void UpdateDeck()
+        public void UpdateDeck(List<CardWithCount> allCards, List<CardWithCount> currentCards)
         {
-            Utilities.CallActionSafelyAndWait(this, new Action(() => { UpdateDeckSafe(); }));
+            if (allCards != null) allCards = allCards.Clone();
+            if (currentCards != null) currentCards = currentCards.Clone();
+            Utilities.CallActionSafelyAndWait(this, new Action(() => { UpdateDeckSafe(allCards, currentCards); }));
         }
 
         /// <summary>
         /// Safely update full deck and drawn cards contents, and redraw the set of displayed cards
         /// </summary>
-        private void UpdateDeckSafe()
+        private void UpdateDeckSafe(List<CardWithCount> allCards, List<CardWithCount> currentCards)
         {
+            if (allCards != null) AllCards = allCards;
+            if (currentCards != null) CurrentCards = currentCards;
+
             // Assume both AllCards and CurrentCards are sorted
-            List<CardWithCount> remainingCards = CurrentCards;
+            List<CardWithCount> remainingCards;
             if (AllCards.Count > 0)
             {
                 remainingCards = Utilities.Clone(AllCards);
                 int j = 0;
                 for (int i = 0; i < remainingCards.Count; i++)
                 {
-                    if (j < CurrentCards.Count && remainingCards[i].Code == CurrentCards[j].Code)
+                    if (j < CurrentCards.Count && remainingCards[i].Code == CurrentCards[j].Code && remainingCards[i].IsFromDeck == CurrentCards[j].IsFromDeck)
                     {
                         remainingCards[i].Count = CurrentCards[j].Count;
                         j++;
@@ -123,6 +125,10 @@ namespace LoRSideTracker
                 {
                     remainingCards = remainingCards.FindAll(x => x.Count > 0).ToList();
                 }
+            }
+            else
+            {
+               remainingCards = CurrentCards.Clone();
             }
 
             if (remainingCards.Count == 0)

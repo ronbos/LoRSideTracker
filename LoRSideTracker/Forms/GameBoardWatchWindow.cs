@@ -20,6 +20,8 @@ namespace LoRSideTracker
         int ScreenWidth = 1024;
         int ScreenHeight = 768;
 
+        bool FullArtView = true;
+
         /// <summary>
         /// Constructor
         /// </summary>
@@ -85,29 +87,43 @@ namespace LoRSideTracker
             // Draw all player card rectangles
             foreach (var el in PlayerElements)
             {
-                Rectangle r = new Rectangle(
-                    (int)(0.5f + el.BoundingBox.X * scale),
-                    (int)(0.5f + el.BoundingBox.Y * scale),
-                    (int)(0.5f + el.BoundingBox.Width * scale),
-                    (int)(0.5f + el.BoundingBox.Height * scale));
-                r.Offset(screenRect.X, screenRect.Y);
-                e.Graphics.DrawRectangle(new Pen(Color.Blue, 2), r);
-                string text = string.Format("{0}\r\n{1}\r\n{2}\r\n{3}", CardLibrary.GetCard(el.CardCode).Name, el.CardCode, el.NormalizedCenter.Y, el.NormalizedBoundingBox.Height);
-                TextRenderer.DrawText(e.Graphics, text, this.Font, r, Color.Blue, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
+                DrawElement(el, e.Graphics, Color.Blue, screenRect, scale);
             }
 
             // Draw all opponent card rectangles
             foreach (var el in OpponentElements)
             {
-                Rectangle r = new Rectangle(
-                    (int)(0.5f + el.BoundingBox.X * scale),
-                    (int)(0.5f + el.BoundingBox.Y * scale),
-                    (int)(0.5f + el.BoundingBox.Width * scale),
-                    (int)(0.5f + el.BoundingBox.Height * scale));
+                DrawElement(el, e.Graphics, Color.Red, screenRect, scale);
+            }
+        }
+
+        void DrawElement(CardInPlay card, Graphics g, Color borderColor, Rectangle screenRect, double scale)
+        {
+            Rectangle r = new Rectangle(
+                (int)(0.5f + card.BoundingBox.X * scale),
+                (int)(0.5f + card.BoundingBox.Y * scale),
+                (int)(0.5f + card.BoundingBox.Width * scale),
+                (int)(0.5f + card.BoundingBox.Height * scale));
+            r.Offset(screenRect.X, screenRect.Y);
+            if (FullArtView)
+            {
+                card.TheCard.LoadCardArt();
+                if (card.CurrentZone == PlayZone.Zoom || card.CurrentZone == PlayZone.Stage || card.CurrentZone == PlayZone.Hand || card.CurrentZone == PlayZone.Field)
+                {
+                    g.DrawImage(card.TheCard.CardArt, r);
+                }
+                else if (card.CurrentZone == PlayZone.Cast || card.CurrentZone == PlayZone.Battle || card.CurrentZone == PlayZone.Windup || card.CurrentZone == PlayZone.Attack)
+                {
+                    card.TheCard.DrawCardBanner(g, r);
+                }
+            }
+            else
+            {
                 r.Offset(screenRect.X, screenRect.Y);
-                e.Graphics.DrawRectangle(new Pen(Color.Red, 2), r);
-                string text = string.Format("{0}\r\n{1}\r\n{2}\r\n{3}", CardLibrary.GetCard(el.CardCode).Name, el.CardCode, el.NormalizedCenter.Y, el.NormalizedBoundingBox.Height);
-                TextRenderer.DrawText(e.Graphics, text, this.Font, r, Color.Red, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
+                g.DrawRectangle(new Pen(borderColor, 2), r);
+                string text = string.Format("{0}\r\n{1}\r\n{2}\r\n{3}", CardLibrary.GetCard(card.CardCode).Name, card.CardCode,
+                    card.NormalizedCenter.Y, card.NormalizedBoundingBox.Height);
+                TextRenderer.DrawText(g, text, this.Font, r, borderColor, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
             }
         }
 

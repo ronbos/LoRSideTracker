@@ -123,6 +123,7 @@
       <DependentUpon>GameLogControl.cs</DependentUpon>
     </Compile>
     <Compile Include="Core\GameHistory.cs" />
+    <Compile Include="Core\Region.cs" />
     <Compile Include="Core\SetDownloader.cs" />
     <Compile Include="Forms\GameBoardWatchWindow.cs">
       <SubType>Form</SubType>
@@ -173,7 +174,7 @@
     <Compile Include="Controls\ProgressDisplayControl.Designer.cs">
       <DependentUpon>ProgressDisplayControl.cs</DependentUpon>
     </Compile>
-    <Compile Include="Watchers\CardInPlay.cs" />
+    <Compile Include="Core\CardInPlay.cs" />
     <Compile Include="Forms\CardsInPlayDebugView.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -182,7 +183,7 @@
     </Compile>
     <Compile Include="Watchers\CardInPlayMoveLogger.cs" />
     <Compile Include="Watchers\CardInPlayWorker.cs" />
-    <Compile Include="Watchers\CardList.cs" />
+    <Compile Include="Core\CardList.cs" />
     <Compile Include="Watchers\GameBoard.cs" />
     <Compile Include="Watchers\StaticDeck.cs" />
     <Compile Include="Controls\DeckControl.cs">

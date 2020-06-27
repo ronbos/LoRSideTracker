@@ -131,7 +131,7 @@ namespace LoRSideTracker
             IsActive = json["IsActive"].ToObject<bool>();
             State = json["State"].ToString();
             Record = json["Record"].ToObject<string[]>();
-            Cards = Utilities.LoadDeckFromStringCodeList(json["Deck"].ToObject<string[]>());
+            Cards = Utilities.DeckFromStringCodeList(json["Deck"].ToObject<string[]>());
             NumberOfGames = json["Games"].ToObject<int>();
             NumberOfWins = json["Wins"].ToObject<int>();
             NumberOfLosses = json["Losses"].ToObject<int>();

@@ -15,18 +15,28 @@ namespace LoRSideTracker
     /// </summary>
     public class CardInPlay : ICloneable
     {
+        // Card info
+
         /// <summary></summary>
         public Card TheCard { get; private set; }
         /// <summary></summary>
-        public string CardCode { get; private set; }
+        public string CardCode { get => TheCard.Code; }
+        /// <summary></summary>
+        public PlayerType Owner { get; private set; }
+        /// <summary></summary>
+        public bool IsFromDeck { get; set; }
+
+        // Card position on the game board
+
         /// <summary></summary>
         public Rectangle BoundingBox { get; set; }
         /// <summary></summary>
         public RectangleF NormalizedBoundingBox { get; set; }
         /// <summary></summary>
         public PointF NormalizedCenter { get; set; }
-        /// <summary></summary>
-        public PlayerType Owner { get; private set; }
+
+        // Card zone
+
         /// <summary></summary>
         public PlayZone CurrentZone { get; set; }
         /// <summary></summary>
@@ -35,8 +45,24 @@ namespace LoRSideTracker
         public PlayZone LastNonEtherZone { get; set; }
         /// <summary></summary>
         public double EtherStartTime { get; set; }
-        /// <summary></summary>
-        public bool IsFromDeck { get; set; }
+
+
+        /// <summary>
+        /// Constructor for a card belonging to the local player and in deck
+        /// </summary>
+        /// <param name="card"></param>
+        public CardInPlay(Card card)
+        {
+            TheCard = card;
+            BoundingBox = new Rectangle();
+            NormalizedBoundingBox = new RectangleF();
+            NormalizedCenter = new PointF();
+            Owner = PlayerType.LocalPlayer;
+            CurrentZone = PlayZone.Deck;
+            LastZone = PlayZone.Unknown;
+            LastNonEtherZone = PlayZone.Unknown;
+            IsFromDeck = true;
+        }
 
         /// <summary>
         /// Constructor
@@ -48,7 +74,6 @@ namespace LoRSideTracker
         public CardInPlay(PlayerType owner, Card card, PlayZone currentZone, bool isFromDeck)
         {
             TheCard = card;
-            CardCode = card.Code;
             BoundingBox = new Rectangle();
             NormalizedBoundingBox = new RectangleF();
             NormalizedCenter = new PointF();
@@ -73,8 +98,7 @@ namespace LoRSideTracker
             Point correctionOffset,
             float screenHeightForNormalized)
         {
-            CardCode = dict["CardCode"].GetString();
-            TheCard = CardLibrary.GetCard(CardCode);
+            TheCard = CardLibrary.GetCard(dict["CardCode"].GetString());
             Owner = dict["LocalPlayer"].GetBoolean() ? PlayerType.LocalPlayer : PlayerType.Opponent;
             BoundingBox = new Rectangle(
                 dict["TopLeftX"].GetInt32() + correctionOffset.X,
