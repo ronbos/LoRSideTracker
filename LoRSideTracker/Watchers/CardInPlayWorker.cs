@@ -20,6 +20,13 @@ namespace LoRSideTracker
     public interface ICardsInPlayCallback
     {
         /// <summary>
+        /// Receives notification that player deck was set
+        /// </summary>
+        /// <param name="cards">Updated set</param>
+        /// <param name="deckCode">Associated Deck code</param>
+        void OnPlayerDeckSet(List<CardWithCount> cards, string deckCode);
+
+        /// <summary>
         /// Callback for when player deck set has been changed
         /// </summary>
         /// <param name="cards">Cards in the set</param>
@@ -44,17 +51,18 @@ namespace LoRSideTracker
         void OnOpponentGraveyardChanged(List<CardWithCount> cards);
 
         /// <summary>
-        /// Callback for when opponent graveyard has been changed
-        /// </summary>
-        /// <param name="cards">Cards in the set</param>
-        void OnOpponentDeckChanged(List<CardWithCount> cards);
-
-        /// <summary>
         /// Callback for when game state changes
         /// </summary>
         /// <param name="oldGameState">Previous game state</param>
         /// <param name="newGameState">New game state</param>
         void OnGameStateChanged(string oldGameState, string newGameState);
+
+        /// <summary>
+        /// Receives notification that game state has ended
+        /// </summary>
+        /// <param name="gameNumber"></param>
+        /// <param name="gameRecord"></param>
+        void OnGameEnded(int gameNumber, GameRecord gameRecord);
 
         /// <summary>
         /// Callback for when elements have been updated
@@ -108,6 +116,10 @@ namespace LoRSideTracker
 
         private bool TestMode = false;
 
+        private StaticDeck CurrentConstructedDeck = new StaticDeck();
+        private Expedition CurrentExpedition = new Expedition();
+        private GameRecord CurrentGameRecord = new GameRecord();
+
         /// <summary>
         /// Constructor
         /// </summary>
@@ -139,25 +151,126 @@ namespace LoRSideTracker
         }
 
         /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="gameLogFilePath"></param>
+        public void Start(string gameLogFilePath)
+        {
+            InGame = false;
+            if (WebString != null)
+            {
+                WebString.Stop();
+            }
+
+            if (gameLogFilePath == null)
+            {
+                WebString = new AutoUpdatingWebString(Constants.OverlayStateURL(), 10, this, 100, true);
+            }
+            else
+            {
+                List<string> gameLog = Utilities.UnzipToStringList(File.ReadAllBytes(gameLogFilePath));
+                TestMode = true;
+                FullPlayerDeck.Clear();
+                for (int i = 0; i < NumZones; i++)
+                {
+                    PlayerCards[i].Clear();
+                    OpponentCards[i].Clear();
+                }
+
+                // Process the deck
+                List<CardWithCount> deck = Utilities.DeckFromStringCodeList(gameLog[0].Split(new char[] { ' ' }));
+                FullPlayerDeck = Utilities.ConvertDeck(deck);
+                PlayerCards[(int)PlayZone.Deck] = FullPlayerDeck.Clone();
+                IsInitialDraw = true;
+                gameLog.RemoveAt(0);
+
+                WebString = new AutoUpdatingWebString(gameLog, 10, this, 100);
+            }
+        }
+
+        bool DetectDeck()
+        {
+            bool result = false;
+
+            if (TestMode)
+            {
+                result = true;
+            }
+            else
+            {
+                CurrentGameRecord = new GameRecord();
+                CurrentConstructedDeck.Reload();
+                CurrentExpedition.Reload();
+
+                if (CurrentConstructedDeck.Cards.Count > 0 && !CurrentConstructedDeck.Cards.SequenceEqual(CurrentExpedition.Cards))
+                {
+                    FullPlayerDeck = Utilities.ConvertDeck(CurrentConstructedDeck.Cards);
+                    Callback.OnPlayerDeckSet(CurrentConstructedDeck.Cards, CurrentConstructedDeck.DeckName);
+                    CurrentGameRecord.MyDeck = Utilities.Clone(CurrentConstructedDeck.Cards);
+                    CurrentGameRecord.MyDeckName = CurrentConstructedDeck.DeckName;
+                    CurrentGameRecord.MyDeckCode = CurrentConstructedDeck.DeckCode;
+                    CurrentGameRecord.OpponentName = OpponentName;
+                    CurrentGameRecord.OpponentDeck = new List<CardWithCount>();
+                    CurrentGameRecord.Notes = "";
+                    CurrentGameRecord.Result = "-";
+                    CurrentGameRecord.ExpeditionSignature = "";
+                    result = true;
+                }
+                else if (CurrentExpedition.Cards.Count > 0)
+                {
+                    FullPlayerDeck = Utilities.ConvertDeck(CurrentExpedition.Cards);
+                    string title = string.Format("Expedition {0}-{1}{2}", CurrentExpedition.NumberOfWins,
+                        CurrentExpedition.NumberOfLosses, CurrentExpedition.IsEliminationGame ? "*" : "");
+                    Callback.OnPlayerDeckSet(CurrentExpedition.Cards, title);
+                    CurrentGameRecord.MyDeck = Utilities.Clone(CurrentExpedition.Cards);
+                    CurrentGameRecord.MyDeckName = title;
+                    CurrentGameRecord.MyDeckCode = "";
+                    CurrentGameRecord.OpponentName = OpponentName;
+                    CurrentGameRecord.OpponentDeck = new List<CardWithCount>();
+                    CurrentGameRecord.Notes = "";
+                    CurrentGameRecord.Result = "-";
+                    CurrentGameRecord.ExpeditionSignature = CurrentExpedition.Signature;
+                    result = true;
+                }
+            }
+
+            return result;
+        }
+
+        /// <summary>
         /// Process game has started event
         /// </summary>
         public void GameStarted()
         {
             if (!InGame)
             {
-                for (int i = 0; i < NumZones; i++)
-                {
-                    PlayerCards[i].Clear();
-                    OpponentCards[i].Clear();
-                }
-                PlayerCards[(int)PlayZone.Deck] = FullPlayerDeck.Clone();
-                InGame = true;
-                Log.Clear();
-                Log.WriteLine("New Game: {0} vs {1}", PlayerName, OpponentName);
-
 #if ALLOW_GAME_RECORDING
                 WebString.StartLog();
 #endif
+            }
+
+            for (int i = 0; i < NumZones; i++)
+            {
+                PlayerCards[i].Clear();
+                OpponentCards[i].Clear();
+            }
+            PlayerCards[(int)PlayZone.Deck] = FullPlayerDeck.Clone();
+            InGame = true;
+            IsInitialDraw = true;
+            Log.Clear();
+            if (string.IsNullOrEmpty(CurrentGameRecord.ExpeditionSignature))
+            {
+                Log.WriteLine("New Constructed Game: {0} vs {1}", PlayerName, OpponentName);
+                Log.WriteLine("Deck: {0}", CurrentGameRecord.MyDeckName);
+            }
+            else
+            {
+                Log.WriteLine("New Expedition Game: {0} vs {1}", PlayerName, OpponentName);
+                Log.WriteLine("Expedition Record: {0}-{1}", CurrentExpedition.NumberOfWins, CurrentExpedition.NumberOfLosses);
+                if (CurrentExpedition.IsEliminationGame)
+                {
+                    Log.WriteLine("Note: This is an elimination game");
+                }
             }
         }
 
@@ -166,8 +279,34 @@ namespace LoRSideTracker
         /// </summary>
         public void GameEnded()
         {
-            if (InGame)
+            if (InGame && !TestMode)
             {
+                // Game ended. Grab game result
+                string json = Utilities.GetStringFromURL(Constants.GameResultURL());
+                int gameNumber = 0;
+                if (json != null && Utilities.IsJsonStringValid(json))
+                {
+                    Dictionary<string, JsonElement> gameResult = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(json);
+                    gameNumber = gameResult["GameID"].ToObject<int>() + 1;
+                    bool localPlayerWon = gameResult["LocalPlayerWon"].ToObject<bool>();
+                    CurrentGameRecord.Result = localPlayerWon ? "Win" : "Loss";
+                    if (!string.IsNullOrEmpty(CurrentGameRecord.ExpeditionSignature))
+                    {
+                        // Update expedition name to reflect this result
+                        CurrentGameRecord.MyDeckName = string.Format("Expedition {0}-{1}{2}",
+                            CurrentExpedition.NumberOfWins + (localPlayerWon ? 1 : 0),
+                            CurrentExpedition.NumberOfLosses + (localPlayerWon ? 0 : 1),
+                            (CurrentExpedition.IsEliminationGame && !localPlayerWon) ? "*" : "");
+                    }
+                }
+                else
+                {
+                    CurrentGameRecord.Result = "unknown";
+                }
+                CurrentGameRecord.OpponentDeck = Utilities.Clone(GetDeck(OpponentCards, (int)PlayZone.Deck));
+                CurrentGameRecord.OpponentName = OpponentName;
+                Callback.OnGameEnded(gameNumber, CurrentGameRecord);
+
                 InGame = false;
                 for (int i = 0; i < NumZones; i++)
                 {
@@ -192,67 +331,6 @@ namespace LoRSideTracker
             List<string> gameLog = WebString.StopLog();
             gameLog.Insert(0, codes);
             File.WriteAllBytes(filePath, Utilities.ZipFromStringList(gameLog));
-        }
-
-        /// <summary>
-        /// Set the local player full deck
-        /// </summary>
-        /// <param name="deck"></param>
-        /// <param name="forceUpdate"></param>
-        public void SetDeck(List<CardWithCount> deck, bool forceUpdate = false)
-        {
-            if (WebString == null)
-            {
-                WebString = new AutoUpdatingWebString(Constants.OverlayStateURL(), 10, this, 100, true);
-            }
-            if (!InGame || FullPlayerDeck.Count == 0 || forceUpdate)
-            {
-                FullPlayerDeck = Utilities.ConvertDeck(deck, PlayerType.LocalPlayer, PlayZone.Deck);
-                for (int i = 0; i < NumZones; i++)
-                {
-                    PlayerCards[i].Clear();
-                    OpponentCards[i].Clear();
-                }
-                PlayerCards[(int)PlayZone.Deck] = FullPlayerDeck.Clone();
-                IsInitialDraw = true;
-            }
-        }
-
-        /// <summary>
-        /// Set the local player full deck
-        /// </summary>
-        /// <param name="gameLogFilePath"></param>
-        public void SetTestDeck(string gameLogFilePath)
-        {
-            List<string> gameLog = Utilities.UnzipToStringList(File.ReadAllBytes(gameLogFilePath));
-            TestMode = true;
-            FullPlayerDeck.Clear();
-            for (int i = 0; i < NumZones; i++)
-            {
-                PlayerCards[i].Clear();
-                OpponentCards[i].Clear();
-            }
-
-            // Process the deck
-            char[] charSeparators = new char[] { ' ' };
-            var codes = gameLog[0].Split(charSeparators);
-            foreach (var code in codes)
-            {
-                if (code.Length > 0)
-                {
-                    var card = CardLibrary.GetCard(code);
-                    FullPlayerDeck.Add(card.Cost, card.Name, new CardInPlay(card));
-                }
-            }
-            PlayerCards[(int)PlayZone.Deck] = FullPlayerDeck.Clone();
-            IsInitialDraw = true;
-            gameLog.RemoveAt(0);
-
-            if (WebString != null)
-            {
-                WebString.Stop();
-            }
-            WebString = new AutoUpdatingWebString(gameLog, 10, this, 100);
         }
 
         /// <summary>
@@ -302,6 +380,12 @@ namespace LoRSideTracker
             else
             {
                 GameState = "Unknown";
+            }
+
+            // Load the deck before announcing game is in Progress
+            if (oldGameState != GameState && GameState == "InProgress" && !DetectDeck())
+            {
+                GameState = "Starting";
             }
 
             if (oldGameState != GameState)
@@ -418,6 +502,7 @@ namespace LoRSideTracker
                 IsInitialDraw = (PlayerCards[(int)PlayZone.Hand].Count() == 0);
             }
 
+
             MoveToNext(ref OpponentCards, nextOpponentCards, timestamp, false);
 
             // Purge Ether of spells that have been cast
@@ -485,7 +570,6 @@ namespace LoRSideTracker
             Callback.OnPlayerDrawnAndPlayedChanged(GetDeck(PlayerCards, (int)PlayZone.Deck));
             Callback.OnPlayerGraveyardChanged(Utilities.ConvertDeck(PlayerCards[(int)PlayZone.Graveyard]));
             Callback.OnOpponentGraveyardChanged(Utilities.ConvertDeck(OpponentCards[(int)PlayZone.Graveyard]));
-            Callback.OnOpponentDeckChanged(GetDeck(OpponentCards, (int)PlayZone.Deck));
         }
 
         private List<CardWithCount> GetDeck(CardList<CardInPlay>[] current, int excludeZone = -1)

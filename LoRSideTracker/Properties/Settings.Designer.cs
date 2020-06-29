@@ -250,5 +250,17 @@ namespace LoRSideTracker.Properties {
                 this["DeckDrawSize"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool HideAIGames {
+            get {
+                return ((bool)(this["HideAIGames"]));
+            }
+            set {
+                this["HideAIGames"] = value;
+            }
+        }
     }
 }

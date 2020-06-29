@@ -116,12 +116,21 @@ namespace LoRSideTracker
         /// Load games matching deck signature
         /// </summary>
         /// <param name="deckSignature"></param>
-        public void LoadGames(string deckSignature)
+        /// <param name="deckName"></param>
+        /// <param name="hideGamesVsAI"></param>
+        public void LoadGames(string deckSignature, string deckName, bool hideGamesVsAI)
         {
             Utilities.CallActionSafelyAndWait(this, new Action(() =>
             {
                 // Load all games
-                Games = GameHistory.Games.FindAll(x => deckSignature == x.GetDeckSignature()).ToList();
+                if (deckName != null)
+                {
+                    Games = GameHistory.Games.FindAll(x => deckName == x.MyDeckName && (!hideGamesVsAI || !x.OpponentIsAI)).ToList();
+                }
+                else
+                {
+                    Games = GameHistory.Games.FindAll(x => deckSignature == x.GetDeckSignature() && (!hideGamesVsAI || !x.OpponentIsAI)).ToList();
+                }
                 GameTextRectangles.RemoveRange(1, GameTextRectangles.Count - 1);
                 foreach (var gr in Games)
                 {

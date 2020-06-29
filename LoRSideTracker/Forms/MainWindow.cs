@@ -17,10 +17,9 @@ namespace LoRSideTracker
     /// <summary>
     /// Main app wondow
     /// </summary>
-    public partial class MainWindow : Form, IExpeditionUpdateCallback, StaticDeckUpdateCallback, ICardsInPlayCallback, ISetDownloaderCallback
+    public partial class MainWindow : Form, IExpeditionUpdateCallback, ICardsInPlayCallback, ISetDownloaderCallback
     {
         private Expedition CurrentExpedition;
-        private StaticDeck CurrentDeck;
         private CardsInPlayWorker CurrentPlayState;
 
         private DeckWindow PlayerActiveDeckWindow;
@@ -40,7 +39,7 @@ namespace LoRSideTracker
         /// </summary>
         public MainWindow()
         {
-            //PlayBackDeckPath = @"2020_6_25_17_10_40.playback";
+            //PlayBackDeckPath = @"2020_6_27_18_45_44.playback";
 
             InitializeComponent();
             this.ResizeRedraw = true;
@@ -61,84 +60,41 @@ namespace LoRSideTracker
         }
 
         /// <summary>
-        /// Receives notification that static deck was updated
-        /// </summary>
-        /// <param name="cards">Updated set</param>
-        /// <param name="deckCode">Associated Deck code</param>
-        public void OnDeckUpdated(List<CardWithCount> cards, string deckCode)
-        {
-            if (cards.Count > 0 &&
-                (CurrentExpedition == null || !cards.SequenceEqual(CurrentExpedition.Cards)))
-            {
-                string title = "Constructed Deck";
-                try { title = GameHistory.DeckNames[deckCode]; } catch { }
-                PlayerActiveDeckWindow.Title = string.Format(title);
-                PlayerActiveDeckWindow.SetFullDeck(cards);
-                PlayerActiveDeckWindow.SetCurrentDeck(cards);
-                if (CurrentPlayState != null)
-                {
-                    CurrentPlayState.SetDeck(cards, true);
-                }
-
-                CurrentGameRecord.MyDeck = Utilities.Clone(cards);
-                CurrentGameRecord.MyDeckName = title;
-                CurrentGameRecord.MyDeckCode = deckCode;
-                CurrentGameRecord.Notes = "";
-                CurrentGameRecord.Result = "-";
-                CurrentGameRecord.ExpeditionSignature = "";
-            }
-            else
-            {
-                // No active static deck -- show expedition deck or no deck
-                OnExpeditionDeckUpdated((CurrentExpedition != null) ? CurrentExpedition.Cards : new List<CardWithCount>());
-            }
-        }
-
-        /// <summary>
         /// Receives notification that expedition deck was updated
         /// </summary>
         /// <param name="cards">Updated set</param>
         public void OnExpeditionDeckUpdated(List<CardWithCount> cards)
         {
-            if (CurrentDeck.Cards.Count == 0 || CurrentDeck.Cards.SequenceEqual(cards))
+            if (CurrentExpedition.State == "Picking" || CurrentExpedition.State == "Swapping")
             {
-                if (cards.Count > 0)
-                {
-                    bool isEliminationGame = (Array.FindLastIndex(CurrentExpedition.Record, item => item.Equals("win")) < Array.FindLastIndex(CurrentExpedition.Record, item => item.Equals("loss")))
-                        || (CurrentExpedition.NumberOfWins == 6);
-                    string title = string.Format("Expedition {0}-{1}{2}", CurrentExpedition.NumberOfWins, CurrentExpedition.NumberOfLosses, isEliminationGame ? "*" : "");
-                    PlayerActiveDeckWindow.Title = title;
-                    PlayerActiveDeckWindow.SetFullDeck(Utilities.Clone(cards));
-                    PlayerActiveDeckWindow.SetCurrentDeck(Utilities.Clone(cards));
-                    if (CurrentPlayState != null)
-                    {
-                        CurrentPlayState.SetDeck(cards);
-                    }
-
-                    CurrentGameRecord.MyDeck = Utilities.Clone(cards);
-                    CurrentGameRecord.MyDeckName = title;
-                    CurrentGameRecord.MyDeckCode = "";
-                    CurrentGameRecord.Notes = "";
-                    CurrentGameRecord.Result = "-";
-                    CurrentGameRecord.ExpeditionSignature = CurrentExpedition.GetSignature();
-                }
-                else
-                {
-                    string title = "No Active Deck";
-                    PlayerActiveDeckWindow.Title = title;
-                    PlayerActiveDeckWindow.SetFullDeck(new List<CardWithCount>());
-                    PlayerActiveDeckWindow.SetCurrentDeck(new List<CardWithCount>());
-                    if (CurrentPlayState != null)
-                    {
-                        CurrentPlayState.SetDeck(new List<CardWithCount>());
-                    }
-
-                    // Don't set game record here due to a race condition with saving
-                    //CurrentGameRecord.MyDeck = new List<CardWithCount>();
-                    //CurrentGameRecord.Notes = title;
-                    //CurrentGameRecord.Result = "-";
-                }
+                PlayerActiveDeckWindow.Title = string.Format("Expedition {0}-{1}{2}", CurrentExpedition.NumberOfWins,
+                    CurrentExpedition.NumberOfLosses, CurrentExpedition.IsEliminationGame ? "*" : "");
+                PlayerActiveDeckWindow.SetFullDeck(CurrentExpedition.Cards);
+                PlayerActiveDeckWindow.SetCurrentDeck(CurrentExpedition.Cards);
             }
+        }
+
+        /// <summary>
+        /// Receives notification that player deck was set
+        /// </summary>
+        /// <param name="cards">Deck contents</param>
+        /// <param name="name">Deck name</param>
+        public void OnPlayerDeckSet(List<CardWithCount> cards, string name)
+        {
+            if (cards.Count > 0)
+            {
+                PlayerActiveDeckWindow.Title = name;
+                PlayerActiveDeckWindow.SetFullDeck(cards);
+                PlayerActiveDeckWindow.SetCurrentDeck(cards);
+            }
+            else
+            {
+                string title = "No Active Deck";
+                PlayerActiveDeckWindow.Title = title;
+                PlayerActiveDeckWindow.SetFullDeck(new List<CardWithCount>());
+                PlayerActiveDeckWindow.SetCurrentDeck(new List<CardWithCount>());
+            }
+
         }
 
         /// <summary>
@@ -178,16 +134,6 @@ namespace LoRSideTracker
         }
 
         /// <summary>
-        /// Callback for when opponent deck has been changed
-        /// </summary>
-        /// <param name="cards">Cards in the set</param>
-        public void OnOpponentDeckChanged(List<CardWithCount> cards)
-        {
-            CurrentGameRecord.OpponentDeck = Utilities.Clone(cards);
-            CurrentGameRecord.OpponentName = CurrentPlayState.OpponentName;
-        }
-
-        /// <summary>
         /// Receives notification that game state was changed
         /// </summary>
         /// <param name="oldGameState"></param>
@@ -195,64 +141,42 @@ namespace LoRSideTracker
         public void OnGameStateChanged(string oldGameState, string newGameState)
         {
             Log.WriteLine("Game state changed from {0} to {1}", oldGameState, newGameState);
-            // In some cases, game exits immediately before we are able to set any info
-            if (oldGameState == "InProgress" && CurrentGameRecord.MyDeckName != null)
+        }
+
+        /// <summary>
+        /// Receives notification that game state has ended
+        /// </summary>
+        /// <param name="gameNumber"></param>
+        /// <param name="gameRecord"></param>
+        public void OnGameEnded(int gameNumber, GameRecord gameRecord)
+        {
+            // Game ended. Grab game result
+            Log.WriteLine("Game no. {0} Result: {1}", gameNumber, gameRecord.Result);
+
+            if (PlayBackDeckPath == null)
             {
-                GameRecord gameRecord = (GameRecord)CurrentGameRecord.Clone();
-                // Game ended. Grab game result
-                string json = Utilities.GetStringFromURL(Constants.GameResultURL());
-                if (json != null && Utilities.IsJsonStringValid(json))
-                {
-                    Dictionary<string, JsonElement> gameResult = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(json);
-                    bool localPlayerWon = gameResult["LocalPlayerWon"].ToObject<bool>();
-                    gameRecord.Result = localPlayerWon ? "Win" : "Loss";
-                    Log.WriteLine("Game no. {0} Result: {1}", gameResult["GameID"].ToObject<int>(), gameRecord.Result);
-                    if (gameRecord.MyDeckName.StartsWith("Expedition"))
-                    {
-                        // Extract record before the game
-                        string record = gameRecord.MyDeckName.Substring(11);
-                        bool isEliminationGame = false;
-                        if (record.EndsWith("*"))
-                        {
-                            // Elimination game
-                            isEliminationGame = true;
-                            record = record.Remove(record.Length - 1);
-                        }
-                        string[] counts = record.Split('-');
-                        int wins = int.Parse(counts[0]) + (localPlayerWon ? 1 : 0);
-                        int losses = int.Parse(counts[1]) + (localPlayerWon ? 0 : 1);
-                        gameRecord.MyDeckName = string.Format("Expedition {0}-{1}{2}", wins, losses,
-                            (isEliminationGame && !localPlayerWon) ? "*" : "");
-                    }
-                }
-                else
-                {
-                    gameRecord.Result = "unknown";
-                }
+                // Save game record to file
+                gameRecord.Timestamp = DateTime.Now;
+                gameRecord.Log = Log.CurrentLogRtf;
+                string fileName = string.Format(@"{0}_{1}_{2}_{3}_{4}_{5}",
+                    gameRecord.Timestamp.Year,
+                    gameRecord.Timestamp.Month,
+                    gameRecord.Timestamp.Day,
+                    gameRecord.Timestamp.Hour,
+                    gameRecord.Timestamp.Minute,
+                    gameRecord.Timestamp.Second);
+                gameRecord.SaveToFile(Constants.GetLocalGamesPath() + "\\" + fileName + ".txt");
 
-                if (PlayBackDeckPath == null)
+                CurrentPlayState.SaveGameLog(Constants.GetLocalGamesPath() + "\\" + fileName + ".playback");
+
+                GameHistory.AddGameRecord(gameRecord);
+                Utilities.CallActionSafelyAndWait(DecksListCtrl, new Action(() =>
                 {
-                    // Save game record to file
-                    gameRecord.Timestamp = DateTime.Now;
-                    gameRecord.Log = Log.CurrentLogRtf;
-                    string fileName = string.Format(@"{0}_{1}_{2}_{3}_{4}_{5}",
-                        gameRecord.Timestamp.Year,
-                        gameRecord.Timestamp.Month,
-                        gameRecord.Timestamp.Day,
-                        gameRecord.Timestamp.Hour,
-                        gameRecord.Timestamp.Minute,
-                        gameRecord.Timestamp.Second);
-                    gameRecord.SaveToFile(Constants.GetLocalGamesPath() + "\\" + fileName + ".txt");
-
-                    CurrentPlayState.SaveGameLog(Constants.GetLocalGamesPath() + "\\" + fileName + ".playback");
-
-                    GameHistory.AddGameRecord(gameRecord);
-                    Utilities.CallActionSafelyAndWait(DecksListCtrl, new Action(() =>
-                   {
-                       DecksListCtrl.AddToDeckList(gameRecord, true);
-                   }));
-                }
+                    DecksListCtrl.AddToDeckList(gameRecord, true);
+                }));
             }
+
+            OnPlayerDeckSet(new List<CardWithCount>(), "");
         }
 
         /// <summary>
@@ -391,7 +315,6 @@ namespace LoRSideTracker
             CurrentPlayState = new CardsInPlayWorker(this);
             if (PlayBackDeckPath == null)
             {
-                CurrentDeck = new StaticDeck(this);
                 CurrentExpedition = new Expedition(this);
             }
 
@@ -410,10 +333,7 @@ namespace LoRSideTracker
 
             Utilities.CallActionSafelyAndWait(DecksListCtrl, new Action(() => { DecksListCtrl.SwitchDeckView(false); }));
 
-            if (PlayBackDeckPath != null)
-            {
-                CurrentPlayState.SetTestDeck(Constants.GetLocalGamesPath() + "\\" +  PlayBackDeckPath);
-            }
+            CurrentPlayState.Start(PlayBackDeckPath == null ? null : Constants.GetLocalGamesPath() + "\\" +  PlayBackDeckPath);
         }
 
         private void MainWindow_Load(object sender, EventArgs e)
@@ -479,7 +399,12 @@ namespace LoRSideTracker
             }
 
             // Highlight the deck
-            HighlightedGameLogControl.LoadGames(gr.GetDeckSignature());
+            string deckName = null;
+            if (!gr.IsExpedition() && gr.MyDeckName != GameRecord.DefaultConstructedDeckName)
+            {
+                deckName = gr.MyDeckName;
+            }
+            HighlightedGameLogControl.LoadGames(gr.GetDeckSignature(), deckName, Properties.Settings.Default.HideAIGames);
             HighlightedDeckControl.SetDeck(gr.MyDeck);
             HighlightedDeckControl.Title = gr.ToString();
             HighlightedDeckStatsDisplay.TheDeck = gr.MyDeck;
@@ -496,79 +421,6 @@ namespace LoRSideTracker
             HighlightedDeckPanel.Visible = true;
         }
 
-
-        private void ListBox_DrawItem(object sender, DrawItemEventArgs e)
-        {
-            ListBox listBox = (ListBox)sender;
-            e.DrawBackground() ;
-            Rectangle rect = e.Bounds;
-            rect.Height--;
-            if (e.Index >= 0)
-            {
-                Color borderColor = e.ForeColor;
-                if (!e.State.HasFlag(DrawItemState.Selected))
-                {
-                    borderColor = Color.FromArgb(
-                        (e.ForeColor.R + e.BackColor.R) / 2,
-                        (e.ForeColor.G + e.BackColor.G) / 2,
-                        (e.ForeColor.B + e.BackColor.B) / 2);
-                }
-                e.Graphics.FillRectangle(new SolidBrush(borderColor), rect);
-                rect.Inflate(-1, -1);
-
-                GameRecord gr = (GameRecord)listBox.Items[e.Index];
-                // Find the card to use for art
-                int drawIndex = -1;
-                int championCount = 0;
-                for (int i = gr.MyDeck.Count - 1; i >= 0; i--)
-                {
-                    if (gr.MyDeck[i].TheCard.SuperType == "Champion" && gr.MyDeck[i].Count > championCount)
-                    {
-                        drawIndex = i;
-                        championCount = gr.MyDeck[i].Count;
-                    }
-                    else if (gr.MyDeck[i].TheCard.Type == "Unit" && drawIndex == -1)
-                    {
-                        drawIndex = i;
-                    }
-                }
-                if (drawIndex >= 0)
-                {
-                    gr.MyDeck[drawIndex].TheCard.DrawCardBanner(e.Graphics, rect);
-                    e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb(
-                        e.State.HasFlag(DrawItemState.Selected) ? 128 : 192, Color.Black)), rect);
-                }
-                else
-                {
-                    e.Graphics.FillRectangle(new SolidBrush(e.BackColor), rect);
-                }
-
-                // Determine deck regions
-                Dictionary<string, int> regions = new Dictionary<string, int>();
-                foreach (var c in gr.MyDeck)
-                {
-                    regions.TryGetValue(c.TheCard.Region, out int currentCount);
-                    regions[c.TheCard.Region] = currentCount + 1;
-                }
-
-                // Sort the regions from lowest to highest
-                var regionsInReverseOrder = regions.OrderBy(i => i.Value).ToList();
-
-                // Draw all regions from right to left
-                int right = rect.Right;
-                for (int i = 0; i < regionsInReverseOrder.Count; i++)
-                {
-                    Image img = CardLibrary.GetRegion(regionsInReverseOrder[i].Key).Banner;
-                    int width = img.Width * rect.Height / img.Height * 7 / 8;
-                    int height = width * img.Height / img.Height;
-                    Rectangle imgRect = new Rectangle(right - width, rect.Top, width, height);
-                    e.Graphics.DrawImage(img, imgRect, new Rectangle(0, 0, img.Width, img.Height), GraphicsUnit.Pixel);
-                    right -= width * 7 / 8;
-                }
-
-                TextRenderer.DrawText(e.Graphics, gr.ToString(), e.Font, rect, ForeColor, TextFormatFlags.Left | TextFormatFlags.VerticalCenter);
-            }
-        }
 
         /// <summary>
         /// Code from here: https://nickstips.wordpress.com/2010/03/03/c-panel-resets-scroll-position-after-focus-is-lost-and-regained/
@@ -718,12 +570,12 @@ namespace LoRSideTracker
         }
 
 
-        private void fileToolStripMenuItem_DropDownOpened(object sender, EventArgs e)
+        private void fileMenu_DropDownOpened(object sender, EventArgs e)
         {
             logToolStripMenuItem.Checked = (ActiveLogWindow != null) && ActiveLogWindow.Visible;
         }
 
-        private void windowToolStripMenuItem_DropDownOpened(object sender, EventArgs e)
+        private void optionsMenu_DropDownOpened(object sender, EventArgs e)
         {
             myDeckToolStripMenuItem.Checked = (PlayerActiveDeckWindow != null) && PlayerActiveDeckWindow.Visible;
             drawnCardsToolStripMenuItem.Checked = (PlayerDrawnCardsWindow != null) && PlayerDrawnCardsWindow.Visible;
@@ -740,6 +592,17 @@ namespace LoRSideTracker
             smallDeckSizeToolStripMenuItem.Checked = (PlayerActiveDeckWindow.CustomDeckScale.CardSize == DeckControl.DeckScale.Small.CardSize);
             mediumDeckSizeToolStripMenuItem.Checked = (PlayerActiveDeckWindow.CustomDeckScale.CardSize == DeckControl.DeckScale.Medium.CardSize);
             largeDeckSizeToolStripMenuItem.Checked = (PlayerActiveDeckWindow.CustomDeckScale.CardSize == DeckControl.DeckScale.Large.CardSize);
+        }
+
+        private void windowMenu_DropDownOpened(object sender, EventArgs e)
+        {
+            hideGamesVsAIToolStripMenuItem.Checked = Properties.Settings.Default.HideAIGames;
+        }
+        private void hideGamesVsAIToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            hideGamesVsAIToolStripMenuItem.Checked = !hideGamesVsAIToolStripMenuItem.Checked;
+            Properties.Settings.Default.HideAIGames = hideGamesVsAIToolStripMenuItem.Checked;
+            DecksListCtrl_SelectionChanged(this, null);
         }
 
         private void hideZeroCountCardsToolStripMenuItem_Click(object sender, EventArgs e)

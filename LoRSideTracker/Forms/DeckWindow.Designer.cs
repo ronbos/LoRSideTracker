@@ -34,8 +34,8 @@
             // 
             // MyDeckStatsDisplay
             // 
-            this.MyDeckStatsDisplay.BlockHeight = 4;
-            this.MyDeckStatsDisplay.BlockWidth = 7;
+            //this.MyDeckStatsDisplay.BlockHeight = 3;
+            //this.MyDeckStatsDisplay.BlockWidth = 7;
             this.MyDeckStatsDisplay.Location = new System.Drawing.Point(0, 156);
             this.MyDeckStatsDisplay.Name = "MyDeckStatsDisplay";
             this.MyDeckStatsDisplay.Size = new System.Drawing.Size(150, 150);

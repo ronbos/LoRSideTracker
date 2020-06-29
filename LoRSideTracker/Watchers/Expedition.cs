@@ -70,9 +70,24 @@ namespace LoRSideTracker
         public int NumberOfWins { get; private set; }
         /// <summary>Number of Losses</summary>
         public int NumberOfLosses { get; private set; }
+        /// <summary>Is this game an elimination game?</summary>
+        public bool IsEliminationGame { get; private set; }
+
+        /// <summary>Expedition signature based on first 14 draft picks</summary>
+        public string Signature
+        {
+            get
+            {
+                string result = "";
+                for (int i = 0; DraftPicks != null && i < DraftPicks.Length && i < 14; i++)
+                {
+                    result += string.Join("", DraftPicks[i].DraftPicks);
+                }
+                return result;
+            }
+        }
 
         private readonly AutoUpdatingWebString WebString;
-
         private readonly IExpeditionUpdateCallback Callback;
 
         /// <summary>
@@ -83,7 +98,10 @@ namespace LoRSideTracker
         {
             Callback = callback;
             Clear();
-            WebString = new AutoUpdatingWebString(Constants.ExpeditionStateURL(), 1000, this);
+            if (callback != null)
+            {
+                WebString = new AutoUpdatingWebString(Constants.ExpeditionStateURL(), 1000, this);
+            }
         }
 
         /// <summary>
@@ -99,6 +117,7 @@ namespace LoRSideTracker
             NumberOfGames = 0;
             NumberOfWins = 0;
             NumberOfLosses = 0;
+            IsEliminationGame = false;
         }
 
         /// <summary>
@@ -115,11 +134,26 @@ namespace LoRSideTracker
             else
             {
                 Clear();
-                if (Callback != null)
-                {
-                    Callback.OnExpeditionDeckUpdated(Cards);
-                }
             }
+            if (Callback != null)
+            {
+                Callback.OnExpeditionDeckUpdated(Cards);
+            }
+        }
+
+        /// <summary>
+        /// Load expedition state from URL
+        /// </summary>
+        public bool Reload()
+        {
+            Clear();
+            string webString = Utilities.GetStringFromURL(Constants.ExpeditionStateURL());
+            if (Utilities.IsJsonStringValid(webString))
+            {
+                // Load deck from JSON
+                LoadFromJson(JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(webString));
+            }
+            return Cards.Count > 0;
         }
 
         /// <summary>
@@ -128,47 +162,37 @@ namespace LoRSideTracker
         /// <param name="json">JSON string</param>
         public void LoadFromJson(Dictionary<string, JsonElement> json)
         {
-            IsActive = json["IsActive"].ToObject<bool>();
-            State = json["State"].ToString();
-            Record = json["Record"].ToObject<string[]>();
-            Cards = Utilities.DeckFromStringCodeList(json["Deck"].ToObject<string[]>());
-            NumberOfGames = json["Games"].ToObject<int>();
-            NumberOfWins = json["Wins"].ToObject<int>();
-            NumberOfLosses = json["Losses"].ToObject<int>();
-
-            var expeditionPicks = json["DraftPicks"].ToObject<Dictionary<string, JsonElement>[]>();
-            if (expeditionPicks != null)
+            if (json != null)
             {
-                DraftPicks = new ExpeditionPick[expeditionPicks.Length];
-                for (int i = 0; i < expeditionPicks.Length; i++)
+                IsActive = json["IsActive"].ToObject<bool>();
+                State = json["State"].ToString();
+                Record = json["Record"].ToObject<string[]>();
+                Cards = Utilities.DeckFromStringCodeList(json["Deck"].ToObject<string[]>());
+                NumberOfGames = json["Games"].ToObject<int>();
+                NumberOfWins = json["Wins"].ToObject<int>();
+                NumberOfLosses = json["Losses"].ToObject<int>();
+
+                IsEliminationGame = false;
+                if (Record != null)
                 {
-                    DraftPicks[i] = new ExpeditionPick(expeditionPicks[i]);
+                    IsEliminationGame = (Array.FindLastIndex(Record, item => item.Equals("win")) < Array.FindLastIndex(Record, item => item.Equals("loss")))
+                    || (NumberOfWins == 6);
+                }
+
+                var expeditionPicks = json["DraftPicks"].ToObject<Dictionary<string, JsonElement>[]>();
+                if (expeditionPicks != null)
+                {
+                    DraftPicks = new ExpeditionPick[expeditionPicks.Length];
+                    for (int i = 0; i < expeditionPicks.Length; i++)
+                    {
+                        DraftPicks[i] = new ExpeditionPick(expeditionPicks[i]);
+                    }
+                }
+                else
+                {
+                    DraftPicks = null;
                 }
             }
-            else
-            {
-                DraftPicks = null;
-            }
-
-            if (Callback != null)
-            {
-                Callback.OnExpeditionDeckUpdated(Cards);
-            }
         }
-
-        /// <summary>
-        /// Return a singature string used to match all games of a single expedition run
-        /// </summary>
-        /// <returns>string with all drafted cards</returns>
-        public string GetSignature()
-        {
-            string result = "";
-            for (int i = 0; DraftPicks != null && i < DraftPicks.Length && i < 14; i++)
-            {
-                result += string.Join("", DraftPicks[i].DraftPicks);
-            }
-            return result;
-        }
-
     }
 }

@@ -92,7 +92,10 @@ namespace LoRSideTracker
         /// <param name="gr">Game record to add</param>
         public static void AddGameRecord(GameRecord gr)
         {
-            try { gr.OpponentName = AIDeckNames[gr.OpponentName]; } catch { }
+            try {
+                gr.OpponentName = AIDeckNames[gr.OpponentName];
+                gr.OpponentIsAI = true;
+            } catch { }
             Games.Insert(0, gr);
         }
 
@@ -118,6 +121,15 @@ namespace LoRSideTracker
                 File.Move(Constants.GetLocalDeckNamesFilePath(), Constants.GetLocalDeckNamesFilePath() + ".backup");
             }
             File.WriteAllText(Constants.GetLocalDeckNamesFilePath(), json);
+
+            // Update individual game names, but only for constructed
+            for (int i = 0; i < Games.Count; i++)
+            {
+                if (deckSignature == Games[i].GetDeckSignature() && !Games[i].IsExpedition())
+                {
+                    Games[i].MyDeckName = name;
+                }
+            }
         }
     }
 }

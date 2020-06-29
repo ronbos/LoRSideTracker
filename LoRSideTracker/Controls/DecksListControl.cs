@@ -61,20 +61,31 @@ namespace LoRSideTracker.Controls
         public void AddToDeckList(GameRecord gr, bool update = false)
         {
             ListBox listBox = gr.IsExpedition() ? ExpeditionsListBox : DecksListBox;
-            string deckName;
 
             // Does the deck already exist in the list? If it does, remove it
-            string grSig = gr.GetDeckSignature();
-            int index = listBox.Items.Cast<GameRecord>().ToList().FindIndex(x => grSig == x.GetDeckSignature());
-            if (index != -1)
+            bool deckFound = false;
+            string deckSig = gr.GetDeckSignature();
+            string deckName = gr.MyDeckName;
+            int index = 0;
+            while (index >= 0)
             {
-                // Keep the deck name
-                deckName = ((GameRecord)listBox.Items[index]).ToString();
+                index = listBox.Items.Cast<GameRecord>().ToList().FindIndex(x => deckSig == x.GetDeckSignature());
+                if (index == -1 && !gr.IsExpedition() && gr.MyDeckName != GameRecord.DefaultConstructedDeckName)
+                {
+                    index = listBox.Items.Cast<GameRecord>().ToList().FindIndex(x => deckName == x.MyDeckName);
+                }
+                if (index != -1)
+                {
+                    // Keep the deck name
+                    deckName = ((GameRecord)listBox.Items[index]).ToString();
 
-                // Remove old item
-                listBox.Items.RemoveAt(index);
+                    // Remove old item
+                    listBox.Items.RemoveAt(index);
+                    deckFound = true;
+                }
             }
-            else
+
+            if (!deckFound)
             {
                 if (gr.IsExpedition())
                 {
@@ -90,7 +101,7 @@ namespace LoRSideTracker.Controls
                 }
 
                 // Map the name if it has been customized (if not, default name is kept)
-                try { deckName = GameHistory.DeckNames[gr.GetDeckSignature()]; } catch { }
+                //try { deckName = GameHistory.DeckNames[gr.GetDeckSignature()]; } catch { }
             }
 
             // Add the new item
@@ -177,17 +188,33 @@ namespace LoRSideTracker.Controls
             int index = listBox.SelectedIndex;
             if (index >= 0)
             {
-                GameRecord gr = (GameRecord)((GameRecord)listBox.Items[index]).Clone();
+                GameRecord gr = (GameRecord)((GameRecord)listBox.Items[index]);
                 string result = Microsoft.VisualBasic.Interaction.InputBox("Name:", "Change Deck Name", gr.DisplayString);
                 if (!string.IsNullOrEmpty(result))
                 {
                     gr.DisplayString = result;
+                    gr.MyDeckName = result;
                     listBox.Items[index] = gr;
                     listBox.Refresh();
 
                     GameHistory.SetDeckName(gr.GetDeckSignature(), result);
+
+                    int firstIndex = listBox.Items.Cast<GameRecord>().ToList().FindIndex(x => result == x.MyDeckName);
+                    int nextIndex = firstIndex;
+                    while (nextIndex >= 0 && nextIndex < listBox.Items.Count - 1)
+                    {
+                        nextIndex = listBox.Items.Cast<GameRecord>().ToList().FindIndex(nextIndex + 1, x => result == x.MyDeckName);
+                        if (nextIndex > firstIndex)
+                        {
+                            listBox.Items.RemoveAt(nextIndex);
+                        }
+                    }
+
+                    listBox.SelectedIndex = firstIndex;
+                    ListBox_SelectedIndexChanged(sender, null);
                 }
             }
+
         }
 
         private void ListBox_DrawItem(object sender, DrawItemEventArgs e)

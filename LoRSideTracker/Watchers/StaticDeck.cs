@@ -27,9 +27,12 @@ namespace LoRSideTracker
     {
         /// <summary>Current deck contents</summary>
         public List<CardWithCount> Cards { get; private set; }
+        /// <summary>Current deck code</summary>
+        public string DeckCode { get; private set; }
+        /// <summary>Current deck name</summary>
+        public string DeckName { get; private set; }
 
         private AutoUpdatingWebString WebString;
-
         private StaticDeckUpdateCallback Callback;
 
         /// <summary>
@@ -41,8 +44,13 @@ namespace LoRSideTracker
             Callback = callback;
 
             Cards = new List<CardWithCount>();
+            DeckCode = "";
+            DeckName = "";
 
-            WebString = new AutoUpdatingWebString(Constants.StaticDeckURL(), 1000, this);
+            if (callback != null)
+            {
+                WebString = new AutoUpdatingWebString(Constants.StaticDeckURL(), 1000, this);
+            }
         }
 
         /// <summary>
@@ -52,36 +60,59 @@ namespace LoRSideTracker
         /// <param name="timestamp">associated timestamp</param>
         public void OnWebStringUpdated(string newValue, double timestamp)
         {
-            Cards = new List<CardWithCount>();
-            string deckCode = "";
+            Cards.Clear();
+            DeckCode = "";
+            DeckName = "";
             if (Utilities.IsJsonStringValid(newValue))
             {
                 // Load deck from JSON
                 Dictionary<string, JsonElement> deck = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(newValue);
                 if (deck != null)
                 {
-                    deckCode = deck["DeckCode"].ToString();
-                    var deckList = deck["CardsInDeck"].ToObject<Dictionary<string, JsonElement>>();
-                    if (deckList != null)
-                    {
-                        foreach (var j in deckList)
-                        {
-                            string cardCode = j.Key;
-                            Card card = CardLibrary.GetCard(cardCode);
-                            int count = Int32.Parse(j.Value.ToString());
-                            Cards.Add(new CardWithCount(card, count, true));
-                        }
-                        Cards = Cards.OrderBy(card => card.Cost).ThenBy(card => card.Name).ToList();
-                    }
-                }
-                else
-                {
-                    Log.WriteLine("{0} is producing invalid data", Constants.StaticDeckURL());
+                    LoadFromJSON(deck);
                 }
             }
-            if (Callback != null)
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public bool Reload()
+        {
+            Cards.Clear();
+            DeckCode = "";
+            string webString = Utilities.GetStringFromURL(Constants.StaticDeckURL());
+            if (Utilities.IsJsonStringValid(webString))
             {
-                Callback.OnDeckUpdated(Cards, deckCode);
+                // Load deck from JSON
+                Dictionary<string, JsonElement> deck = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(webString);
+                if (deck != null)
+                {
+                    LoadFromJSON(deck);
+                }
+            }
+            return Cards.Count > 0;
+        }
+
+        private void LoadFromJSON(Dictionary<string, JsonElement> deck)
+        {
+            Cards.Clear();
+            DeckCode = deck["DeckCode"].ToString();
+            try { DeckName = GameHistory.DeckNames[DeckCode]; } catch { DeckName = GameRecord.DefaultConstructedDeckName; }
+            var deckList = deck["CardsInDeck"].ToObject<Dictionary<string, int>>();
+            if (deckList != null)
+            {
+                foreach (var j in deckList)
+                {
+                    string cardCode = j.Key;
+                    Card card = CardLibrary.GetCard(cardCode);
+                    int count = j.Value;
+                    Cards.Add(new CardWithCount(card, count, true));
+                }
+
+                // Sort the deck
+                Cards = Cards.OrderBy(card => card.Cost).ThenBy(card => card.Name).ToList();
             }
         }
     }

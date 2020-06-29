@@ -30,15 +30,13 @@
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainWindow));
             this.HighlightedDeckPanel = new System.Windows.Forms.Panel();
-            this.HighlightedDeckStatsDisplay = new LoRSideTracker.DeckStatsDisplay();
-            this.HighlightedDeckControl = new LoRSideTracker.DeckControl();
             this.TheMenuBar = new System.Windows.Forms.MenuStrip();
-            this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.fileMenu = new System.Windows.Forms.ToolStripMenuItem();
             this.optionsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.logToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem8 = new System.Windows.Forms.ToolStripSeparator();
             this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.windowToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.optionsMenu = new System.Windows.Forms.ToolStripMenuItem();
             this.myDeckToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.drawnCardsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.playedCardsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -58,9 +56,14 @@
             this.deckOpacity100ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripSeparator();
             this.snapDecksToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.windowMenu = new System.Windows.Forms.ToolStripMenuItem();
+            this.hideGamesVsAIToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.DecksListCtrl = new LoRSideTracker.Controls.DecksListControl();
             this.HighlightedGameLogControl = new LoRSideTracker.GameLogControl();
             this.MyProgressDisplay = new LoRSideTracker.ProgressDisplayControl();
+            this.HighlightedDeckStatsDisplay = new LoRSideTracker.DeckStatsDisplay();
+            this.HighlightedDeckControl = new LoRSideTracker.DeckControl();
+            this.toolStripMenuItem4 = new System.Windows.Forms.ToolStripSeparator();
             this.HighlightedDeckPanel.SuspendLayout();
             this.TheMenuBar.SuspendLayout();
             this.SuspendLayout();
@@ -81,37 +84,12 @@
             this.HighlightedDeckPanel.Visible = false;
             this.HighlightedDeckPanel.SizeChanged += new System.EventHandler(this.HighlightedDeckPanel_SizeChanged);
             // 
-            // HighlightedDeckStatsDisplay
-            // 
-            this.HighlightedDeckStatsDisplay.BlockHeight = 4;
-            this.HighlightedDeckStatsDisplay.BlockWidth = 7;
-            this.HighlightedDeckStatsDisplay.Location = new System.Drawing.Point(0, 156);
-            this.HighlightedDeckStatsDisplay.Name = "HighlightedDeckStatsDisplay";
-            this.HighlightedDeckStatsDisplay.Size = new System.Drawing.Size(140, 65);
-            this.HighlightedDeckStatsDisplay.SpellColor = System.Drawing.Color.MediumSeaGreen;
-            this.HighlightedDeckStatsDisplay.TabIndex = 4;
-            this.HighlightedDeckStatsDisplay.TabStop = false;
-            this.HighlightedDeckStatsDisplay.TextColor = System.Drawing.Color.White;
-            this.HighlightedDeckStatsDisplay.TheDeck = null;
-            this.HighlightedDeckStatsDisplay.UnitColor = System.Drawing.Color.RoyalBlue;
-            // 
-            // HighlightedDeckControl
-            // 
-            this.HighlightedDeckControl.BackColor = System.Drawing.Color.Black;
-            this.HighlightedDeckControl.BorderSize = 1;
-            this.HighlightedDeckControl.IsMinimized = false;
-            this.HighlightedDeckControl.Location = new System.Drawing.Point(0, 0);
-            this.HighlightedDeckControl.Name = "HighlightedDeckControl";
-            this.HighlightedDeckControl.Size = new System.Drawing.Size(140, 150);
-            this.HighlightedDeckControl.TabIndex = 2;
-            this.HighlightedDeckControl.TabStop = false;
-            this.HighlightedDeckControl.Title = null;
-            // 
             // TheMenuBar
             // 
             this.TheMenuBar.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.fileToolStripMenuItem,
-            this.windowToolStripMenuItem});
+            this.fileMenu,
+            this.optionsMenu,
+            this.windowMenu});
             this.TheMenuBar.Location = new System.Drawing.Point(0, 0);
             this.TheMenuBar.Name = "TheMenuBar";
             this.TheMenuBar.Size = new System.Drawing.Size(962, 24);
@@ -119,47 +97,31 @@
             this.TheMenuBar.Text = "TheMenuBar";
             this.TheMenuBar.Visible = false;
             // 
-            // fileToolStripMenuItem
+            // fileMenu
             // 
-            this.fileToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.optionsToolStripMenuItem,
-            this.logToolStripMenuItem,
+            this.fileMenu.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.toolStripMenuItem8,
             this.exitToolStripMenuItem});
-            this.fileToolStripMenuItem.ForeColor = System.Drawing.SystemColors.WindowText;
-            this.fileToolStripMenuItem.Name = "fileToolStripMenuItem";
-            this.fileToolStripMenuItem.Size = new System.Drawing.Size(37, 20);
-            this.fileToolStripMenuItem.Text = "File";
-            this.fileToolStripMenuItem.DropDownOpened += new System.EventHandler(this.fileToolStripMenuItem_DropDownOpened);
-            // 
-            // optionsToolStripMenuItem
-            // 
-            this.optionsToolStripMenuItem.Name = "optionsToolStripMenuItem";
-            this.optionsToolStripMenuItem.Size = new System.Drawing.Size(116, 22);
-            this.optionsToolStripMenuItem.Text = "Options";
-            this.optionsToolStripMenuItem.Click += new System.EventHandler(this.optionsToolStripMenuItem_Click);
-            // 
-            // logToolStripMenuItem
-            // 
-            this.logToolStripMenuItem.Name = "logToolStripMenuItem";
-            this.logToolStripMenuItem.Size = new System.Drawing.Size(116, 22);
-            this.logToolStripMenuItem.Text = "Log";
-            this.logToolStripMenuItem.Click += new System.EventHandler(this.logToolStripMenuItem_Click);
+            this.fileMenu.ForeColor = System.Drawing.SystemColors.WindowText;
+            this.fileMenu.Name = "fileMenu";
+            this.fileMenu.Size = new System.Drawing.Size(37, 20);
+            this.fileMenu.Text = "File";
+            this.fileMenu.DropDownOpened += new System.EventHandler(this.fileMenu_DropDownOpened);
             // 
             // toolStripMenuItem8
             // 
             this.toolStripMenuItem8.Name = "toolStripMenuItem8";
-            this.toolStripMenuItem8.Size = new System.Drawing.Size(113, 6);
+            this.toolStripMenuItem8.Size = new System.Drawing.Size(177, 6);
             // 
             // exitToolStripMenuItem
             // 
             this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
-            this.exitToolStripMenuItem.Size = new System.Drawing.Size(116, 22);
+            this.exitToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.exitToolStripMenuItem.Text = "Exit";
             // 
-            // windowToolStripMenuItem
+            // optionsMenu
             // 
-            this.windowToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.optionsMenu.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.myDeckToolStripMenuItem,
             this.drawnCardsToolStripMenuItem,
             this.playedCardsToolStripMenuItem,
@@ -171,11 +133,11 @@
             this.deckOpacityToolStripMenuItem,
             this.toolStripMenuItem1,
             this.snapDecksToolStripMenuItem});
-            this.windowToolStripMenuItem.ForeColor = System.Drawing.SystemColors.WindowText;
-            this.windowToolStripMenuItem.Name = "windowToolStripMenuItem";
-            this.windowToolStripMenuItem.Size = new System.Drawing.Size(63, 20);
-            this.windowToolStripMenuItem.Text = "Window";
-            this.windowToolStripMenuItem.DropDownOpened += new System.EventHandler(this.windowToolStripMenuItem_DropDownOpened);
+            this.optionsMenu.ForeColor = System.Drawing.SystemColors.WindowText;
+            this.optionsMenu.Name = "optionsMenu";
+            this.optionsMenu.Size = new System.Drawing.Size(61, 20);
+            this.optionsMenu.Text = "Options";
+            this.optionsMenu.DropDownOpened += new System.EventHandler(this.optionsMenu_DropDownOpened);
             // 
             // myDeckToolStripMenuItem
             // 
@@ -268,35 +230,35 @@
             // deckOpacity20ToolStripMenuItem
             // 
             this.deckOpacity20ToolStripMenuItem.Name = "deckOpacity20ToolStripMenuItem";
-            this.deckOpacity20ToolStripMenuItem.Size = new System.Drawing.Size(102, 22);
+            this.deckOpacity20ToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.deckOpacity20ToolStripMenuItem.Text = "20%";
             this.deckOpacity20ToolStripMenuItem.Click += new System.EventHandler(this.deckOpacity20ToolStripMenuItem_Click);
             // 
             // deckOpacity40ToolStripMenuItem
             // 
             this.deckOpacity40ToolStripMenuItem.Name = "deckOpacity40ToolStripMenuItem";
-            this.deckOpacity40ToolStripMenuItem.Size = new System.Drawing.Size(102, 22);
+            this.deckOpacity40ToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.deckOpacity40ToolStripMenuItem.Text = "40%";
             this.deckOpacity40ToolStripMenuItem.Click += new System.EventHandler(this.deckOpacity40ToolStripMenuItem_Click);
             // 
             // deckOpacity60ToolStripMenuItem
             // 
             this.deckOpacity60ToolStripMenuItem.Name = "deckOpacity60ToolStripMenuItem";
-            this.deckOpacity60ToolStripMenuItem.Size = new System.Drawing.Size(102, 22);
+            this.deckOpacity60ToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.deckOpacity60ToolStripMenuItem.Text = "60%";
             this.deckOpacity60ToolStripMenuItem.Click += new System.EventHandler(this.deckOpacity60ToolStripMenuItem_Click);
             // 
             // deckOpacity80ToolStripMenuItem
             // 
             this.deckOpacity80ToolStripMenuItem.Name = "deckOpacity80ToolStripMenuItem";
-            this.deckOpacity80ToolStripMenuItem.Size = new System.Drawing.Size(102, 22);
+            this.deckOpacity80ToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.deckOpacity80ToolStripMenuItem.Text = "80%";
             this.deckOpacity80ToolStripMenuItem.Click += new System.EventHandler(this.deckOpacity80ToolStripMenuItem_Click);
             // 
             // deckOpacity100ToolStripMenuItem
             // 
             this.deckOpacity100ToolStripMenuItem.Name = "deckOpacity100ToolStripMenuItem";
-            this.deckOpacity100ToolStripMenuItem.Size = new System.Drawing.Size(102, 22);
+            this.deckOpacity100ToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.deckOpacity100ToolStripMenuItem.Text = "100%";
             this.deckOpacity100ToolStripMenuItem.Click += new System.EventHandler(this.deckOpacity100ToolStripMenuItem_Click);
             // 
@@ -311,6 +273,45 @@
             this.snapDecksToolStripMenuItem.Size = new System.Drawing.Size(195, 22);
             this.snapDecksToolStripMenuItem.Text = "Snap Decks";
             this.snapDecksToolStripMenuItem.Click += new System.EventHandler(this.snapDecksToolStripMenuItem_Click);
+            // 
+            // windowMenu
+            // 
+            this.windowMenu.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.hideGamesVsAIToolStripMenuItem,
+            this.toolStripMenuItem4,
+            this.optionsToolStripMenuItem,
+            this.logToolStripMenuItem});
+            this.windowMenu.ForeColor = System.Drawing.SystemColors.WindowText;
+            this.windowMenu.Name = "windowMenu";
+            this.windowMenu.Size = new System.Drawing.Size(63, 20);
+            this.windowMenu.Text = "Window";
+            this.windowMenu.DropDownOpened += new System.EventHandler(this.windowMenu_DropDownOpened);
+            // 
+            // hideGamesVsAIToolStripMenuItem
+            // 
+            this.hideGamesVsAIToolStripMenuItem.Name = "hideGamesVsAIToolStripMenuItem";
+            this.hideGamesVsAIToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.hideGamesVsAIToolStripMenuItem.Text = "Hide Games vs. AI";
+            this.hideGamesVsAIToolStripMenuItem.Click += new System.EventHandler(this.hideGamesVsAIToolStripMenuItem_Click);
+            // 
+            // toolStripMenuItem4
+            // 
+            this.toolStripMenuItem4.Name = "toolStripMenuItem4";
+            this.toolStripMenuItem4.Size = new System.Drawing.Size(177, 6);
+            // 
+            // optionsToolStripMenuItem
+            // 
+            this.optionsToolStripMenuItem.Name = "optionsToolStripMenuItem";
+            this.optionsToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.optionsToolStripMenuItem.Text = "Options";
+            this.optionsToolStripMenuItem.Click += new System.EventHandler(this.optionsToolStripMenuItem_Click);
+            // 
+            // logToolStripMenuItem
+            // 
+            this.logToolStripMenuItem.Name = "logToolStripMenuItem";
+            this.logToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.logToolStripMenuItem.Text = "Log";
+            this.logToolStripMenuItem.Click += new System.EventHandler(this.logToolStripMenuItem_Click);
             // 
             // DecksListCtrl
             // 
@@ -346,17 +347,41 @@
             this.MyProgressDisplay.TabIndex = 9;
             this.MyProgressDisplay.TabStop = false;
             // 
+            // HighlightedDeckStatsDisplay
+            // 
+            this.HighlightedDeckStatsDisplay.Location = new System.Drawing.Point(0, 156);
+            this.HighlightedDeckStatsDisplay.Name = "HighlightedDeckStatsDisplay";
+            this.HighlightedDeckStatsDisplay.Size = new System.Drawing.Size(140, 65);
+            this.HighlightedDeckStatsDisplay.SpellColor = System.Drawing.Color.MediumSeaGreen;
+            this.HighlightedDeckStatsDisplay.TabIndex = 4;
+            this.HighlightedDeckStatsDisplay.TabStop = false;
+            this.HighlightedDeckStatsDisplay.TextColor = System.Drawing.Color.White;
+            this.HighlightedDeckStatsDisplay.TheDeck = null;
+            this.HighlightedDeckStatsDisplay.UnitColor = System.Drawing.Color.RoyalBlue;
+            // 
+            // HighlightedDeckControl
+            // 
+            this.HighlightedDeckControl.BackColor = System.Drawing.Color.Black;
+            this.HighlightedDeckControl.BorderSize = 1;
+            this.HighlightedDeckControl.IsMinimized = false;
+            this.HighlightedDeckControl.Location = new System.Drawing.Point(0, 0);
+            this.HighlightedDeckControl.Name = "HighlightedDeckControl";
+            this.HighlightedDeckControl.Size = new System.Drawing.Size(140, 150);
+            this.HighlightedDeckControl.TabIndex = 2;
+            this.HighlightedDeckControl.TabStop = false;
+            this.HighlightedDeckControl.Title = null;
+            // 
             // MainWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(32)))), ((int)(((byte)(32)))), ((int)(((byte)(36)))));
             this.ClientSize = new System.Drawing.Size(962, 561);
+            this.Controls.Add(this.TheMenuBar);
             this.Controls.Add(this.DecksListCtrl);
             this.Controls.Add(this.HighlightedGameLogControl);
             this.Controls.Add(this.MyProgressDisplay);
             this.Controls.Add(this.HighlightedDeckPanel);
-            this.Controls.Add(this.TheMenuBar);
             this.DoubleBuffered = true;
             this.ForeColor = System.Drawing.Color.LightYellow;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
@@ -381,8 +406,8 @@
         private DeckControl HighlightedDeckControl;
         private ProgressDisplayControl MyProgressDisplay;
         private System.Windows.Forms.MenuStrip TheMenuBar;
-        private System.Windows.Forms.ToolStripMenuItem fileToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem windowToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem fileMenu;
+        private System.Windows.Forms.ToolStripMenuItem optionsMenu;
         private System.Windows.Forms.ToolStripMenuItem myDeckToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem drawnCardsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem playedCardsToolStripMenuItem;
@@ -408,6 +433,9 @@
         private System.Windows.Forms.ToolStripMenuItem largeDeckSizeToolStripMenuItem;
         private GameLogControl HighlightedGameLogControl;
         private Controls.DecksListControl DecksListCtrl;
+        private System.Windows.Forms.ToolStripMenuItem windowMenu;
+        private System.Windows.Forms.ToolStripMenuItem hideGamesVsAIToolStripMenuItem;
+        private System.Windows.Forms.ToolStripSeparator toolStripMenuItem4;
     }
 }
 

@@ -14,6 +14,9 @@ namespace LoRSideTracker
     /// </summary>
     public class GameRecord : ICloneable
     {
+        /// <summary>Default Constructed Deck Name</summary>
+        public static readonly string DefaultConstructedDeckName = "Constructed Deck";
+
         /// <summary>Player Deck Name</summary>
         public string MyDeckName { get; set; }
         /// <summary>Player Deck Code</summary>
@@ -24,6 +27,8 @@ namespace LoRSideTracker
         public string OpponentName { get; set; }
         /// <summary>Opponent Deck</summary>
         public List<CardWithCount> OpponentDeck = new List<CardWithCount>();
+        /// <summary>Is Opponent AI</summary>
+        public bool OpponentIsAI { get; set; }
         /// <summary>Game Result</summary>
         public string Result { get; set; }
         /// <summary>Game Notes</summary>
@@ -106,6 +111,7 @@ namespace LoRSideTracker
 
             result.MyDeck = Utilities.DeckFromStringCodeList(gameRecord["MyDeck"].ToObject<string[]>());
             result.OpponentName = gameRecord["OpponentName"].ToString();
+            result.OpponentIsAI = false;
             result.OpponentDeck = Utilities.DeckFromStringCodeList(gameRecord["OpponentDeck"].ToObject<string[]>());
             result.Result = gameRecord["Result"].ToString();
             result.Notes = gameRecord["Notes"].ToString();
