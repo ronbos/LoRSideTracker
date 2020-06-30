@@ -39,7 +39,7 @@ namespace LoRSideTracker
         /// </summary>
         public MainWindow()
         {
-            //PlayBackDeckPath = @"2020_6_27_18_45_44.playback";
+            //PlayBackDeckPath = @"2020_6_29_16_25_41.playback";
 
             InitializeComponent();
             this.ResizeRedraw = true;

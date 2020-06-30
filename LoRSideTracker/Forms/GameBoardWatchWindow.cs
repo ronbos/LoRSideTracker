@@ -84,6 +84,21 @@ namespace LoRSideTracker
             screenRect.Offset(ClientRectangle.Width / 2 - screenRect.Width / 2, ClientRectangle.Height / 2 - screenRect.Height / 2);
             e.Graphics.DrawRectangle(new Pen(Color.Black, 2), screenRect);
 
+            // Draw battlefield rectangles
+            Pen battlegroundPen = new Pen(Color.Gray, 2);
+            Rectangle battleground = new Rectangle(0, 0, screenRect.Height * 10 / 9, screenRect.Height / 2);
+            battleground.Offset(screenRect.X + screenRect.Width / 2 - battleground.Width / 2, screenRect.Y + screenRect.Height / 4);
+            e.Graphics.FillRectangle(new SolidBrush(Color.DarkSeaGreen), battleground);
+            e.Graphics.DrawRectangle(battlegroundPen, battleground);
+            Rectangle localField = new Rectangle(0, 0, screenRect.Height * 8 / 10, screenRect.Height / 6);
+            Rectangle opponentField = localField;
+            localField.Offset(screenRect.X + screenRect.Width / 2 - localField.Width / 2, battleground.Bottom);
+            opponentField.Offset(screenRect.X + screenRect.Width / 2 - localField.Width / 2, battleground.Top - opponentField.Bottom);
+            e.Graphics.FillRectangle(new SolidBrush(Color.Silver), localField);
+            e.Graphics.FillRectangle(new SolidBrush(Color.Silver), opponentField);
+            e.Graphics.DrawRectangle(battlegroundPen, localField);
+            e.Graphics.DrawRectangle(battlegroundPen, opponentField);
+
             // Draw all player card rectangles
             foreach (var el in PlayerElements)
             {
