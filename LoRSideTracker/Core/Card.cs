@@ -154,7 +154,8 @@ namespace LoRSideTracker
         /// </summary>
         /// <param name="g"></param>
         /// <param name="dstRect"></param>
-        public void DrawCardBanner(Graphics g, Rectangle dstRect)
+        /// <param name="addHighlighColor"></param>
+        public void DrawCardBanner(Graphics g, Rectangle dstRect, bool addHighlighColor = false)
         {
             Image img;
             Rectangle srcRect;
@@ -192,14 +193,23 @@ namespace LoRSideTracker
 
             g.DrawImage(img, dstRect, srcRect, GraphicsUnit.Pixel);
 
-            Color regionColor = Constants.GetRegionAccentColor(this.Region);
-            //dstRect.Width /= 2;
-            LinearGradientBrush linGrBrush = new LinearGradientBrush(
-               new Point(dstRect.X, 10),
-               new Point(dstRect.X + dstRect.Width / 2, 10),
-               Color.FromArgb(160, regionColor),
-               Color.FromArgb(0, regionColor));
-            g.FillRectangle(linGrBrush, dstRect.X, dstRect.Y, dstRect.Width / 2, dstRect.Height);
+            if (addHighlighColor)
+            {
+                Color regionColor = Constants.GetRegionAccentColor(this.Region);
+                //dstRect.Width /= 2;
+                LinearGradientBrush linGrBrush1 = new LinearGradientBrush(
+                   new Point(dstRect.X, 10),
+                   new Point(dstRect.X + dstRect.Height, 10),
+                   Color.FromArgb(200, regionColor),
+                   Color.FromArgb(160, regionColor));
+                LinearGradientBrush linGrBrush2 = new LinearGradientBrush(
+                   new Point(dstRect.X + dstRect.Height, 10),
+                   new Point(dstRect.X + dstRect.Height + dstRect.Width / 2, 10),
+                   Color.FromArgb(160, regionColor),
+                   Color.FromArgb(0, regionColor));
+                g.FillRectangle(linGrBrush1, dstRect.X, dstRect.Y, dstRect.Height, dstRect.Height);
+                g.FillRectangle(linGrBrush2, dstRect.X + dstRect.Height, dstRect.Y, dstRect.Width / 2 - dstRect.Height, dstRect.Height);
+            }
         }
     }
 

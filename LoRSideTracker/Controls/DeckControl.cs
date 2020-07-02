@@ -163,7 +163,7 @@ namespace LoRSideTracker
 
             // Draw the card and a translucent layer to make the tile darker
             // and text more readable
-            card.TheCard.DrawCardBanner(g, paintRect);
+            card.TheCard.DrawCardBanner(g, paintRect, true);
             g.FillRectangle(new SolidBrush(Color.FromArgb(128, Color.Black)), paintRect);
 
             // Draw the cost

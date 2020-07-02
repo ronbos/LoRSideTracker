@@ -24,6 +24,12 @@ namespace LoRSideTracker
         public const string Host = "http://127.0.0.1";
 
         /// <summary>
+        /// Setting playback deck path replaces real-time LoR watcher with playback from a file
+        /// </summary>
+        public const string PlayBackDeckPath = null;
+        //public const string PlayBackDeckPath = @"2020_6_29_16_25_41.playback";
+
+        /// <summary>
         /// Language set to use
         /// </summary>
         public static string Language

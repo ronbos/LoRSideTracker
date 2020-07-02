@@ -60,6 +60,24 @@ namespace LoRSideTracker
     static class GameBoard
     {
         /// <summary>
+        /// Aspect ratio used for normalized box computation
+        /// We normalize elements' bounding box based on screen height. However, if screen ratio becomes
+        /// too high, screen expands height-wise. To make sure we have same behavior as before,
+        /// We adjust the height accordingly.
+        /// </summary>
+        public static readonly double NormalizedAspectRatio = 0.658;
+
+        /// <summary>
+        /// Compute normalized screen height from actual screen dimensions
+        /// </summary>
+        /// <param name="screenWidth">Actual screen width</param>
+        /// <param name="screenHeight">Actual screen height</param>
+        /// <returns>Normalized screen height</returns>
+        public static double ComputeNormalizedScreenHeight(int screenWidth, int screenHeight)
+        {
+            return Math.Min(screenWidth * GameBoard.NormalizedAspectRatio, (double)screenHeight);
+        }
+        /// <summary>
         /// Map a card position to a play zone
         /// </summary>
         /// <param name="normalizedCenter"></param>

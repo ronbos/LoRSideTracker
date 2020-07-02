@@ -35,6 +35,7 @@ namespace LoRSideTracker
         private DateTime StartTimestamp;
         private TimeSpan ForceUpdateInterval;
         private bool ShouldSuppressMouseDownEvents = false;
+        private int PlaybackSpeed = 0;
 
         AutoUpdatingWebStringCallback CallbackObject;
 
@@ -74,17 +75,20 @@ namespace LoRSideTracker
         /// <param name="intervalMs"></param>
         /// <param name="callbackObject"></param>
         /// <param name="forceUpdateInterval"></param>
+        /// <param name="playbackSpeed"></param>
         public AutoUpdatingWebString(
             List<string> gameLog,
             int intervalMs,
             AutoUpdatingWebStringCallback callbackObject,
-            int forceUpdateInterval)
+            int forceUpdateInterval,
+            int playbackSpeed)
         {
             CallbackObject = callbackObject;
             ContentFromFile = gameLog;
             PlaybackThread = new Thread(RunUpdateFromFile);
             ForceUpdateInterval = TimeSpan.FromMilliseconds(forceUpdateInterval);
             ShouldStopPlayback = false;
+            PlaybackSpeed = playbackSpeed;
             PlaybackThread.Start();
         }
 
@@ -132,6 +136,7 @@ namespace LoRSideTracker
         {
             Thread.Sleep(5000);
             double time = 0;
+            DateTime lastFrameTime = DateTime.Now;
             for (int i = 0; i + 1 < ContentFromFile.Count && !ShouldStopPlayback; i += 2)
             {
                 // Read the timestamp
@@ -141,8 +146,16 @@ namespace LoRSideTracker
                     time += 100;
                     CallbackObject.OnWebStringUpdated(ContentFromFile[i - 1], time);
                 }
+
                 CallbackObject.OnWebStringUpdated(ContentFromFile[i + 1], timestamp);
                 time = timestamp;
+
+                DateTime now = DateTime.Now;
+                if ((int)(now - lastFrameTime).TotalMilliseconds < PlaybackSpeed)
+                {
+                    Thread.Sleep(PlaybackSpeed - (int)(now - lastFrameTime).TotalMilliseconds);
+                }
+                lastFrameTime = DateTime.Now;
             }
             ContentFromFile = null;
         }

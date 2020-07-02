@@ -72,15 +72,17 @@ namespace LoRSideTracker
                 return;
             }
 
+            float normalizedScreenHeight = (float)GameBoard.ComputeNormalizedScreenHeight(ScreenWidth, ScreenHeight);
+
             // Determine scale to use
             float scaleX = (float)ClientRectangle.Width / (float)ScreenWidth;
-            float scaleY = (float)ClientRectangle.Height / (float)ScreenHeight;
+            float scaleY = (float)ClientRectangle.Height / normalizedScreenHeight;
             float scale = Math.Min(scaleX, scaleY);
 
             // Draw screen rectangle
             Rectangle screenRect = new Rectangle(0, 0,
                 (int)(0.5f + ScreenWidth * scale),
-                (int)(0.5f + ScreenHeight * scale));
+                (int)(0.5f + normalizedScreenHeight * scale));
             screenRect.Offset(ClientRectangle.Width / 2 - screenRect.Width / 2, ClientRectangle.Height / 2 - screenRect.Height / 2);
             e.Graphics.DrawRectangle(new Pen(Color.Black, 2), screenRect);
 

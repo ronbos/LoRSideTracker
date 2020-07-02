@@ -105,8 +105,9 @@ namespace LoRSideTracker.Controls
             }
 
             // Add the new item
+            try { if (!string.IsNullOrEmpty(gr.ExpeditionSignature)) deckName = GameHistory.DeckNames[gr.ExpeditionSignature]; } catch { }
             gr.DisplayString = deckName;
-            listBox.Items.Insert(0, gr);
+            listBox.Items.Insert(0, gr.Clone());
             if (update)
             {
                 SwitchDeckView(gr.IsExpedition());
@@ -256,7 +257,7 @@ namespace LoRSideTracker.Controls
                 {
                     gr.MyDeck[drawIndex].TheCard.DrawCardBanner(e.Graphics, rect);
                     e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb(
-                        e.State.HasFlag(DrawItemState.Selected) ? 128 : 192, Color.Black)), rect);
+                        e.State.HasFlag(DrawItemState.Selected) ? 96 : 160, Color.Black)), rect);
                 }
                 else
                 {

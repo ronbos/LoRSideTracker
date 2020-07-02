@@ -1,7 +1,7 @@
 ﻿#if DEBUG
 #define USE_DECK_LISTS
-#define ALLOW_GAME_RECORDING
 #endif
+#define ALLOW_GAME_RECORDING
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -164,7 +164,7 @@ namespace LoRSideTracker
 
             if (gameLogFilePath == null)
             {
-                WebString = new AutoUpdatingWebString(Constants.OverlayStateURL(), 10, this, 100, true);
+                WebString = new AutoUpdatingWebString(Constants.OverlayStateURL(), 100, this, 500, true);
             }
             else
             {
@@ -178,13 +178,14 @@ namespace LoRSideTracker
                 }
 
                 // Process the deck
-                List<CardWithCount> deck = Utilities.DeckFromStringCodeList(gameLog[0].Split(new char[] { ' ' }));
+                gameLog[0] = gameLog[0].Trim();
+                List <CardWithCount> deck = Utilities.DeckFromStringCodeList(gameLog[0].Split(new char[] { ' ' }));
                 FullPlayerDeck = Utilities.ConvertDeck(deck);
                 PlayerCards[(int)PlayZone.Deck] = FullPlayerDeck.Clone();
                 IsInitialDraw = true;
                 gameLog.RemoveAt(0);
 
-                WebString = new AutoUpdatingWebString(gameLog, 10, this, 100);
+                WebString = new AutoUpdatingWebString(gameLog, 10, this, 100, 60);
             }
         }
 
@@ -323,6 +324,7 @@ namespace LoRSideTracker
         /// <param name="filePath"></param>
         public void SaveGameLog(string filePath)
         {
+#if ALLOW_GAME_RECORDING
             string codes = "";
             for (int i = 0; i < FullPlayerDeck.Count; i++)
             {
@@ -331,6 +333,7 @@ namespace LoRSideTracker
             List<string> gameLog = WebString.StopLog();
             gameLog.Insert(0, codes);
             File.WriteAllBytes(filePath, Utilities.ZipFromStringList(gameLog));
+#endif
         }
 
         /// <summary>
@@ -430,11 +433,7 @@ namespace LoRSideTracker
                 // We normalize elements' bounding box based on screen height. However, if screen ratio becomes
                 // too high, screen expands height-wise. To make sure we have same behavior as before,
                 // We adjust the height accordingly.
-                int normalizedScreenHeight = ScreenHeight;
-                if (ScreenWidth * 0.658 < ScreenHeight)
-                {
-                    normalizedScreenHeight = (int)(0.5 + ScreenWidth * 0.658);
-                }
+                int normalizedScreenHeight = (int) (0.5 + GameBoard.ComputeNormalizedScreenHeight(ScreenWidth, ScreenHeight));
 
                 Point correctionOffset = new Point(0, 0);
                 var rectangles = overlay["Rectangles"].ToObject<Dictionary<string, JsonElement>[]>();
@@ -513,7 +512,7 @@ namespace LoRSideTracker
                 thoroughCleanUp = true;
             }
             PlayerCards[(int)PlayZone.Graveyard].AddRange(CleanUpEther(ref PlayerCards[(int)PlayZone.Ether], timestamp, thoroughCleanUp));
-            OpponentCards[(int)PlayZone.Graveyard].AddRange(CleanUpEther(ref OpponentCards[(int)PlayZone.Ether], timestamp, thoroughCleanUp));
+            OpponentCards[(int)PlayZone.Graveyard].AddRange(CleanUpEther(ref OpponentCards[(int)PlayZone.Ether], timestamp, true));
 
             NotifyCardSetUpdates();
 

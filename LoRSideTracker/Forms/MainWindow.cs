@@ -30,8 +30,6 @@ namespace LoRSideTracker
         private LogWindow ActiveLogWindow;
         private GameBoardWatchWindow OverlayWindow;
 
-        private string PlayBackDeckPath = null;
-
         private GameRecord CurrentGameRecord = new GameRecord();
 
         /// <summary>
@@ -39,8 +37,6 @@ namespace LoRSideTracker
         /// </summary>
         public MainWindow()
         {
-            //PlayBackDeckPath = @"2020_6_29_16_25_41.playback";
-
             InitializeComponent();
             this.ResizeRedraw = true;
             HighlightedDeckControl.CustomDeckScale = DeckControl.DeckScale.Small;
@@ -65,12 +61,18 @@ namespace LoRSideTracker
         /// <param name="cards">Updated set</param>
         public void OnExpeditionDeckUpdated(List<CardWithCount> cards)
         {
-            if (CurrentExpedition.State == "Picking" || CurrentExpedition.State == "Swapping")
+            if (CurrentExpedition.State == "Picking" || CurrentExpedition.State == "Swapping" || CurrentExpedition.State == "Other")
             {
                 PlayerActiveDeckWindow.Title = string.Format("Expedition {0}-{1}{2}", CurrentExpedition.NumberOfWins,
                     CurrentExpedition.NumberOfLosses, CurrentExpedition.IsEliminationGame ? "*" : "");
                 PlayerActiveDeckWindow.SetFullDeck(CurrentExpedition.Cards);
                 PlayerActiveDeckWindow.SetCurrentDeck(CurrentExpedition.Cards);
+            }
+            else if (CurrentPlayState.GameState != "InProgress")
+            {
+                PlayerActiveDeckWindow.Title = string.Format("No Active Deck");
+                PlayerActiveDeckWindow.SetFullDeck(new List<CardWithCount>());
+                PlayerActiveDeckWindow.SetCurrentDeck(new List<CardWithCount>());
             }
         }
 
@@ -153,7 +155,7 @@ namespace LoRSideTracker
             // Game ended. Grab game result
             Log.WriteLine("Game no. {0} Result: {1}", gameNumber, gameRecord.Result);
 
-            if (PlayBackDeckPath == null)
+            if (string.IsNullOrEmpty(Constants.PlayBackDeckPath))
             {
                 // Save game record to file
                 gameRecord.Timestamp = DateTime.Now;
@@ -306,14 +308,14 @@ namespace LoRSideTracker
             Log.SetLogWindow(ActiveLogWindow);
 
             // Special debigging window is shown if D key is held during load
-            if (PlayBackDeckPath != null || Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl))
+            if (!string.IsNullOrEmpty(Constants.PlayBackDeckPath) || Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl))
             {
                 OverlayWindow = new GameBoardWatchWindow();
                 OverlayWindow.Show();
             }
 
             CurrentPlayState = new CardsInPlayWorker(this);
-            if (PlayBackDeckPath == null)
+            if (string.IsNullOrEmpty(Constants.PlayBackDeckPath))
             {
                 CurrentExpedition = new Expedition(this);
             }
@@ -333,7 +335,8 @@ namespace LoRSideTracker
 
             Utilities.CallActionSafelyAndWait(DecksListCtrl, new Action(() => { DecksListCtrl.SwitchDeckView(false); }));
 
-            CurrentPlayState.Start(PlayBackDeckPath == null ? null : Constants.GetLocalGamesPath() + "\\" +  PlayBackDeckPath);
+            CurrentPlayState.Start(string.IsNullOrEmpty(Constants.PlayBackDeckPath) 
+                ? null : Constants.GetLocalGamesPath() + "\\" + Constants.PlayBackDeckPath);
         }
 
         private void MainWindow_Load(object sender, EventArgs e)
