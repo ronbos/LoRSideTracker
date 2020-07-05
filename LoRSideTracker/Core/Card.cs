@@ -200,7 +200,7 @@ namespace LoRSideTracker
                 LinearGradientBrush linGrBrush1 = new LinearGradientBrush(
                    new Point(dstRect.X, 10),
                    new Point(dstRect.X + dstRect.Height, 10),
-                   Color.FromArgb(200, regionColor),
+                   Color.FromArgb(255, regionColor),
                    Color.FromArgb(160, regionColor));
                 LinearGradientBrush linGrBrush2 = new LinearGradientBrush(
                    new Point(dstRect.X + dstRect.Height, 10),

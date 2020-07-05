@@ -86,12 +86,12 @@ namespace LoRSideTracker.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool ShowPlayerPlayedCards {
+        public bool ShowPlayerGraveyard {
             get {
-                return ((bool)(this["ShowPlayerPlayedCards"]));
+                return ((bool)(this["ShowPlayerGraveyard"]));
             }
             set {
-                this["ShowPlayerPlayedCards"] = value;
+                this["ShowPlayerGraveyard"] = value;
             }
         }
         
@@ -110,12 +110,12 @@ namespace LoRSideTracker.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool ShowOpponentPlayedCards {
+        public bool ShowOpponentGraveyard {
             get {
-                return ((bool)(this["ShowOpponentPlayedCards"]));
+                return ((bool)(this["ShowOpponentGraveyard"]));
             }
             set {
-                this["ShowOpponentPlayedCards"] = value;
+                this["ShowOpponentGraveyard"] = value;
             }
         }
         

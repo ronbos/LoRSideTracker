@@ -56,8 +56,8 @@ namespace LoRSideTracker
             PlayerDeckCheckBox.Checked = Properties.Settings.Default.ShowPlayerDeck;
             HideZeroCountCheckBox.Checked = Properties.Settings.Default.HideZeroCountInDeck;
             PlayerDrawnCheckBox.Checked = Properties.Settings.Default.ShowPlayerDrawnCards;
-            PlayerPlayedCheckBox.Checked = Properties.Settings.Default.ShowPlayerPlayedCards;
-            OpponentPlayedCheckBox.Checked = Properties.Settings.Default.ShowOpponentPlayedCards;
+            PlayerPlayedCheckBox.Checked = Properties.Settings.Default.ShowPlayerGraveyard;
+            OpponentPlayedCheckBox.Checked = Properties.Settings.Default.ShowOpponentGraveyard;
             DeckStatsCheckBox.Checked = Properties.Settings.Default.ShowDeckStats;
             TransparencyTrackBar.Value = Properties.Settings.Default.DeckTransparency;
 
@@ -73,8 +73,8 @@ namespace LoRSideTracker
             Properties.Settings.Default.ShowPlayerDeck = PlayerActiveDeckWindow.Visible;
             Properties.Settings.Default.HideZeroCountInDeck = HideZeroCountCheckBox.Checked;
             Properties.Settings.Default.ShowPlayerDrawnCards = PlayerDrawnCheckBox.Checked;
-            Properties.Settings.Default.ShowPlayerPlayedCards = PlayerPlayedCheckBox.Checked;
-            Properties.Settings.Default.ShowOpponentPlayedCards = OpponentPlayedCheckBox.Checked;
+            Properties.Settings.Default.ShowPlayerGraveyard = PlayerPlayedCheckBox.Checked;
+            Properties.Settings.Default.ShowOpponentGraveyard = OpponentPlayedCheckBox.Checked;
             Properties.Settings.Default.ShowDeckStats = DeckStatsCheckBox.Checked;
             Properties.Settings.Default.DeckTransparency = TransparencyTrackBar.Value;
 

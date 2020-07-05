@@ -36,6 +36,9 @@ namespace LoRSideTracker
         private TimeSpan ForceUpdateInterval;
         private bool ShouldSuppressMouseDownEvents = false;
         private int PlaybackSpeed = 0;
+        private double TimeElapsedMs = 0;
+        private int IntervalMs;
+        private int LongIntervalMs;
 
         AutoUpdatingWebStringCallback CallbackObject;
 
@@ -65,6 +68,8 @@ namespace LoRSideTracker
             StartTimestamp = DateTime.Now;
             LastUpdateTimestamp = StartTimestamp - ForceUpdateInterval;
             ShouldSuppressMouseDownEvents = shouldSuppressMouseDownUpdates;
+            IntervalMs = intervalMs;
+            LongIntervalMs = forceUpdateInterval;
             Start(intervalMs);
         }
 
@@ -186,24 +191,25 @@ namespace LoRSideTracker
                 bool logged = false;
                 if (FullLog != null && valueChanged)
                 {
-                    FullLog.Add(string.Format("{0}", timestamp));
+                    FullLog.Add(string.Format("{0}", TimeElapsedMs));
                     FullLog.Add(Value);
                     logged = true;
                 }
 
                 if (CallbackObject != null)
                 {
-                    CallbackObject.OnWebStringUpdated(Value, timestamp);
+                    CallbackObject.OnWebStringUpdated(Value, TimeElapsedMs);
 
                     // In case log was just enabled during callback, also log this value
                     if (!logged && FullLog != null && valueChanged)
                     {
-                        FullLog.Add(string.Format("{0}", timestamp));
+                        FullLog.Add(string.Format("{0}", TimeElapsedMs));
                         FullLog.Add(Value);
                     }
                 }
 
                 LastUpdateTimestamp = now;
+                TimeElapsedMs += valueChanged ? IntervalMs : LongIntervalMs;
             }
         }
     }

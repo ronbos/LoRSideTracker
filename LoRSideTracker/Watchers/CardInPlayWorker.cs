@@ -491,7 +491,7 @@ namespace LoRSideTracker
             // This is because we cannot reliably know which ones are not from deck yet
             for (int i = 0; i < nextOpponentCards.Count; i++)
             {
-                nextOpponentCards[i].IsFromDeck = true;
+                nextOpponentCards[i].IsFromDeck = nextOpponentCards[i].TheCard.IsCollectible;
             }
 
             MoveToNext(ref PlayerCards, nextPlayerCards, timestamp, IsInitialDraw);
@@ -773,7 +773,7 @@ namespace LoRSideTracker
             // Only do this if we are asked to do a thorough cleanup
             if (doThoroughCleanUp)
             {
-                result.AddRange(currentEther.ExtractSubset(x => timestamp - x.EtherStartTime > 7000));
+                result.AddRange(currentEther.ExtractSubset(x => timestamp - x.EtherStartTime > 700));
             }
 
             for (int i = 0; i < result.Count; i++)

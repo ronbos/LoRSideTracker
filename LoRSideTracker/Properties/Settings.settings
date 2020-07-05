@@ -17,13 +17,13 @@
     <Setting Name="ShowPlayerDeck" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">True</Value>
     </Setting>
-    <Setting Name="ShowPlayerPlayedCards" Type="System.Boolean" Scope="User">
+    <Setting Name="ShowPlayerGraveyard" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
     <Setting Name="ShowPlayerDrawnCards" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
-    <Setting Name="ShowOpponentPlayedCards" Type="System.Boolean" Scope="User">
+    <Setting Name="ShowOpponentGraveyard" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
     <Setting Name="ShowDeckStats" Type="System.Boolean" Scope="User">

@@ -44,6 +44,21 @@ namespace LoRSideTracker
         /// <summary>Game Record display string</summary>
         public string DisplayString { get; set; } = "???";
 
+        //public string GameFile
+        //{
+        //    get
+        //    {
+        //        return string.Format(@"{0}\\{1}_{2}_{3}_{4}_{5}_{6}.txt",
+        //            Constants.GetLocalGamesPath(),
+        //            Timestamp.Year,
+        //            Timestamp.Month,
+        //            Timestamp.Day,
+        //            Timestamp.Hour,
+        //            Timestamp.Minute,
+        //            Timestamp.Second);
+        //    }
+        //}
+
         /// <summary>Game Playback File</summary>
         public string GamePlaybackFile { get; set; }
 

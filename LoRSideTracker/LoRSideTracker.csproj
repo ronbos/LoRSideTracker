@@ -145,7 +145,7 @@
     <Compile Include="Forms\OptionsWindow.Designer.cs">
       <DependentUpon>OptionsWindow.cs</DependentUpon>
     </Compile>
-    <Compile Include="Logs\GameRecord.cs" />
+    <Compile Include="Core\GameRecord.cs" />
     <Compile Include="Watchers\AutoUpdatingObject.cs" />
     <Compile Include="Watchers\AutoUpdatingWebString.cs" />
     <Compile Include="Core\Card.cs" />
@@ -169,7 +169,7 @@
     <Compile Include="Forms\DeckWindow.Designer.cs">
       <DependentUpon>DeckWindow.cs</DependentUpon>
     </Compile>
-    <Compile Include="Logs\Log.cs" />
+    <Compile Include="Core\Log.cs" />
     <Compile Include="Controls\ProgressDisplayControl.cs">
       <SubType>UserControl</SubType>
     </Compile>

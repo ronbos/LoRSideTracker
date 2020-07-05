@@ -27,7 +27,7 @@ namespace LoRSideTracker
         /// Setting playback deck path replaces real-time LoR watcher with playback from a file
         /// </summary>
         public const string PlayBackDeckPath = null;
-        //public const string PlayBackDeckPath = @"2020_6_29_16_25_41.playback";
+        //public const string PlayBackDeckPath = @"2020_7_3_4_30_53.playback";
 
         /// <summary>
         /// Language set to use
@@ -156,12 +156,12 @@ namespace LoRSideTracker
         /// <returns>Accent color</returns>
         public static Color GetRegionAccentColor(string region)
         {
-            if (region == "Bilgewater") { return Color.DarkRed; }
+            if (region == "Bilgewater") { return Color.SaddleBrown; }
             if (region == "Demacia") { return Color.LightYellow; }
             if (region == "Freljord") { return Color.DodgerBlue; }
             if (region == "Ionia") { return Color.HotPink; }
             if (region == "Noxus") { return Color.Crimson; }
-            if (region == "PiltoverZaun") { return Color.LightSalmon; }
+            if (region == "PiltoverZaun") { return Color.Gold; }
             if (region == "ShadowIsles") { return Color.Teal; }
             return Color.Gray;
         }

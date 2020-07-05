@@ -49,6 +49,8 @@ namespace LoRSideTracker
         /// <summary>Should window hide when mouse leaves?</summary>
         public bool ShouldHideOnMouseLeave { get; set; } = false;
 
+        /// <summary>Is the deck visible when it has cards</summary>
+        public bool IsNonEmptyDeckVisible { get; set; } = true;
 
         /// <summary>
         /// Constructor
@@ -140,6 +142,15 @@ namespace LoRSideTracker
             MyDeckStatsDisplay.TheDeck = remainingCards;
             MyDeckStatsDisplay.Invalidate();
             FixMySize();
+
+            if (AllCards.Count == 0 && CurrentCards.Count == 0)
+            {
+                Hide();
+            }
+            else if (IsNonEmptyDeckVisible)
+            {
+                Show();
+            }
         }
 
         /// <summary>

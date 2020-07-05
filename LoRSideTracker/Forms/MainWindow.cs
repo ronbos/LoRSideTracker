@@ -24,8 +24,8 @@ namespace LoRSideTracker
 
         private DeckWindow PlayerActiveDeckWindow;
         private DeckWindow PlayerDrawnCardsWindow;
-        private DeckWindow PlayerPlayedCardsWindow;
-        private DeckWindow OpponentPlayedCardsWindow;
+        private DeckWindow PlayerGraveyardWindow;
+        private DeckWindow OpponentGraveyardWindow;
 
         private LogWindow ActiveLogWindow;
         private GameBoardWatchWindow OverlayWindow;
@@ -72,7 +72,6 @@ namespace LoRSideTracker
             {
                 PlayerActiveDeckWindow.Title = string.Format("No Active Deck");
                 PlayerActiveDeckWindow.SetFullDeck(new List<CardWithCount>());
-                PlayerActiveDeckWindow.SetCurrentDeck(new List<CardWithCount>());
             }
         }
 
@@ -88,13 +87,18 @@ namespace LoRSideTracker
                 PlayerActiveDeckWindow.Title = name;
                 PlayerActiveDeckWindow.SetFullDeck(cards);
                 PlayerActiveDeckWindow.SetCurrentDeck(cards);
+                PlayerDrawnCardsWindow.SetFullDeck(new List<CardWithCount>());
+                PlayerGraveyardWindow.SetFullDeck(new List<CardWithCount>());
+                OpponentGraveyardWindow.SetFullDeck(new List<CardWithCount>());
             }
             else
             {
                 string title = "No Active Deck";
                 PlayerActiveDeckWindow.Title = title;
                 PlayerActiveDeckWindow.SetFullDeck(new List<CardWithCount>());
-                PlayerActiveDeckWindow.SetCurrentDeck(new List<CardWithCount>());
+                PlayerDrawnCardsWindow.SetFullDeck(new List<CardWithCount>());
+                PlayerGraveyardWindow.SetFullDeck(new List<CardWithCount>());
+                OpponentGraveyardWindow.SetFullDeck(new List<CardWithCount>());
             }
 
         }
@@ -123,7 +127,7 @@ namespace LoRSideTracker
         /// <param name="cards">Cards in the set</param>
         public void OnPlayerGraveyardChanged(List<CardWithCount> cards)
         {
-            PlayerPlayedCardsWindow.SetCurrentDeck(Utilities.Clone(cards));
+            PlayerGraveyardWindow.SetCurrentDeck(Utilities.Clone(cards));
         }
 
         /// <summary>
@@ -132,7 +136,7 @@ namespace LoRSideTracker
         /// <param name="cards">Cards in the set</param>
         public void OnOpponentGraveyardChanged(List<CardWithCount> cards)
         {
-            OpponentPlayedCardsWindow.SetCurrentDeck(Utilities.Clone(cards));
+            OpponentGraveyardWindow.SetCurrentDeck(Utilities.Clone(cards));
         }
 
         /// <summary>
@@ -238,12 +242,11 @@ namespace LoRSideTracker
             deckWindow.Title = title;
             deckWindow.CustomDeckScale = deckScale;
             deckWindow.ShouldShowDeckStats = Properties.Settings.Default.ShowDeckStats;
-            if (showWindow)
-            {
-                deckWindow.Show();
-            }
+            deckWindow.Show();
+            deckWindow.IsNonEmptyDeckVisible = showWindow;
             deckWindow.SetBounds(posX, posY, 0, 0, BoundsSpecified.Location);
             deckWindow.Opacity = opacity;
+            deckWindow.UpdateDeck(null, null);
             return deckWindow;
 
         }
@@ -275,12 +278,12 @@ namespace LoRSideTracker
                 Properties.Settings.Default.ShowPlayerDrawnCards,
                 Properties.Settings.Default.PlayerDrawnCardsLocation.X, 
                 Properties.Settings.Default.PlayerDrawnCardsLocation.Y);
-            PlayerPlayedCardsWindow = CreateDeckWindow("Graveyard", deckScale, deckOpacity,
-                Properties.Settings.Default.ShowPlayerPlayedCards,
+            PlayerGraveyardWindow = CreateDeckWindow("Graveyard", deckScale, deckOpacity,
+                Properties.Settings.Default.ShowPlayerGraveyard,
                 Properties.Settings.Default.PlayerPlayedCardsLocation.X, 
                 Properties.Settings.Default.PlayerPlayedCardsLocation.Y);
-            OpponentPlayedCardsWindow = CreateDeckWindow("Opponent Graveyard", deckScale, deckOpacity,
-                Properties.Settings.Default.ShowOpponentPlayedCards,
+            OpponentGraveyardWindow = CreateDeckWindow("Opponent Graveyard", deckScale, deckOpacity,
+                Properties.Settings.Default.ShowOpponentGraveyard,
                 Properties.Settings.Default.OpponentPlayedCardsLocation.X, 
                 Properties.Settings.Default.OpponentPlayedCardsLocation.Y);
 
@@ -363,7 +366,7 @@ namespace LoRSideTracker
             if (PlayerActiveDeckWindow != null)
             {
                 Properties.Settings.Default.PlayerDeckLocation = PlayerActiveDeckWindow.Location;
-                Properties.Settings.Default.ShowPlayerDeck = PlayerActiveDeckWindow.Visible;
+                Properties.Settings.Default.ShowPlayerDeck = PlayerActiveDeckWindow.IsNonEmptyDeckVisible;
                 Properties.Settings.Default.HideZeroCountInDeck = PlayerActiveDeckWindow.HideZeroCountCards;
                 Properties.Settings.Default.ShowDeckStats = PlayerActiveDeckWindow.ShouldShowDeckStats;
                 Properties.Settings.Default.DeckDrawSize =
@@ -373,17 +376,17 @@ namespace LoRSideTracker
             if (PlayerDrawnCardsWindow != null)
             {
                 Properties.Settings.Default.PlayerDrawnCardsLocation = PlayerDrawnCardsWindow.Location;
-                Properties.Settings.Default.ShowPlayerDrawnCards = PlayerDrawnCardsWindow.Visible;
+                Properties.Settings.Default.ShowPlayerDrawnCards = PlayerDrawnCardsWindow.IsNonEmptyDeckVisible;
             }
-            if (PlayerPlayedCardsWindow != null)
+            if (PlayerGraveyardWindow != null)
             {
-                Properties.Settings.Default.PlayerPlayedCardsLocation = PlayerPlayedCardsWindow.Location;
-                Properties.Settings.Default.ShowPlayerPlayedCards = PlayerPlayedCardsWindow.Visible;
+                Properties.Settings.Default.PlayerPlayedCardsLocation = PlayerGraveyardWindow.Location;
+                Properties.Settings.Default.ShowPlayerGraveyard = PlayerGraveyardWindow.IsNonEmptyDeckVisible;
             }
-            if (OpponentPlayedCardsWindow != null)
+            if (OpponentGraveyardWindow != null)
             {
-                Properties.Settings.Default.OpponentPlayedCardsLocation = OpponentPlayedCardsWindow.Location;
-                Properties.Settings.Default.ShowOpponentPlayedCards = OpponentPlayedCardsWindow.Visible;
+                Properties.Settings.Default.OpponentPlayedCardsLocation = OpponentGraveyardWindow.Location;
+                Properties.Settings.Default.ShowOpponentGraveyard = OpponentGraveyardWindow.IsNonEmptyDeckVisible;
             }
 
 
@@ -474,7 +477,7 @@ namespace LoRSideTracker
         private void optionsToolStripMenuItem_Click(object sender, EventArgs e)
         {
             OptionsWindow myOptions = new OptionsWindow();
-            myOptions.SetDeckWindows(PlayerActiveDeckWindow, PlayerDrawnCardsWindow, PlayerPlayedCardsWindow, OpponentPlayedCardsWindow);
+            myOptions.SetDeckWindows(PlayerActiveDeckWindow, PlayerDrawnCardsWindow, PlayerGraveyardWindow, OpponentGraveyardWindow);
             myOptions.ShowDialog();
         }
 
@@ -497,22 +500,30 @@ namespace LoRSideTracker
 
         private void myDeckToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            PlayerActiveDeckWindow.Visible = !PlayerActiveDeckWindow.Visible;
+            PlayerActiveDeckWindow.IsNonEmptyDeckVisible = !PlayerActiveDeckWindow.IsNonEmptyDeckVisible;
+            PlayerActiveDeckWindow.Visible = PlayerActiveDeckWindow.IsNonEmptyDeckVisible;
+            PlayerActiveDeckWindow.UpdateDeck(null, null);
         }
 
         private void drawnCardsToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            PlayerDrawnCardsWindow.Visible = !PlayerDrawnCardsWindow.Visible;
+            PlayerDrawnCardsWindow.IsNonEmptyDeckVisible = !PlayerDrawnCardsWindow.IsNonEmptyDeckVisible;
+            PlayerDrawnCardsWindow.Visible = PlayerDrawnCardsWindow.IsNonEmptyDeckVisible;
+            PlayerDrawnCardsWindow.UpdateDeck(null, null);
         }
 
         private void playedCardsToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            PlayerPlayedCardsWindow.Visible = !PlayerPlayedCardsWindow.Visible;
+            PlayerGraveyardWindow.IsNonEmptyDeckVisible = !PlayerGraveyardWindow.IsNonEmptyDeckVisible;
+            PlayerDrawnCardsWindow.Visible = PlayerGraveyardWindow.IsNonEmptyDeckVisible;
+            PlayerGraveyardWindow.UpdateDeck(null, null);
         }
 
         private void opponentPlayedCardsToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            OpponentPlayedCardsWindow.Visible = !OpponentPlayedCardsWindow.Visible;
+            OpponentGraveyardWindow.IsNonEmptyDeckVisible = !OpponentGraveyardWindow.IsNonEmptyDeckVisible;
+            OpponentGraveyardWindow.Visible = OpponentGraveyardWindow.IsNonEmptyDeckVisible;
+            OpponentGraveyardWindow.UpdateDeck(null, null);
         }
 
         private void ChangeDeckOpacity(int opacity)
@@ -526,13 +537,13 @@ namespace LoRSideTracker
             {
                 PlayerDrawnCardsWindow.Opacity = opacity / 100.0;
             }
-            if (PlayerPlayedCardsWindow != null)
+            if (PlayerGraveyardWindow != null)
             {
-                PlayerPlayedCardsWindow.Opacity = opacity / 100.0;
+                PlayerGraveyardWindow.Opacity = opacity / 100.0;
             }
-            if (OpponentPlayedCardsWindow != null)
+            if (OpponentGraveyardWindow != null)
             {
-                OpponentPlayedCardsWindow.Opacity = opacity / 100.0;
+                OpponentGraveyardWindow.Opacity = opacity / 100.0;
             }
         }
 
@@ -568,8 +579,8 @@ namespace LoRSideTracker
             int margin = 2;
             snapping = SnapWindow(PlayerActiveDeckWindow, snapping, margin, ref location);
             snapping = SnapWindow(PlayerDrawnCardsWindow, snapping, margin, ref location);
-            snapping = SnapWindow(PlayerPlayedCardsWindow, snapping, margin, ref location);
-            snapping = SnapWindow(OpponentPlayedCardsWindow, snapping, margin, ref location);
+            snapping = SnapWindow(PlayerGraveyardWindow, snapping, margin, ref location);
+            snapping = SnapWindow(OpponentGraveyardWindow, snapping, margin, ref location);
         }
 
 
@@ -580,10 +591,10 @@ namespace LoRSideTracker
 
         private void optionsMenu_DropDownOpened(object sender, EventArgs e)
         {
-            myDeckToolStripMenuItem.Checked = (PlayerActiveDeckWindow != null) && PlayerActiveDeckWindow.Visible;
-            drawnCardsToolStripMenuItem.Checked = (PlayerDrawnCardsWindow != null) && PlayerDrawnCardsWindow.Visible;
-            playedCardsToolStripMenuItem.Checked = (PlayerPlayedCardsWindow != null) && PlayerPlayedCardsWindow.Visible;
-            opponentPlayedCardsToolStripMenuItem.Checked = (OpponentPlayedCardsWindow != null) && OpponentPlayedCardsWindow.Visible;
+            myDeckToolStripMenuItem.Checked = (PlayerActiveDeckWindow != null) && PlayerActiveDeckWindow.IsNonEmptyDeckVisible;
+            drawnCardsToolStripMenuItem.Checked = (PlayerDrawnCardsWindow != null) && PlayerDrawnCardsWindow.IsNonEmptyDeckVisible;
+            playedCardsToolStripMenuItem.Checked = (PlayerGraveyardWindow != null) && PlayerGraveyardWindow.IsNonEmptyDeckVisible;
+            opponentPlayedCardsToolStripMenuItem.Checked = (OpponentGraveyardWindow != null) && OpponentGraveyardWindow.IsNonEmptyDeckVisible;
             hideZeroCountCardsToolStripMenuItem.Checked = (PlayerActiveDeckWindow != null) && PlayerActiveDeckWindow.HideZeroCountCards;
 
             deckOpacity20ToolStripMenuItem.Checked = (Properties.Settings.Default.DeckTransparency == 20);
@@ -624,13 +635,13 @@ namespace LoRSideTracker
             {
                 PlayerDrawnCardsWindow.CustomDeckScale = deckScale;
             }
-            if (PlayerPlayedCardsWindow != null)
+            if (PlayerGraveyardWindow != null)
             {
-                PlayerPlayedCardsWindow.CustomDeckScale = deckScale;
+                PlayerGraveyardWindow.CustomDeckScale = deckScale;
             }
-            if (OpponentPlayedCardsWindow != null)
+            if (OpponentGraveyardWindow != null)
             {
-                OpponentPlayedCardsWindow.CustomDeckScale = deckScale;
+                OpponentGraveyardWindow.CustomDeckScale = deckScale;
             }
         }
 
