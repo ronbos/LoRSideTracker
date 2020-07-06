@@ -120,7 +120,7 @@ namespace LoRSideTracker.Controls
                 deckName += GetExpeditionRecordString(gr);
             }
             gr.DisplayString = deckName;
-            listBox.Items.Insert(0, gr.Clone());
+            listBox.Items.Insert(0, gr);
             if (update)
             {
                 SwitchDeckView(gr.IsExpedition());

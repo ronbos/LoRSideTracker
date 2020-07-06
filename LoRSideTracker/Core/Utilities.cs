@@ -334,6 +334,18 @@ namespace LoRSideTracker
             }
         }
 
+        public static void CallActionSafely(Control control, Action action)
+        {
+            if (control.InvokeRequired)
+            {
+                control.Invoke(action);
+            }
+            else
+            {
+                action.Invoke();
+            }
+        }
+
         private const int SW_SHOWNOACTIVATE = 4;
         private const int HWND_TOPMOST = -1;
         private const uint SWP_NOACTIVATE = 0x0010;

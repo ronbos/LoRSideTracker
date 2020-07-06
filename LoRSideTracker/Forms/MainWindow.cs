@@ -100,7 +100,6 @@ namespace LoRSideTracker
                 PlayerGraveyardWindow.SetFullDeck(new List<CardWithCount>());
                 OpponentGraveyardWindow.SetFullDeck(new List<CardWithCount>());
             }
-
         }
 
         /// <summary>
@@ -161,21 +160,8 @@ namespace LoRSideTracker
 
             if (string.IsNullOrEmpty(Constants.PlayBackDeckPath))
             {
-                // Save game record to file
-                gameRecord.Timestamp = DateTime.Now;
-                gameRecord.Log = Log.CurrentLogRtf;
-                string fileName = string.Format(@"{0}_{1}_{2}_{3}_{4}_{5}",
-                    gameRecord.Timestamp.Year,
-                    gameRecord.Timestamp.Month,
-                    gameRecord.Timestamp.Day,
-                    gameRecord.Timestamp.Hour,
-                    gameRecord.Timestamp.Minute,
-                    gameRecord.Timestamp.Second);
-                gameRecord.SaveToFile(Constants.GetLocalGamesPath() + "\\" + fileName + ".txt");
-
-                CurrentPlayState.SaveGameLog(Constants.GetLocalGamesPath() + "\\" + fileName + ".playback");
-
-                GameHistory.AddGameRecord(gameRecord);
+                var gameLog = CurrentPlayState.StopGameLog();
+                GameHistory.AddGameRecord(gameRecord, true, gameLog);
                 Utilities.CallActionSafelyAndWait(DecksListCtrl, new Action(() =>
                 {
                     DecksListCtrl.AddToDeckList(gameRecord, true);

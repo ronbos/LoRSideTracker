@@ -1,9 +1,10 @@
 ﻿#if DEBUG
 #define USE_DECK_LISTS
 #endif
-#define ALLOW_GAME_RECORDING
+//#define ALLOW_GAME_RECORDING
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -246,7 +247,10 @@ namespace LoRSideTracker
             if (!InGame)
             {
 #if ALLOW_GAME_RECORDING
-                WebString.StartLog();
+                if (Debugger.IsAttached)
+                {
+                    WebString.StartLog();
+                }
 #endif
             }
 
@@ -307,6 +311,7 @@ namespace LoRSideTracker
                 CurrentGameRecord.OpponentDeck = Utilities.Clone(GetDeck(OpponentCards, (int)PlayZone.Deck));
                 CurrentGameRecord.OpponentName = OpponentName;
                 Callback.OnGameEnded(gameNumber, CurrentGameRecord);
+                Callback.OnPlayerDeckSet(new List<CardWithCount>(), null);
 
                 InGame = false;
                 for (int i = 0; i < NumZones; i++)
@@ -321,19 +326,19 @@ namespace LoRSideTracker
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="filePath"></param>
-        public void SaveGameLog(string filePath)
+        public List<string> StopGameLog()
         {
-#if ALLOW_GAME_RECORDING
-            string codes = "";
-            for (int i = 0; i < FullPlayerDeck.Count; i++)
-            {
-                codes += FullPlayerDeck[i].CardCode + " ";
-            }
             List<string> gameLog = WebString.StopLog();
-            gameLog.Insert(0, codes);
-            File.WriteAllBytes(filePath, Utilities.ZipFromStringList(gameLog));
-#endif
+            if (gameLog != null)
+            {
+                string codes = "";
+                for (int i = 0; i < FullPlayerDeck.Count; i++)
+                {
+                    codes += FullPlayerDeck[i].CardCode + " ";
+                }
+                gameLog.Insert(0, codes);
+            }
+            return gameLog;
         }
 
         /// <summary>
@@ -369,12 +374,13 @@ namespace LoRSideTracker
         {
             CardList<CardInPlay> cards = new CardList<CardInPlay>();
             string oldGameState = GameState;
+            string newGameState = GameState;
 
             if (currentOverlay != null)
             {
-                GameState = currentOverlay["GameState"].GetString();
-                if (GameState == null) GameState = oldGameState;
-                else if (GameState == "InProgress")
+                newGameState = currentOverlay["GameState"].GetString();
+                if (newGameState == null) newGameState = oldGameState;
+                else if (newGameState == "InProgress")
                 {
                     PlayerName = currentOverlay["PlayerName"].GetString();
                     OpponentName = currentOverlay["OpponentName"].GetString();
@@ -382,20 +388,20 @@ namespace LoRSideTracker
             }
             else
             {
-                GameState = "Unknown";
+                newGameState = "Unknown";
             }
 
             // Load the deck before announcing game is in Progress
-            if (oldGameState != GameState && GameState == "InProgress" && !DetectDeck())
+            if (oldGameState != newGameState && newGameState == "InProgress" && !DetectDeck())
             {
-                GameState = "Starting";
+                newGameState = "Starting";
             }
 
-            if (oldGameState != GameState)
+            if (oldGameState != newGameState)
             {
-                Callback.OnGameStateChanged(oldGameState, GameState);
+                Callback.OnGameStateChanged(oldGameState, newGameState);
 
-                if (GameState == "InProgress")
+                if (newGameState == "InProgress")
                 {
                     GameStarted();
                 }
@@ -405,6 +411,7 @@ namespace LoRSideTracker
                     NotifyCardSetUpdates();
                 }
             }
+            GameState = newGameState;
         }
 
         /// <summary>

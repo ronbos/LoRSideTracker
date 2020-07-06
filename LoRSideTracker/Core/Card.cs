@@ -159,25 +159,31 @@ namespace LoRSideTracker
         {
             Image img;
             Rectangle srcRect;
+            Rectangle bannerRect = dstRect;
+            if (addHighlighColor)
+            {
+                bannerRect.Width -= bannerRect.Height;
+                bannerRect.X += bannerRect.Height;
+            }
 
             LoadCardArt();
 
             img = this.CardBanner;
             if (this.Type == "Spell")
             {
-                double diagonal = Math.Sqrt(dstRect.Width * dstRect.Width + dstRect.Height * dstRect.Height);
+                double diagonal = Math.Sqrt(bannerRect.Width * bannerRect.Width + bannerRect.Height * bannerRect.Height);
                 double scale = img.Width / diagonal;
-                int newWidth = (int)(dstRect.Width * scale);
-                int newHeight = (int)(dstRect.Height * scale);
+                int newWidth = (int)(bannerRect.Width * scale);
+                int newHeight = (int)(bannerRect.Height * scale);
                 srcRect = new Rectangle((img.Width - newWidth) / 2, (img.Height - newHeight) / 2, newWidth, newHeight);
             }
             else
             {
                 srcRect = new Rectangle(0, 0, img.Width, img.Height);
                 // Crop vertically to preserve aspect ratio
-                if (dstRect.Width * srcRect.Height > srcRect.Width * dstRect.Height)
+                if (bannerRect.Width * srcRect.Height > srcRect.Width * bannerRect.Height)
                 {
-                    int newHeight = srcRect.Width * dstRect.Height / dstRect.Width;
+                    int newHeight = srcRect.Width * bannerRect.Height / bannerRect.Width;
                     int newCenter = img.Height * 4 / 10;
                     int newY = Math.Max(newCenter - newHeight / 2, 0);
                     srcRect.Y = newY;
@@ -185,30 +191,25 @@ namespace LoRSideTracker
                 }
                 else
                 {
-                    int newWidth = srcRect.Height * dstRect.Width / dstRect.Height;
+                    int newWidth = srcRect.Height * bannerRect.Width / bannerRect.Height;
                     srcRect.X += (srcRect.Width - newWidth) / 2;
                     srcRect.Width = newWidth;
                 }
             }
 
-            g.DrawImage(img, dstRect, srcRect, GraphicsUnit.Pixel);
+            g.DrawImage(img, bannerRect, srcRect, GraphicsUnit.Pixel);
 
             if (addHighlighColor)
             {
                 Color regionColor = Constants.GetRegionAccentColor(this.Region);
-                //dstRect.Width /= 2;
-                LinearGradientBrush linGrBrush1 = new LinearGradientBrush(
-                   new Point(dstRect.X, 10),
-                   new Point(dstRect.X + dstRect.Height, 10),
+                Brush brush1 = new SolidBrush(regionColor);
+                Brush brush2 = new LinearGradientBrush(
+                   new Point(bannerRect.X, 10),
+                   new Point(bannerRect.X + bannerRect.Width / 2, 10),
                    Color.FromArgb(255, regionColor),
-                   Color.FromArgb(160, regionColor));
-                LinearGradientBrush linGrBrush2 = new LinearGradientBrush(
-                   new Point(dstRect.X + dstRect.Height, 10),
-                   new Point(dstRect.X + dstRect.Height + dstRect.Width / 2, 10),
-                   Color.FromArgb(160, regionColor),
                    Color.FromArgb(0, regionColor));
-                g.FillRectangle(linGrBrush1, dstRect.X, dstRect.Y, dstRect.Height, dstRect.Height);
-                g.FillRectangle(linGrBrush2, dstRect.X + dstRect.Height, dstRect.Y, dstRect.Width / 2 - dstRect.Height, dstRect.Height);
+                g.FillRectangle(brush1, dstRect.X, dstRect.Y, dstRect.Height, dstRect.Height);
+                g.FillRectangle(brush2, bannerRect.X, bannerRect.Y, bannerRect.Width / 2, bannerRect.Height);
             }
         }
     }

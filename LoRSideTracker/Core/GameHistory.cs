@@ -19,6 +19,7 @@ namespace LoRSideTracker
             { "decks_badstuns_name", "Flash of Steel (AI)" },
             { "decks_easybraum_name", "Stay Warm (AI)" },
             { "decks_easyteemo_name", "Scout's Honor (AI)" },
+            { "decks_easythresh_name", "EasyThresh??? (AI)" },
             { "deckname_kinkou_keepers", "Stealthy Strikes (AI)" },
             { "decks_mediumelise_name", "Spider Swarm (AI)" },
             { "decks_mediumdraven_name", "The Main Event (AI)" },
@@ -87,16 +88,36 @@ namespace LoRSideTracker
         }
 
         /// <summary>
-        /// Adda game to history
+        /// Adda game to history, and optionally save to file
         /// </summary>
         /// <param name="gr">Game record to add</param>
-        public static void AddGameRecord(GameRecord gr)
+        /// <param name="saveGame">If true, game should be saved</param>
+        /// <param name="gameLog">Game event log to save</param>
+        public static void AddGameRecord(GameRecord gr, bool saveGame = false, List<string> gameLog = null)
         {
             try {
                 gr.OpponentName = AIDeckNames[gr.OpponentName];
                 gr.OpponentIsAI = true;
             } catch { }
             Games.Insert(0, gr);
+            if (saveGame)
+            {
+                // Save game record to file
+                gr.Timestamp = DateTime.Now;
+                gr.Log = Log.CurrentLogRtf;
+                string fileName = string.Format(@"{0}_{1}_{2}_{3}_{4}_{5}",
+                    gr.Timestamp.Year,
+                    gr.Timestamp.Month,
+                    gr.Timestamp.Day,
+                    gr.Timestamp.Hour,
+                    gr.Timestamp.Minute,
+                    gr.Timestamp.Second);
+                gr.SaveToFile(Constants.GetLocalGamesPath() + "\\" + fileName + ".txt");
+                if (gameLog != null && gameLog.Count > 0)
+                {
+                    File.WriteAllBytes(Constants.GetLocalGamesPath() + "\\" + fileName + ".playback", Utilities.ZipFromStringList(gameLog));
+                }
+            }
         }
 
         /// <summary>
