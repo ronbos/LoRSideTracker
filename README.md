@@ -32,4 +32,3 @@ Screenshots:
 - <a href="https://github.com/ronbos/LoRSideTracker/releases/download/0.8/Expeditions.png">Expeditions History</a>
 - <a href="https://github.com/ronbos/LoRSideTracker/releases/download/0.8/Tracking.png">Tracking screen</a>
 
-Bug reports and feedback is welcome.
