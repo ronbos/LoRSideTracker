@@ -21,7 +21,15 @@ Existing issues:
 - Listening port cannot be changed
 - Unable to accurately mark all opponent cards as generated
 - Each set update requires a one-time large download from Riot servers
+- Some cards get logged twice, especially cards that offer a choice of action.
 
 Future planned work:
 - Game recording and playback
 - Expedition draft progression review (selected sets and swaps only)
+
+Screenshots:
+- <a href="https://github.com/ronbos/LoRSideTracker/releases/download/0.8/Decks.png">Decks History</a>
+- <a href="https://github.com/ronbos/LoRSideTracker/releases/download/0.8/Expeditions.png">Expeditions History</a>
+- <a href="https://github.com/ronbos/LoRSideTracker/releases/download/0.8/Tracking.png">Tracking screen</a>
+
+Bug reports and feedback is welcome.
