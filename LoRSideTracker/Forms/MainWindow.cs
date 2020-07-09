@@ -158,7 +158,7 @@ namespace LoRSideTracker
             // Game ended. Grab game result
             Log.WriteLine("Game no. {0} Result: {1}", gameNumber, gameRecord.Result);
 
-            if (string.IsNullOrEmpty(Constants.PlayBackDeckPath))
+            if (string.IsNullOrEmpty(Constants.PlayBackDeckPath) && gameRecord.OpponentDeck.Count > 0)
             {
                 var gameLog = CurrentPlayState.StopGameLog();
                 GameHistory.AddGameRecord(gameRecord, true, gameLog);
@@ -346,8 +346,11 @@ namespace LoRSideTracker
         {
             Properties.Settings.Default.MainWindowState = this.WindowState;
             Properties.Settings.Default.MainWindowBounds = (this.WindowState == FormWindowState.Normal) ? Bounds : RestoreBounds;
-            Properties.Settings.Default.ActiveLogWindowBounds = (ActiveLogWindow.WindowState == FormWindowState.Normal)
+            if (ActiveLogWindow != null)
+            {
+                Properties.Settings.Default.ActiveLogWindowBounds = (ActiveLogWindow.WindowState == FormWindowState.Normal)
                 ? ActiveLogWindow.Bounds : ActiveLogWindow.RestoreBounds;
+            }
 
             if (PlayerActiveDeckWindow != null)
             {

@@ -127,6 +127,12 @@ namespace LoRSideTracker
             result.MyDeck = Utilities.DeckFromStringCodeList(gameRecord["MyDeck"].ToObject<string[]>());
             result.OpponentName = gameRecord["OpponentName"].ToString();
             result.OpponentIsAI = false;
+            try
+            {
+                result.OpponentName = GameHistory.AIDeckNames[result.OpponentName];
+                result.OpponentIsAI = true;
+            }
+            catch { }
             result.OpponentDeck = Utilities.DeckFromStringCodeList(gameRecord["OpponentDeck"].ToObject<string[]>());
             result.Result = gameRecord["Result"].ToString();
             result.Notes = gameRecord["Notes"].ToString();

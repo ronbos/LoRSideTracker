@@ -166,7 +166,6 @@ namespace LoRSideTracker
             {
                 // Success, finish up and queue up the next one
 
-                MyProgressDisplay.Update("Download completed. Processing...", 100);
                 ProcessDownloadedSet(MissingSets[CurrentDownloadIndex].Item1, MissingSets[CurrentDownloadIndex].Item2);
                 CurrentDownloadIndex++;
                 if (CurrentDownloadIndex < MissingSets.Count)
@@ -189,7 +188,7 @@ namespace LoRSideTracker
         /// </summary>
         /// <param name="setNumber">Set number</param>
         /// <param name="remoteZipSize">Zip file size as given by remote URL query</param>
-        public static void ProcessDownloadedSet(int setNumber, long remoteZipSize)
+        public void ProcessDownloadedSet(int setNumber, long remoteZipSize)
         {
             string setPath = Constants.GetSetPath(setNumber);
             string setZip = Constants.GetSetZipPath(setNumber);
@@ -213,8 +212,9 @@ namespace LoRSideTracker
                 DirectoryInfo dirInfo = new DirectoryInfo(imagesDir);
                 FileInfo[] files = dirInfo.GetFiles();
                 int targetWidth = CardLibrary.TargetImageSize;
-                foreach (FileInfo fi in files)
+                for (int i = 0; i < files.Length; i++)
                 {
+                    FileInfo fi = (FileInfo)files[i];
                     Image fullSizeImage = Image.FromFile(fi.FullName);
                     double ratio = (double)targetWidth / (double)fullSizeImage.Width;
 
@@ -231,6 +231,7 @@ namespace LoRSideTracker
                     {
                         fullSizeImage.Dispose();
                     }
+                    MyProgressDisplay.Update("Processing downloaded set...", (double)i / (double)files.Length);
                 }
             }
             File.Delete(setZip);

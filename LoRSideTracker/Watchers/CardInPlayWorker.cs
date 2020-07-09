@@ -1,7 +1,7 @@
 ﻿#if DEBUG
 #define USE_DECK_LISTS
 #endif
-//#define ALLOW_GAME_RECORDING
+#define ALLOW_GAME_RECORDING
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;

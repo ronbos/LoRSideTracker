@@ -14,17 +14,24 @@ namespace LoRSideTracker
     /// </summary>
     public static class GameHistory
     {
-        private static readonly Dictionary<string, string> AIDeckNames = new Dictionary<string, string>()
+        public static readonly Dictionary<string, string> AIDeckNames = new Dictionary<string, string>()
         {
             { "decks_badstuns_name", "Flash of Steel (AI)" },
+            { "decks_badbarriers_name", "Sword and Shield (AI)" },
+            { "decks_badvengeance_name", "BadVengeance? (AI)" },
+            { "decks_badspellbound_name", "BadSpellbound? (AI)" },
+            { "decks_badfrostbite_name", "BadFrostbite? (AI)" },
             { "decks_easybraum_name", "Stay Warm (AI)" },
             { "decks_easyteemo_name", "Scout's Honor (AI)" },
-            { "decks_easythresh_name", "EasyThresh??? (AI)" },
-            { "deckname_kinkou_keepers", "Stealthy Strikes (AI)" },
+            { "decks_easythresh_name", "Tortured Souls (AI)" },
             { "decks_mediumelise_name", "Spider Swarm (AI)" },
             { "decks_mediumdraven_name", "The Main Event (AI)" },
             { "decks_mediumzed_name", "Shadow and Blades (AI)" },
-            { "front_five_game_one", "Poro Trouble (AI)" }
+            { "front_five_game_one", "Poro Trouble (AI)" },
+            { "decks_hardkatarina_name", "Frontline Assault (AI)" },
+            { "decks_hardtryndamere_name", "HardTryndamere? (AI)" },
+            { "deckname_kinkou_keepers", "Stealthy Strikes (AI)" },
+            { "deckname_trifarian_incursion", "Trifarian_Incursion? (AI)" }
         };
 
         /// <summary></summary>
@@ -95,11 +102,6 @@ namespace LoRSideTracker
         /// <param name="gameLog">Game event log to save</param>
         public static void AddGameRecord(GameRecord gr, bool saveGame = false, List<string> gameLog = null)
         {
-            try {
-                gr.OpponentName = AIDeckNames[gr.OpponentName];
-                gr.OpponentIsAI = true;
-            } catch { }
-            Games.Insert(0, gr);
             if (saveGame)
             {
                 // Save game record to file
@@ -118,6 +120,11 @@ namespace LoRSideTracker
                     File.WriteAllBytes(Constants.GetLocalGamesPath() + "\\" + fileName + ".playback", Utilities.ZipFromStringList(gameLog));
                 }
             }
+            try {
+                gr.OpponentName = AIDeckNames[gr.OpponentName];
+                gr.OpponentIsAI = true;
+            } catch { }
+            Games.Insert(0, gr);
         }
 
         /// <summary>
