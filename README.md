@@ -29,7 +29,7 @@ Future planned work:
 - Expedition draft progression review (selected sets and swaps only)
 
 Screenshots:
-- <a href="https://github.com/ronbos/LoRSideTracker/releases/download/0.8/Decks.png">Decks History</a>
-- <a href="https://github.com/ronbos/LoRSideTracker/releases/download/0.8/Expeditions.png">Expeditions History</a>
-- <a href="https://github.com/ronbos/LoRSideTracker/releases/download/0.8/Tracking.png">Tracking screen</a>
+- <a href="https://github.com/ronbos/LoRSideTracker/releases/download/0.8/Decks.jpg">Decks History</a>
+- <a href="https://github.com/ronbos/LoRSideTracker/releases/download/0.8/Expeditions.jpg">Expeditions History</a>
+- <a href="https://github.com/ronbos/LoRSideTracker/releases/download/0.8/Tracking.jpg">Tracking screen</a>
 
