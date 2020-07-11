@@ -18,7 +18,8 @@ A near full-featured release:
 
 Existing issues:
 - Tossed cards not tracked due to limitations of Riot API
-- Listening port cannot be changed
+- Champion cards transformed to spells in hand (and vice versa) tracked as generated cards
+- Listening port cannot be changed currently
 - Unable to accurately mark all opponent cards as generated
 - Each set update requires a one-time large download from Riot servers
 - Some cards get logged twice, especially cards that offer a choice of action.
