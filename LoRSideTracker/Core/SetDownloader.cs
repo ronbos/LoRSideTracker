@@ -195,7 +195,7 @@ namespace LoRSideTracker
 
             // .. is needed because set path includes language subfolder
             Utilities.DeleteEntireDirectory(setPath + @"\..");
-            ZipFile.ExtractToDirectory(setZip, setPath + @"\..\..");
+            ZipFile.ExtractToDirectory(setZip, setPath + @"\..");
 
             // We don't have a way of checking version. Check by download size instead
             var json = JsonSerializer.Serialize(new

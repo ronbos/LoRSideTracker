@@ -18,9 +18,9 @@ namespace LoRSideTracker
         {
             { "decks_badstuns_name", "Flash of Steel (AI)" },
             { "decks_badbarriers_name", "Sword and Shield (AI)" },
-            { "decks_badvengeance_name", "BadVengeance? (AI)" },
-            { "decks_badspellbound_name", "BadSpellbound? (AI)" },
-            { "decks_badfrostbite_name", "BadFrostbite? (AI)" },
+            { "decks_badvengeance_name", "Retribution (AI)" },
+            { "decks_badspellbound_name", "Ghastly Experimentation (AI)" },
+            { "decks_badfrostbite_name", "Avarosan Permafrost (AI)" },
             { "decks_easybraum_name", "Stay Warm (AI)" },
             { "decks_easyteemo_name", "Scout's Honor (AI)" },
             { "decks_easythresh_name", "Tortured Souls (AI)" },
@@ -29,9 +29,9 @@ namespace LoRSideTracker
             { "decks_mediumzed_name", "Shadow and Blades (AI)" },
             { "front_five_game_one", "Poro Trouble (AI)" },
             { "decks_hardkatarina_name", "Frontline Assault (AI)" },
-            { "decks_hardtryndamere_name", "HardTryndamere? (AI)" },
+            { "decks_hardtryndamere_name", "Ancient Wisdom (AI)" },
             { "deckname_kinkou_keepers", "Stealthy Strikes (AI)" },
-            { "deckname_trifarian_incursion", "Trifarian_Incursion? (AI)" }
+            { "deckname_trifarian_incursion", "Noxian Strength (AI)" }
         };
 
         /// <summary></summary>
@@ -134,7 +134,30 @@ namespace LoRSideTracker
         /// <param name="name"></param>
         public static void SetDeckName(string deckSignature, string name)
         {
-            DeckNames[deckSignature] = name;
+            List<string> keys = new List<string>();
+            try 
+            { 
+                string previousName = DeckNames[deckSignature];
+
+                // Collect all signatures mapping to this name
+                foreach (var item in DeckNames)
+                {
+                    if (item.Value == previousName)
+                    {
+                        keys.Add(item.Key);
+                    }
+                }
+            }
+            catch
+            {
+                keys.Add(deckSignature);
+            }
+
+            foreach (var k in keys)
+            {
+                DeckNames[k] = name;
+            }
+
             var json = JsonSerializer.Serialize(new
             {
                 DeckNames = DeckNames
@@ -153,7 +176,7 @@ namespace LoRSideTracker
             // Update individual game names, but only for constructed
             for (int i = 0; i < Games.Count; i++)
             {
-                if (deckSignature == Games[i].GetDeckSignature() && !Games[i].IsExpedition())
+                if (!Games[i].IsExpedition() && keys.Contains(Games[i].GetDeckSignature()))
                 {
                     Games[i].MyDeckName = name;
                 }

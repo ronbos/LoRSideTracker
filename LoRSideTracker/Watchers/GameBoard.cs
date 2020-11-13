@@ -205,7 +205,8 @@ namespace LoRSideTracker
                         // We only ever return to deck from initial draw
                         switch (to)
                         {
-                            case PlayZone.Deck: return TransitionResult.Proceed;
+                            case PlayZone.Deck: 
+                            case PlayZone.Hand: return TransitionResult.Proceed;
                             default: return TransitionResult.Disallow;
                         }
                     }

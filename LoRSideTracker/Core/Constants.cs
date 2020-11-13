@@ -27,7 +27,7 @@ namespace LoRSideTracker
         /// Setting playback deck path replaces real-time LoR watcher with playback from a file
         /// </summary>
         public const string PlayBackDeckPath = null;
-        //public const string PlayBackDeckPath = @"2020_7_3_4_30_53.playback";
+        //public const string PlayBackDeckPath = @"2020_10_16_17_47_56.playback";
 
         /// <summary>
         /// Language set to use
@@ -163,6 +163,7 @@ namespace LoRSideTracker
             if (region == "Noxus") { return Color.Crimson; }
             if (region == "PiltoverZaun") { return Color.Gold; }
             if (region == "ShadowIsles") { return Color.Teal; }
+            if (region == "Targon") { return Color.Purple; }
             return Color.Gray;
         }
     }

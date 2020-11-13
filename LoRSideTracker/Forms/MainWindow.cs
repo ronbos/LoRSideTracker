@@ -161,6 +161,11 @@ namespace LoRSideTracker
             if (string.IsNullOrEmpty(Constants.PlayBackDeckPath) && gameRecord.OpponentDeck.Count > 0)
             {
                 var gameLog = CurrentPlayState.StopGameLog();
+                if (gameRecord.IsExpedition())
+                {
+                    gameRecord.NumWins = CurrentExpedition.NumberOfWins + (gameRecord.Result == "Win" ? 1 : 0);
+                    gameRecord.NumLosses = CurrentExpedition.NumberOfLosses + (gameRecord.Result != "Win" ? 1 : 0);
+                }
                 GameHistory.AddGameRecord(gameRecord, true, gameLog);
                 Utilities.CallActionSafelyAndWait(DecksListCtrl, new Action(() =>
                 {

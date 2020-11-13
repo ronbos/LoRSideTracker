@@ -165,7 +165,7 @@ namespace LoRSideTracker
 
             if (gameLogFilePath == null)
             {
-                WebString = new AutoUpdatingWebString(Constants.OverlayStateURL(), 100, this, 500, true);
+                WebString = new AutoUpdatingWebString(Constants.OverlayStateURL(), 150, this, 750, true);
             }
             else
             {

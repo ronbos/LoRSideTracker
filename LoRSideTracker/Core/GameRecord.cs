@@ -44,6 +44,18 @@ namespace LoRSideTracker
         /// <summary>Game Record display string</summary>
         public string DisplayString { get; set; } = "???";
 
+        /// <summary>Constructed Wins</summary>
+        public int NumWins { get; set; } = 0;
+
+        /// <summary>Constructed Losses</summary>
+        public int NumLosses { get; set; } = 0;
+
+        /// <summary>Constructed Wins vs AI</summary>
+        public int NumWinsVsAI { get; set; } = 0;
+
+        /// <summary>Constructed Losses vs AI</summary>
+        public int NumLossesVsAI { get; set; } = 0;
+
         //public string GameFile
         //{
         //    get
@@ -142,6 +154,19 @@ namespace LoRSideTracker
             if (!File.Exists(result.GamePlaybackFile))
             {
                 result.GamePlaybackFile = "";
+            }
+
+            // Extract expedition record
+            if (result.IsExpedition())
+            {
+                string deckName = result.MyDeckName;
+                int scoreIndex = deckName.LastIndexOf('-');
+                if (scoreIndex > 0)
+                {
+                    result.NumWins = deckName[scoreIndex - 1] - '0';
+                    result.NumLosses = deckName[scoreIndex + 1] - '0';
+                }
+
             }
             return result;
         }
