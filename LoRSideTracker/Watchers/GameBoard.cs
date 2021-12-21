@@ -1,4 +1,4 @@
-﻿//#define TRACK_TOSSING_ZONE
+﻿#define TRACK_TOSSING_ZONE
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -168,12 +168,25 @@ namespace LoRSideTracker
             Stay,
         }
 
-        public static TransitionResult TransitionAllowed(PlayZone from, PlayZone to, bool isInitialDraw)
+        public static TransitionResult TransitionAllowed(PlayZone from, PlayZone previous, PlayZone to, bool isInitialDraw, bool isLocalPlayer)
         {
             // Only allow additions to deck from stage during initial draw
             if (to == PlayZone.Deck)
             {
-                return (isInitialDraw && from == PlayZone.Stage) ? TransitionResult.Proceed : TransitionResult.Disallow;
+                if (isInitialDraw && from == PlayZone.Stage)
+                {
+                    return TransitionResult.Proceed;
+                }
+                else if (from == PlayZone.Tossing && (previous == PlayZone.Windup || previous == PlayZone.Battle || previous == PlayZone.Hand))
+                {
+                    // This addresses cards that shuffle themselves back to deck
+                    return TransitionResult.Proceed;
+                }
+                return TransitionResult.Disallow;
+            }
+            if (to == PlayZone.Stage && !isInitialDraw && isLocalPlayer)
+            {
+                return TransitionResult.Stay;
             }
 
             switch (from)
@@ -185,7 +198,7 @@ namespace LoRSideTracker
                     }
                     else
                     {
-                        return (to == PlayZone.Zoom) ? TransitionResult.Proceed : TransitionResult.Disallow;
+                        return (to == PlayZone.Zoom || to == PlayZone.Tossing) ? TransitionResult.Proceed : TransitionResult.Disallow;
                     }
                 case PlayZone.Tossing:
                     switch (to)
@@ -193,6 +206,7 @@ namespace LoRSideTracker
                         case PlayZone.Stage: // This is due to a bug
                         case PlayZone.Hand: // This is due to a bug
                         case PlayZone.Field: // This is due to a bug
+                        case PlayZone.Zoom: // This is due to a bug
                             return TransitionResult.Proceed;
                         default:
                             return TransitionResult.Disallow;
@@ -225,6 +239,7 @@ namespace LoRSideTracker
                         case PlayZone.Field: return TransitionResult.Proceed;
                         case PlayZone.Cast: return TransitionResult.Proceed;
                         case PlayZone.Stage: return TransitionResult.Proceed;
+                        case PlayZone.Attack: return TransitionResult.Proceed;
                         default: return TransitionResult.Stay;
                     }
                 case PlayZone.Cast:
@@ -254,6 +269,7 @@ namespace LoRSideTracker
                         case PlayZone.Field: return TransitionResult.Proceed;
                         case PlayZone.Battle: return TransitionResult.Stay;
                         case PlayZone.Attack: return TransitionResult.Proceed;
+                        //case PlayZone.Zoom: return TransitionResult.Proceed;
                         default: return TransitionResult.Disallow;
                     }
                 case PlayZone.Attack:
@@ -263,6 +279,7 @@ namespace LoRSideTracker
                         case PlayZone.Battle: return TransitionResult.Stay;
                         case PlayZone.Windup: return TransitionResult.Proceed;
                         case PlayZone.Hand: return TransitionResult.Proceed; // Katarina-style recall mechanics
+                        //case PlayZone.Zoom: return TransitionResult.Proceed;
                         default: return TransitionResult.Disallow;
                     }
                 case PlayZone.Graveyard:

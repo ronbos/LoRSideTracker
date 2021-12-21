@@ -106,6 +106,8 @@ namespace LoRSideTracker
         private AutoUpdatingWebString WebString;
         private bool NotRespondingHasBeenReported = false;
 
+        private bool CardsAreOnStage = false;
+
 #if USE_DECK_LISTS
         private CardsInPlayDebugView DeckLists;
 #endif
@@ -216,6 +218,7 @@ namespace LoRSideTracker
                     CurrentGameRecord.Notes = "";
                     CurrentGameRecord.Result = "-";
                     CurrentGameRecord.ExpeditionSignature = "";
+                    CurrentGameRecord.ExpeditionDraftPicks = null;
                     result = true;
                 }
                 else if (CurrentExpedition.Cards.Count > 0)
@@ -232,6 +235,7 @@ namespace LoRSideTracker
                     CurrentGameRecord.Notes = "";
                     CurrentGameRecord.Result = "-";
                     CurrentGameRecord.ExpeditionSignature = CurrentExpedition.Signature;
+                    CurrentGameRecord.ExpeditionDraftPicks = CurrentExpedition.DraftPicks;
                     result = true;
                 }
             }
@@ -494,6 +498,20 @@ namespace LoRSideTracker
                 return;
             }
 
+            if (nextPlayerCards.FindIndex(x => x.CurrentZone == PlayZone.Stage) >= 0)
+            {
+                CardsAreOnStage = true;
+            }
+            else if (CardsAreOnStage)
+            {
+                // Transition, reset ether timers
+                for (int i = 0; i < PlayerCards[(int)PlayZone.Ether].Count; i++)
+                {
+                    PlayerCards[(int)PlayZone.Ether][i].EtherStartTime = timestamp;
+                }
+                CardsAreOnStage = false;
+            }
+
             // Mark all opponent cards as "from deck" for now
             // This is because we cannot reliably know which ones are not from deck yet
             for (int i = 0; i < nextOpponentCards.Count; i++)
@@ -501,7 +519,7 @@ namespace LoRSideTracker
                 nextOpponentCards[i].IsFromDeck = nextOpponentCards[i].TheCard.IsCollectible;
             }
 
-            MoveToNext(ref PlayerCards, nextPlayerCards, timestamp, IsInitialDraw);
+            MoveToNext(ref PlayerCards, nextPlayerCards, timestamp, IsInitialDraw, true);
             if (IsInitialDraw)
             {
                 // Initial draw until we add some cards to hand
@@ -509,7 +527,7 @@ namespace LoRSideTracker
             }
 
 
-            MoveToNext(ref OpponentCards, nextOpponentCards, timestamp, false);
+            MoveToNext(ref OpponentCards, nextOpponentCards, timestamp, false, false);
 
             // Purge Ether of spells that have been cast
             bool thoroughCleanUp = false;
@@ -518,7 +536,30 @@ namespace LoRSideTracker
             {
                 thoroughCleanUp = true;
             }
-            PlayerCards[(int)PlayZone.Graveyard].AddRange(CleanUpEther(ref PlayerCards[(int)PlayZone.Ether], timestamp, thoroughCleanUp));
+
+            // Clean up ether -- generally move expired cards to graveyard, but also send cast champion spells back to deck
+            if (!CardsAreOnStage)
+            {
+                // Find all the expiring 
+                CardList<CardInPlay> cardsGoingToGraveyard = CleanUpEther(ref PlayerCards[(int)PlayZone.Ether], timestamp, thoroughCleanUp);
+                for (int i = 0; i < cardsGoingToGraveyard.Count; i++)
+                {
+                    if (cardsGoingToGraveyard[i].ChampionCode.Length > 0 && cardsGoingToGraveyard[i].TheCard.Type == "Spell")
+                    {
+                        var championCard = CardLibrary.GetCard(cardsGoingToGraveyard[i].ChampionCode);
+                        var championCardInPlay = new CardInPlay(championCard);
+                        championCardInPlay.LastZone = PlayZone.Ether;
+                        championCardInPlay.LastNonEtherZone = cardsGoingToGraveyard[i].LastNonEtherZone;
+                        championCardInPlay.CurrentZone = PlayZone.Deck;
+                        PlayerCards[(int)PlayZone.Deck].Add(championCard.Cost, championCard.Name, championCardInPlay);
+                        cardsGoingToGraveyard[i].IsFromDeck = false;
+                        Log.WriteLine(LogType.Player, "[{0}{1}] Shuffled back: {2}", championCardInPlay.LastNonEtherZone.ToString()[0],
+                            championCardInPlay.CurrentZone.ToString()[0], championCard.Name);
+                    }
+                }
+
+                PlayerCards[(int)PlayZone.Graveyard].AddRange(cardsGoingToGraveyard);
+            }
             OpponentCards[(int)PlayZone.Graveyard].AddRange(CleanUpEther(ref OpponentCards[(int)PlayZone.Ether], timestamp, true));
 
             NotifyCardSetUpdates();
@@ -591,7 +632,7 @@ namespace LoRSideTracker
             return Utilities.ConvertDeck(allCards);
         }
 
-        void MoveToNext(ref CardList<CardInPlay>[] current, CardList<CardInPlay> next, double timestamp, bool isInitialDraw)
+        void MoveToNext(ref CardList<CardInPlay>[] current, CardList<CardInPlay> next, double timestamp, bool isInitialDraw, bool isLocalPlayer)
         {
             CardList<CardInPlay> stationaryResult = new CardList<CardInPlay>();
             CardList<CardInPlay> movedResult = new CardList<CardInPlay>();
@@ -643,13 +684,14 @@ namespace LoRSideTracker
                 int z = x.TheCard.Cost - y.TheCard.Cost;
                 if (z == 0) z = x.TheCard.Name.CompareTo(y.TheCard.Name);
                 // Skip values in current that are incorrect zone
-                if (z == 0 && GameBoard.TransitionResult.Proceed != GameBoard.TransitionAllowed(y.LastNonEtherZone, x.CurrentZone, isInitialDraw)) z = -1;
+                if (z == 0 && GameBoard.TransitionResult.Proceed != GameBoard.TransitionAllowed(y.LastNonEtherZone, PlayZone.Unknown, x.CurrentZone, isInitialDraw, isLocalPlayer)) z = -1;
                 return z;
             }, (x, y) =>
             {
                 x.LastNonEtherZone = y.LastNonEtherZone;
                 x.LastZone = PlayZone.Ether;
                 x.IsFromDeck = y.IsFromDeck;
+                x.ChampionCode = y.ChampionCode;
                 return x;
             }));
 
@@ -666,12 +708,13 @@ namespace LoRSideTracker
                     // Skip values in next that are incorrect zone
                     int z = x.TheCard.Cost - y.TheCard.Cost;
                     if (z == 0) z = x.TheCard.Name.CompareTo(y.TheCard.Name);
-                    if (z == 0 && GameBoard.TransitionResult.Proceed != GameBoard.TransitionAllowed(y.CurrentZone, x.CurrentZone, isInitialDraw)) z = -1;
+                    if (z == 0 && GameBoard.TransitionResult.Proceed != GameBoard.TransitionAllowed(y.CurrentZone, y.LastNonEtherZone, x.CurrentZone, isInitialDraw, isLocalPlayer)) z = -1;
                     return z;
                 }, (x, y) =>
                 {
                     x.SetLastZone(y.CurrentZone);
                     x.IsFromDeck = y.IsFromDeck;
+                    x.ChampionCode = y.ChampionCode;
                     return x;
                 }));
             }
@@ -684,7 +727,7 @@ namespace LoRSideTracker
                     // Skip values in next that are incorrect zone
                     int z = x.TheCard.Cost - y.TheCard.Cost;
                     if (z == 0) z = x.TheCard.Name.CompareTo(y.TheCard.Name);
-                    if (z == 0 && GameBoard.TransitionResult.Stay != GameBoard.TransitionAllowed(y.CurrentZone, x.CurrentZone, isInitialDraw)) z = -1;
+                    if (z == 0 && GameBoard.TransitionResult.Stay != GameBoard.TransitionAllowed(y.CurrentZone, y.LastNonEtherZone, x.CurrentZone, isInitialDraw, isLocalPlayer)) z = -1;
                     return z;
                 }, (x, y) =>
                 {
@@ -695,18 +738,45 @@ namespace LoRSideTracker
                 }));
             }
 
+            // For each card in 'hand', look for champion transformations
+            stationaryResult.AddRange(CardList<CardInPlay>.Extract(ref next, ref current[(int)PlayZone.Hand], (x, y) =>
+            {
+                // Skip values in next that are incorrect zone
+                if ((int)x.CurrentZone != (int)PlayZone.Hand) return -1;
+                if (y.ChampionCode.Length == 0) return -1;
+                if (y.TheCard.SuperType == "Champion")
+                {
+                    var spellCode = y.TheCard.AssociatedCardCodes.Last();
+                    var spellCard = CardLibrary.GetCard(spellCode);
+                    if (spellCard.FlavorText == x.TheCard.FlavorText) return 0;
+                }
+                else if (x.TheCard.SuperType == "Champion")
+                {
+                    if (x.CardCode == y.ChampionCode) return 0;
+                }
+                return -1;
+            }, (x, y) =>
+            {
+                x.LastZone = y.CurrentZone;
+                x.IsFromDeck = y.IsFromDeck;
+                x.ChampionCode = y.ChampionCode;
+                return x;
+            }));
+
+
             // For each card in next, look for approved transitions from deck
             movedResult.AddRange(CardList<CardInPlay>.Extract(ref next, ref current[(int)PlayZone.Deck], (x, y) =>
             {
                 // Skip values in next that are incorrect zone
                 int z = x.TheCard.Cost - y.TheCard.Cost;
                 if (z == 0) z = x.TheCard.Name.CompareTo(y.TheCard.Name);
-                if (z == 0 && GameBoard.TransitionResult.Proceed != GameBoard.TransitionAllowed(y.CurrentZone, x.CurrentZone, isInitialDraw)) z = -1;
+                if (z == 0 && GameBoard.TransitionResult.Proceed != GameBoard.TransitionAllowed(y.CurrentZone, y.LastNonEtherZone, x.CurrentZone, isInitialDraw, isLocalPlayer)) z = -1;
                 return z;
             }, (x, y) =>
             {
                 x.SetLastZone(y.CurrentZone);
                 x.IsFromDeck = y.IsFromDeck;
+                x.ChampionCode = y.ChampionCode;
                 return x;
             }));
 
@@ -732,7 +802,7 @@ namespace LoRSideTracker
             }
 
             // Remove cards in next that are in a zone that does not accept from Unknown
-            next = next.GetSubset(x => GameBoard.TransitionResult.Proceed == GameBoard.TransitionAllowed(x.LastNonEtherZone, x.CurrentZone, isInitialDraw));
+            next = next.GetSubset(x => GameBoard.TransitionResult.Proceed == GameBoard.TransitionAllowed(x.LastNonEtherZone, PlayZone.Unknown, x.CurrentZone, isInitialDraw, isLocalPlayer));
 
             // Add remaining cards to the moved set
             movedResult.AddRange(next);

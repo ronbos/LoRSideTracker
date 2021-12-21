@@ -130,12 +130,13 @@ namespace LoRSideTracker
             switch (card.CurrentZone)
             {
                 case PlayZone.Deck:
-                    //if (card.LastNonEtherZone != PlayZone.Unknown) action = "Shuffled into Deck";
+                    if (card.LastNonEtherZone == PlayZone.Zoom) action = "Shuffled into Deck";
                     break;
                 case PlayZone.Tossing:
+                    if (card.LastNonEtherZone == PlayZone.Deck) action = "Drawing from deck";
                     break;
                 case PlayZone.Zoom:
-                    action = "Drawn from deck";
+                    if (card.LastNonEtherZone == PlayZone.Deck) action = "Drawn from deck";
                     break;
                 case PlayZone.Stage:
                     if (card.LastNonEtherZone == PlayZone.Deck) action = "Presented";

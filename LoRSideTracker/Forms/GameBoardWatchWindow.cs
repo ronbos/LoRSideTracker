@@ -104,23 +104,28 @@ namespace LoRSideTracker
             // Draw all player card rectangles
             foreach (var el in PlayerElements)
             {
-                DrawElement(el, e.Graphics, Color.Blue, screenRect, scale);
+                DrawElement(el, e.Graphics, Color.Blue, screenRect, false);
             }
 
             // Draw all opponent card rectangles
             foreach (var el in OpponentElements)
             {
-                DrawElement(el, e.Graphics, Color.Red, screenRect, scale);
+                DrawElement(el, e.Graphics, Color.Red, screenRect, true);
             }
         }
 
-        void DrawElement(CardInPlay card, Graphics g, Color borderColor, Rectangle screenRect, double scale)
+        void DrawElement(CardInPlay card, Graphics g, Color borderColor, Rectangle screenRect, bool flip)
         {
+            float y = card.NormalizedBoundingBox.Y;
+            if (flip)
+            {
+                y = 1 - y - card.NormalizedBoundingBox.Height;
+            }
             Rectangle r = new Rectangle(
-                (int)(0.5f + card.BoundingBox.X * scale),
-                (int)(0.5f + card.BoundingBox.Y * scale),
-                (int)(0.5f + card.BoundingBox.Width * scale),
-                (int)(0.5f + card.BoundingBox.Height * scale));
+                (int)(0.5f + screenRect.Width / 2 + card.NormalizedBoundingBox.X * screenRect.Height),
+                (int)(0.5f + y * screenRect.Height),
+                (int)(0.5f + card.NormalizedBoundingBox.Width * screenRect.Height),
+                (int)(0.5f + card.NormalizedBoundingBox.Height * screenRect.Height));
             r.Offset(screenRect.X, screenRect.Y);
             if (FullArtView)
             {

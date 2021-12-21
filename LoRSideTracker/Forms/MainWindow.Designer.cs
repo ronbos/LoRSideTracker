@@ -32,8 +32,7 @@
             this.HighlightedDeckPanel = new System.Windows.Forms.Panel();
             this.TheMenuBar = new System.Windows.Forms.MenuStrip();
             this.fileMenu = new System.Windows.Forms.ToolStripMenuItem();
-            this.optionsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.logToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.deleteDeckToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem8 = new System.Windows.Forms.ToolStripSeparator();
             this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.optionsMenu = new System.Windows.Forms.ToolStripMenuItem();
@@ -58,12 +57,14 @@
             this.snapDecksToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.windowMenu = new System.Windows.Forms.ToolStripMenuItem();
             this.hideGamesVsAIToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripMenuItem4 = new System.Windows.Forms.ToolStripSeparator();
+            this.optionsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.logToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.DecksListCtrl = new LoRSideTracker.Controls.DecksListControl();
             this.HighlightedGameLogControl = new LoRSideTracker.GameLogControl();
             this.MyProgressDisplay = new LoRSideTracker.ProgressDisplayControl();
             this.HighlightedDeckStatsDisplay = new LoRSideTracker.DeckStatsDisplay();
             this.HighlightedDeckControl = new LoRSideTracker.DeckControl();
-            this.toolStripMenuItem4 = new System.Windows.Forms.ToolStripSeparator();
             this.HighlightedDeckPanel.SuspendLayout();
             this.TheMenuBar.SuspendLayout();
             this.SuspendLayout();
@@ -100,6 +101,7 @@
             // fileMenu
             // 
             this.fileMenu.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.deleteDeckToolStripMenuItem,
             this.toolStripMenuItem8,
             this.exitToolStripMenuItem});
             this.fileMenu.ForeColor = System.Drawing.SystemColors.WindowText;
@@ -108,16 +110,24 @@
             this.fileMenu.Text = "File";
             this.fileMenu.DropDownOpened += new System.EventHandler(this.fileMenu_DropDownOpened);
             // 
+            // deleteDeckToolStripMenuItem
+            // 
+            this.deleteDeckToolStripMenuItem.Name = "deleteDeckToolStripMenuItem";
+            this.deleteDeckToolStripMenuItem.Size = new System.Drawing.Size(93, 22);
+            this.deleteDeckToolStripMenuItem.Text = "Delete Deck";
+            this.deleteDeckToolStripMenuItem.Click += new System.EventHandler(this.deleteDeckToolStripMenuItem_Click);
+            // 
             // toolStripMenuItem8
             // 
             this.toolStripMenuItem8.Name = "toolStripMenuItem8";
-            this.toolStripMenuItem8.Size = new System.Drawing.Size(177, 6);
+            this.toolStripMenuItem8.Size = new System.Drawing.Size(90, 6);
             // 
             // exitToolStripMenuItem
             // 
             this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
-            this.exitToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.exitToolStripMenuItem.Size = new System.Drawing.Size(93, 22);
             this.exitToolStripMenuItem.Text = "Exit";
+            this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
             // 
             // optionsMenu
             // 
@@ -230,35 +240,35 @@
             // deckOpacity20ToolStripMenuItem
             // 
             this.deckOpacity20ToolStripMenuItem.Name = "deckOpacity20ToolStripMenuItem";
-            this.deckOpacity20ToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.deckOpacity20ToolStripMenuItem.Size = new System.Drawing.Size(102, 22);
             this.deckOpacity20ToolStripMenuItem.Text = "20%";
             this.deckOpacity20ToolStripMenuItem.Click += new System.EventHandler(this.deckOpacity20ToolStripMenuItem_Click);
             // 
             // deckOpacity40ToolStripMenuItem
             // 
             this.deckOpacity40ToolStripMenuItem.Name = "deckOpacity40ToolStripMenuItem";
-            this.deckOpacity40ToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.deckOpacity40ToolStripMenuItem.Size = new System.Drawing.Size(102, 22);
             this.deckOpacity40ToolStripMenuItem.Text = "40%";
             this.deckOpacity40ToolStripMenuItem.Click += new System.EventHandler(this.deckOpacity40ToolStripMenuItem_Click);
             // 
             // deckOpacity60ToolStripMenuItem
             // 
             this.deckOpacity60ToolStripMenuItem.Name = "deckOpacity60ToolStripMenuItem";
-            this.deckOpacity60ToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.deckOpacity60ToolStripMenuItem.Size = new System.Drawing.Size(102, 22);
             this.deckOpacity60ToolStripMenuItem.Text = "60%";
             this.deckOpacity60ToolStripMenuItem.Click += new System.EventHandler(this.deckOpacity60ToolStripMenuItem_Click);
             // 
             // deckOpacity80ToolStripMenuItem
             // 
             this.deckOpacity80ToolStripMenuItem.Name = "deckOpacity80ToolStripMenuItem";
-            this.deckOpacity80ToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.deckOpacity80ToolStripMenuItem.Size = new System.Drawing.Size(102, 22);
             this.deckOpacity80ToolStripMenuItem.Text = "80%";
             this.deckOpacity80ToolStripMenuItem.Click += new System.EventHandler(this.deckOpacity80ToolStripMenuItem_Click);
             // 
             // deckOpacity100ToolStripMenuItem
             // 
             this.deckOpacity100ToolStripMenuItem.Name = "deckOpacity100ToolStripMenuItem";
-            this.deckOpacity100ToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.deckOpacity100ToolStripMenuItem.Size = new System.Drawing.Size(102, 22);
             this.deckOpacity100ToolStripMenuItem.Text = "100%";
             this.deckOpacity100ToolStripMenuItem.Click += new System.EventHandler(this.deckOpacity100ToolStripMenuItem_Click);
             // 
@@ -290,26 +300,26 @@
             // hideGamesVsAIToolStripMenuItem
             // 
             this.hideGamesVsAIToolStripMenuItem.Name = "hideGamesVsAIToolStripMenuItem";
-            this.hideGamesVsAIToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.hideGamesVsAIToolStripMenuItem.Size = new System.Drawing.Size(169, 22);
             this.hideGamesVsAIToolStripMenuItem.Text = "Hide Games vs. AI";
             this.hideGamesVsAIToolStripMenuItem.Click += new System.EventHandler(this.hideGamesVsAIToolStripMenuItem_Click);
             // 
             // toolStripMenuItem4
             // 
             this.toolStripMenuItem4.Name = "toolStripMenuItem4";
-            this.toolStripMenuItem4.Size = new System.Drawing.Size(177, 6);
+            this.toolStripMenuItem4.Size = new System.Drawing.Size(166, 6);
             // 
             // optionsToolStripMenuItem
             // 
             this.optionsToolStripMenuItem.Name = "optionsToolStripMenuItem";
-            this.optionsToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.optionsToolStripMenuItem.Size = new System.Drawing.Size(169, 22);
             this.optionsToolStripMenuItem.Text = "Options";
             this.optionsToolStripMenuItem.Click += new System.EventHandler(this.optionsToolStripMenuItem_Click);
             // 
             // logToolStripMenuItem
             // 
             this.logToolStripMenuItem.Name = "logToolStripMenuItem";
-            this.logToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.logToolStripMenuItem.Size = new System.Drawing.Size(169, 22);
             this.logToolStripMenuItem.Text = "Log";
             this.logToolStripMenuItem.Click += new System.EventHandler(this.logToolStripMenuItem_Click);
             // 
@@ -324,6 +334,7 @@
             this.DecksListCtrl.TabIndex = 16;
             this.DecksListCtrl.Visible = false;
             this.DecksListCtrl.SelectionChanged += new System.EventHandler(this.DecksListCtrl_SelectionChanged);
+            this.DecksListCtrl.ExpeditionHistory += new System.EventHandler(this.DecksListCtrl_ExpeditionHistory);
             // 
             // HighlightedGameLogControl
             // 
@@ -349,15 +360,15 @@
             // 
             // HighlightedDeckStatsDisplay
             // 
+            this.HighlightedDeckStatsDisplay.BlockHeight = 3;
+            this.HighlightedDeckStatsDisplay.BlockWidth = 7;
             this.HighlightedDeckStatsDisplay.Location = new System.Drawing.Point(0, 156);
             this.HighlightedDeckStatsDisplay.Name = "HighlightedDeckStatsDisplay";
             this.HighlightedDeckStatsDisplay.Size = new System.Drawing.Size(140, 65);
-            this.HighlightedDeckStatsDisplay.SpellColor = System.Drawing.Color.MediumSeaGreen;
             this.HighlightedDeckStatsDisplay.TabIndex = 4;
             this.HighlightedDeckStatsDisplay.TabStop = false;
             this.HighlightedDeckStatsDisplay.TextColor = System.Drawing.Color.White;
             this.HighlightedDeckStatsDisplay.TheDeck = null;
-            this.HighlightedDeckStatsDisplay.UnitColor = System.Drawing.Color.RoyalBlue;
             // 
             // HighlightedDeckControl
             // 
@@ -421,6 +432,7 @@
         private System.Windows.Forms.ToolStripMenuItem deckOpacity100ToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem optionsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem logToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem deleteDeckToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripMenuItem8;
         private System.Windows.Forms.ToolStripMenuItem exitToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripMenuItem1;

@@ -20,6 +20,7 @@ namespace LoRSideTracker.Controls
         // The event does not have any data, so EventHandler is adequate
         // as the event delegate.
         private EventHandler onSelectionChanged;
+        private EventHandler onExpeditionHistory;
 
         /// <summary>
         /// Define the event member using the event keyword.  
@@ -35,6 +36,23 @@ namespace LoRSideTracker.Controls
             remove
             {
                 onSelectionChanged -= value;
+            }
+        }
+
+        /// <summary>
+        /// Define the event member using the event keyword.  
+        /// In this case, for efficiency, the event is defined
+        /// using the event property construct.  
+        /// </summary>
+        public event EventHandler ExpeditionHistory
+        {
+            add
+            {
+                onExpeditionHistory += value;
+            }
+            remove
+            {
+                onExpeditionHistory -= value;
             }
         }
 
@@ -155,6 +173,34 @@ namespace LoRSideTracker.Controls
 
 
         /// <summary>
+        /// Remove a deck from the list
+        /// </summary>
+        /// <param name="gr">Game record to remove</param>
+        public void RemoveFromDeckList(GameRecord gr)
+        {
+            ListBox listBox = gr.IsExpedition() ? ExpeditionsListBox : DecksListBox;
+
+            // Does the deck already exist in the list? If it does, remove it
+            string deckSig = gr.GetDeckSignature();
+            string deckName = gr.MyDeckName;
+            int index = listBox.Items.Cast<GameRecord>().ToList().FindIndex(x => deckSig == x.GetDeckSignature());
+            if (index == -1 && !gr.IsExpedition() && deckName != GameRecord.DefaultConstructedDeckName)
+            {
+                index = listBox.Items.Cast<GameRecord>().ToList().FindIndex(x => deckName == x.MyDeckName);
+            }
+            if (index != -1)
+            {
+                listBox.Items.RemoveAt(index);
+                if (listBox.Items.Count > 0)
+                {
+                    listBox.SelectedIndex = index + 1 < listBox.Items.Count ? index : index - 1;
+                }
+                listBox.Refresh();
+                ListBox_SelectedIndexChanged(listBox, null);
+            }
+        }
+
+        /// <summary>
         /// Switch to viewing decks
         /// </summary>
         /// <param name="sender"></param>
@@ -226,50 +272,59 @@ namespace LoRSideTracker.Controls
         {
             ListBox listBox = (ListBox)sender;
             int index = listBox.SelectedIndex;
-            if (index >= 0)
+            if (listBox == ExpeditionsListBox)
             {
-                GameRecord gr = (GameRecord)listBox.Items[index];
-
-                string deckName = gr.ToString();
-                int scoreIndex = deckName.LastIndexOf(" (");
-                if (scoreIndex > 0)
+                // Show expedition history
+                onExpeditionHistory?.Invoke(this, null);
+            }
+            else
+            {
+                // Rename the deck
+                if (index >= 0)
                 {
-                    deckName = deckName.Substring(0, scoreIndex);
-                }
+                    GameRecord gr = (GameRecord)listBox.Items[index];
 
-                string result = Microsoft.VisualBasic.Interaction.InputBox("Name:", "Change Deck Name", deckName);
-                if (!string.IsNullOrEmpty(result) && deckName != result)
-                {
-                    if (!gr.IsExpedition())
+                    string deckName = gr.ToString();
+                    int scoreIndex = deckName.LastIndexOf(" (");
+                    if (scoreIndex > 0)
                     {
-                        gr.MyDeckName = result;
+                        deckName = deckName.Substring(0, scoreIndex);
                     }
 
-                    GameHistory.SetDeckName(gr.GetDeckSignature(), result);
-
-                    if (!gr.IsExpedition())
+                    string result = Microsoft.VisualBasic.Interaction.InputBox("Name:", "Change Deck Name", deckName);
+                    if (!string.IsNullOrEmpty(result) && deckName != result)
                     {
-                        index = listBox.Items.Cast<GameRecord>().ToList().FindIndex(x => result == x.MyDeckName);
-                        int nextIndex = index;
-                        while (nextIndex >= 0 && nextIndex < listBox.Items.Count - 1)
+                        if (!gr.IsExpedition())
                         {
-                            nextIndex = listBox.Items.Cast<GameRecord>().ToList().FindIndex(nextIndex + 1, x => result == x.MyDeckName);
-                            if (nextIndex > index)
+                            gr.MyDeckName = result;
+                        }
+
+                        GameHistory.SetDeckName(gr.GetDeckSignature(), result);
+
+                        if (!gr.IsExpedition())
+                        {
+                            index = listBox.Items.Cast<GameRecord>().ToList().FindIndex(x => result == x.MyDeckName);
+                            int nextIndex = index;
+                            while (nextIndex >= 0 && nextIndex < listBox.Items.Count - 1)
                             {
-                                ((GameRecord)listBox.Items[index]).NumWins += ((GameRecord)listBox.Items[nextIndex]).NumWins;
-                                ((GameRecord)listBox.Items[index]).NumLosses += ((GameRecord)listBox.Items[nextIndex]).NumLosses;
-                                ((GameRecord)listBox.Items[index]).NumWinsVsAI += ((GameRecord)listBox.Items[nextIndex]).NumWinsVsAI;
-                                ((GameRecord)listBox.Items[index]).NumLossesVsAI += ((GameRecord)listBox.Items[nextIndex]).NumLossesVsAI;
-                                listBox.Items.RemoveAt(nextIndex);
+                                nextIndex = listBox.Items.Cast<GameRecord>().ToList().FindIndex(nextIndex + 1, x => result == x.MyDeckName);
+                                if (nextIndex > index)
+                                {
+                                    ((GameRecord)listBox.Items[index]).NumWins += ((GameRecord)listBox.Items[nextIndex]).NumWins;
+                                    ((GameRecord)listBox.Items[index]).NumLosses += ((GameRecord)listBox.Items[nextIndex]).NumLosses;
+                                    ((GameRecord)listBox.Items[index]).NumWinsVsAI += ((GameRecord)listBox.Items[nextIndex]).NumWinsVsAI;
+                                    ((GameRecord)listBox.Items[index]).NumLossesVsAI += ((GameRecord)listBox.Items[nextIndex]).NumLossesVsAI;
+                                    listBox.Items.RemoveAt(nextIndex);
+                                }
                             }
                         }
-                    }
 
-                    ((GameRecord)listBox.Items[index]).DisplayString = result + GetWinLossRecordString((GameRecord)listBox.Items[index]);
-                    listBox.Items[index] = (GameRecord)listBox.Items[index];
-                    listBox.SelectedIndex = index;
-                    listBox.Refresh();
-                    ListBox_SelectedIndexChanged(sender, null);
+                        ((GameRecord)listBox.Items[index]).DisplayString = result + GetWinLossRecordString((GameRecord)listBox.Items[index]);
+                        listBox.Items[index] = (GameRecord)listBox.Items[index];
+                        listBox.SelectedIndex = index;
+                        listBox.Refresh();
+                        ListBox_SelectedIndexChanged(sender, null);
+                    }
                 }
             }
 
@@ -378,5 +433,9 @@ namespace LoRSideTracker.Controls
             // Set up constructed deck list to be visible
             SwitchDeckView(false);
         }
+
+        //public bool DeleteCurrentDeck(object sender, KeyEventArgs e)
+        //{
+        //}
     }
 }

@@ -123,6 +123,32 @@ namespace LoRSideTracker
             }
             return result;
         }
+        public Rectangle GetCardRectangle(string cardCode)
+        {
+            Rectangle r = new Rectangle();
+
+            // Measure and draw the title. Blank title indicates we should not draw it
+            int topBorderSize = BorderSize;
+            if (!string.IsNullOrEmpty(this.Title))
+            {
+                topBorderSize += CustomDeckScale.TitleHeight;
+            }
+
+            Rectangle cardRect = new Rectangle(BorderSize, topBorderSize,
+                this.Bounds.Width - 2 * BorderSize, CustomDeckScale.CardSize.Height);
+
+            // Draw all the cards
+            for (int i = 0; i < Cards.Count; i++)
+            {
+                if (Cards[i].Code.Equals(cardCode))
+                {
+                    return cardRect;
+                }
+                cardRect.Y += CustomDeckScale.CardSize.Height + SpacingSize;
+            }
+
+            return new Rectangle(0, 0, 0, 0);
+        }
 
         private void DeckControl_Paint(object sender, PaintEventArgs e)
         {
@@ -161,6 +187,14 @@ namespace LoRSideTracker
             Rectangle countRect = costRect;
             countRect.X = cardRect.X + cardRect.Width;
 
+            Point[] accentTriangle = new Point[] {
+                new Point(paintRect.Left, paintRect.Top),
+                new Point(paintRect.Left + paintRect.Height / 10, paintRect.Top),
+                //new Point(paintRect.Left, paintRect.Top + paintRect.Height / 4),
+                new Point(paintRect.Left + paintRect.Height / 10, paintRect.Bottom),
+                new Point(paintRect.Left, paintRect.Bottom),
+            };
+
             // Draw the card and a translucent layer to make the tile darker
             // and text more readable
             card.TheCard.DrawCardBanner(g, paintRect, true);
@@ -191,6 +225,23 @@ namespace LoRSideTracker
             {
                 g.FillRectangle(new SolidBrush(Color.FromArgb(96, Color.Black)), paintRect);
             }
+
+            // Draw the accent
+            Color accentColor = Color.Black;
+            if (card.Type == "Unit")
+            {
+                accentColor = Constants.UnitAccentColor;
+            }
+            else if (card.Type == "Spell")
+            {
+                accentColor = Constants.SpellAccentColor;
+            }
+            else if (card.Type == "Landmark")
+            {
+                accentColor = Constants.LandmarkAccentColor;
+            }
+            g.FillPolygon(new SolidBrush(accentColor), accentTriangle);
+
             // If this card is highlighted, draw a border around it
             if (isHighlighted)
             {
@@ -226,7 +277,17 @@ namespace LoRSideTracker
                 CardArtWindow.SetCard(Cards[index].TheCard);
                 Point topLeft = PointToScreen(new Point(0, 0));
                 Rectangle cardRect = GetCardRectangle(index);
-                CardArtWindow.SetBounds(topLeft.X + cardRect.X + cardRect.Width, topLeft.Y + cardRect.Y,
+                topLeft.X += cardRect.X + cardRect.Width;
+                topLeft.Y += cardRect.Y;
+                if (topLeft.X + Cards[index].TheCard.CardArt.Width > Screen.PrimaryScreen.Bounds.Width)
+                {
+                    topLeft.X -= Bounds.Width + Cards[index].TheCard.CardArt.Width - 4;
+                }
+                if (topLeft.Y + Cards[index].TheCard.CardArt.Height > Screen.PrimaryScreen.Bounds.Height)
+                {
+                    topLeft.Y = Screen.PrimaryScreen.Bounds.Height - Cards[index].TheCard.CardArt.Height;
+                }
+                CardArtWindow.SetBounds(topLeft.X, topLeft.Y,
                     Cards[index].TheCard.CardArt.Width, Cards[index].TheCard.CardArt.Height);
                 Invalidate(GetCardRectangle(HighlightedCard));
                 if (!CardArtWindow.Visible)

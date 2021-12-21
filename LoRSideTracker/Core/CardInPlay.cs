@@ -46,6 +46,8 @@ namespace LoRSideTracker
         /// <summary></summary>
         public double EtherStartTime { get; set; }
 
+        /// <summary></summary>
+        public string ChampionCode { get; set; }
 
         /// <summary>
         /// Constructor for a card belonging to the local player and in deck
@@ -62,6 +64,7 @@ namespace LoRSideTracker
             LastZone = PlayZone.Unknown;
             LastNonEtherZone = PlayZone.Unknown;
             IsFromDeck = true;
+            ChampionCode = (card.SuperType == "Champion") ? card.Code : "";
         }
 
         /// <summary>
@@ -82,6 +85,7 @@ namespace LoRSideTracker
             LastZone = PlayZone.Unknown;
             LastNonEtherZone = PlayZone.Unknown;
             IsFromDeck = isFromDeck;
+            ChampionCode = (card.SuperType == "Champion") ? card.Code : "";
         }
 
         /// <summary>
@@ -127,6 +131,7 @@ namespace LoRSideTracker
             LastNonEtherZone = PlayZone.Unknown;
             CurrentZone = GameBoard.FindPlayZone(NormalizedCenter, NormalizedBoundingBox);
             IsFromDeck = false;
+            ChampionCode = (TheCard.SuperType == "Champion") ? TheCard.Code : "";
         }
 
         /// <summary>

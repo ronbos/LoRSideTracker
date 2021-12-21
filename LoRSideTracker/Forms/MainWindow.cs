@@ -421,6 +421,19 @@ namespace LoRSideTracker
             HighlightedDeckPanel.Visible = true;
         }
 
+        private void DecksListCtrl_ExpeditionHistory(object sender, EventArgs e)
+        {
+            //GameRecord gr = DecksListCtrl.SelectedItem;
+            var deckSignature = DecksListCtrl.SelectedItem.GetDeckSignature();
+            var allGames = GameHistory.Games.FindAll(x => deckSignature == x.GetDeckSignature()).ToList();
+            GameRecord gr = allGames[0];
+            if (gr.ExpeditionDraftPicks != null)
+            {
+                ExpeditionHistory history = new ExpeditionHistory();
+                history.DraftPicks = gr.ExpeditionDraftPicks;
+                history.ShowDialog();
+            }
+        }
 
         /// <summary>
         /// Code from here: https://nickstips.wordpress.com/2010/03/03/c-panel-resets-scroll-position-after-focus-is-lost-and-regained/
@@ -466,6 +479,37 @@ namespace LoRSideTracker
 
             // Window not visible, no change
             return isSnapping;
+        }
+
+        private void deleteDeckToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (DecksListCtrl.SelectedItem != null)
+            {
+                var result = MessageBox.Show(
+                    string.Format("Delete deck '{0}' history?", DecksListCtrl.SelectedItem.MyDeckName),
+                    "Delete Deck",
+                    MessageBoxButtons.YesNo);
+                if (result == DialogResult.Yes)
+                {
+                    if (DecksListCtrl.SelectedItem.IsExpedition() || DecksListCtrl.SelectedItem.MyDeckName == GameRecord.DefaultConstructedDeckName)
+                    {
+                        var deckSignature = DecksListCtrl.SelectedItem.GetDeckSignature();
+                        DecksListCtrl.RemoveFromDeckList(DecksListCtrl.SelectedItem);
+                        GameHistory.DeleteGamesAndFilesBySignature(deckSignature);
+                    }
+                    else
+                    {
+                        var deckName = DecksListCtrl.SelectedItem.MyDeckName;
+                        DecksListCtrl.RemoveFromDeckList(DecksListCtrl.SelectedItem);
+                        GameHistory.DeleteGamesAndFilesByName(deckName);
+                    }
+                }
+            }
+        }
+
+        private void exitToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Close();
         }
 
         private void optionsToolStripMenuItem_Click(object sender, EventArgs e)

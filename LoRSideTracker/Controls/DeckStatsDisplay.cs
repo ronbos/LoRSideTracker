@@ -20,10 +20,6 @@ namespace LoRSideTracker
 
         private readonly Font CostsFont = new Font("Calibri", 8, FontStyle.Bold);
 
-        /// <summary>Unit color in histogram</summary>
-        public Color UnitColor { get; set; } = Color.RoyalBlue;
-        /// <summary>Spell color in histogram</summary>
-        public Color SpellColor { get; set; } = Color.MediumSeaGreen;
         /// <summary>Text color in histogram</summary>
         public Color TextColor { get; set; } = Color.White;
 
@@ -59,6 +55,7 @@ namespace LoRSideTracker
             int maxCost = 0;
             int[] unitCounts = new int[numCols];
             int[] spellCounts = new int[numCols];
+            int[] landmarkCounts = new int[numCols];
             foreach (var card in TheDeck)
             {
                 int index = Math.Min(numCols - 1, card.Cost);
@@ -68,9 +65,13 @@ namespace LoRSideTracker
                 {
                     unitCounts[index] += card.Count;
                 }
-                else
+                else if (card.Type == "Spell")
                 {
                     spellCounts[index] += card.Count;
+                }
+                else
+                {
+                    landmarkCounts[index] += card.Count;
                 }
             }
 
@@ -78,8 +79,8 @@ namespace LoRSideTracker
             numCols = 1;
             for (int i = 0; i < unitCounts.Length; i++)
             {
-                maxCount = Math.Max(maxCount, unitCounts[i] + spellCounts[i]);
-                if (unitCounts[i] + spellCounts[i] > 0) numCols = i + 1;
+                maxCount = Math.Max(maxCount, unitCounts[i] + spellCounts[i] + landmarkCounts[i]);
+                if (unitCounts[i] + spellCounts[i] + landmarkCounts[i] > 0) numCols = i + 1;
             }
 
             if (maxCount == 0 )
@@ -96,7 +97,7 @@ namespace LoRSideTracker
                 int right = (i + 1 == numCols) ? nextLeft :  nextLeft - ColumnMargin;
 
                 DrawColumn(e.Graphics, new Rectangle(left, boundsRect.Y, right - left, boundsRect.Height),
-                    unitCounts[i], spellCounts[i]);
+                    unitCounts[i], landmarkCounts[i], spellCounts[i]);
 
                 String text = i.ToString();
                 if (i + 1 == numCols && numCols < maxCost)
@@ -109,7 +110,7 @@ namespace LoRSideTracker
                     Color.White, TextFormatFlags.Bottom | TextFormatFlags.HorizontalCenter);
             }
         }
-        private void DrawColumn(Graphics g, Rectangle boundsRect, int unitCount, int spellCount)
+        private void DrawColumn(Graphics g, Rectangle boundsRect, int unitCount, int landmarkCount, int spellCount)
         {
             int blockHeight = BlockHeight + 1;
             if (boundsRect.Width > 3 * BlockWidth)
@@ -117,12 +118,12 @@ namespace LoRSideTracker
                 boundsRect.X += (boundsRect.Width - 3 * BlockWidth) / 2;
                 boundsRect.Width = 3 * BlockWidth;
             }
-            for (int i = 0; i < unitCount + spellCount; i++)
+            for (int i = 0; i < unitCount + spellCount + landmarkCount; i++)
             {
                 int bottom = boundsRect.Bottom - blockHeight * i;
                 int nextBottom = boundsRect.Bottom - blockHeight * (i + 1);
                 int top = nextBottom + 1;
-                g.FillRectangle(new SolidBrush((i < unitCount) ? UnitColor : SpellColor), 
+                g.FillRectangle(new SolidBrush((i < unitCount) ? Constants.UnitAccentColor : (i < unitCount + landmarkCount) ? Constants.LandmarkAccentColor : Constants.SpellAccentColor), 
                     boundsRect.X,
                     top,
                     boundsRect.Width,

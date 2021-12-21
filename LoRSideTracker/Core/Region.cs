@@ -50,7 +50,17 @@ namespace LoRSideTracker
 
             // Load images
             string bannerPath = String.Format("{0}\\img\\regions\\icon-{1}.png", corePath, NameRef);
-            Banner = Image.FromFile(bannerPath);
+            try
+            {
+                Banner = Image.FromFile(bannerPath);
+            }
+            catch
+            {
+                // Icon not available for some reason, probably a bug in packaging of core set
+                Bitmap bmp = new Bitmap(128, 128);
+                using (Graphics g = Graphics.FromImage(bmp)) { g.Clear(Color.DarkGray); }
+                Banner = (Image)bmp;
+            }
         }
     }
 }

@@ -30,11 +30,17 @@ namespace LoRSideTracker
         public ExpeditionPick(Dictionary<string, JsonElement> json)
         {
             IsSwap = json["IsSwap"].ToObject<bool>();
-            DraftPicks = json["Picks"].ToObject<string[]>();
+            try
+            {
+                DraftPicks = json["DraftPicks"].ToObject<string[]>();
+            } catch
+            {
+                DraftPicks = json["Picks"].ToObject<string[]>();
+
+            }
             SwappedOut = json["SwappedOut"].ToObject<string[]>();
             SwappedIn = json["SwappedIn"].ToObject<string[]>();
         }
-
     }
 
     /// <summary>

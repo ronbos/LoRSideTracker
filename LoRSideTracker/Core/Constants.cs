@@ -27,7 +27,7 @@ namespace LoRSideTracker
         /// Setting playback deck path replaces real-time LoR watcher with playback from a file
         /// </summary>
         public const string PlayBackDeckPath = null;
-        //public const string PlayBackDeckPath = @"2020_10_16_17_47_56.playback";
+        //public const string PlayBackDeckPath = @"2021_3_16_16_43_51.playback";
 
         /// <summary>
         /// Language set to use
@@ -161,10 +161,19 @@ namespace LoRSideTracker
             if (region == "Freljord") { return Color.DodgerBlue; }
             if (region == "Ionia") { return Color.HotPink; }
             if (region == "Noxus") { return Color.Crimson; }
-            if (region == "PiltoverZaun") { return Color.Gold; }
+            if (region == "PiltoverZaun") { return Color.Orange; }
             if (region == "ShadowIsles") { return Color.Teal; }
             if (region == "Targon") { return Color.Purple; }
+            if (region == "Shurima") { return Color.Gold; }
+            if (region == "BandleCity") { return Color.YellowGreen; }
             return Color.Gray;
         }
+
+        /// <summary>Unit color in histogram</summary>
+        public static Color UnitAccentColor = Color.RoyalBlue;
+        /// <summary>Spell color in histogram</summary>
+        public static Color SpellAccentColor = Color.MediumSeaGreen;
+        /// <summary>Landmark color in histogram</summary>
+        public static Color LandmarkAccentColor = Color.Goldenrod;
     }
 }

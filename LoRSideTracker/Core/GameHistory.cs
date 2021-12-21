@@ -31,7 +31,15 @@ namespace LoRSideTracker
             { "decks_hardkatarina_name", "Frontline Assault (AI)" },
             { "decks_hardtryndamere_name", "Ancient Wisdom (AI)" },
             { "deckname_kinkou_keepers", "Stealthy Strikes (AI)" },
-            { "deckname_trifarian_incursion", "Noxian Strength (AI)" }
+            { "deckname_trifarian_incursion", "Noxian Strength (AI)" },
+            { "decks_badscars_name", "Blood Reavers (AI)" },
+            { "deck_T_N_Buffs_name", "Crystalline Blade (AI)" },
+            { "decks_set2_bilgedem_name", "Scout It Out (AI)" },
+            { "decks_set2_bilgeshadow_name", "Terrors from the Deep (AI)" },
+            { "decks_set2_bilgepilt_name", "Smash and Grab (AI)" },
+            { "deck_T_Si_Night_name", "Moonlit Horrors (AI)" },
+            { "decks_set2_bilgeion_name", "Spellslingers (AI)" },
+            { "deck_Set4B_SH_I_Azir_Irelia_Tokens_name", "The Desert's Dance (AI)" }
         };
 
         /// <summary></summary>
@@ -92,6 +100,42 @@ namespace LoRSideTracker
                     //Thread.Yield();
                 }
             }
+        }
+
+        // Delete all games and files by name
+        public static void DeleteGamesAndFilesByName(string deckName)
+        {
+            if (deckName != GameRecord.DefaultConstructedDeckName)
+            {
+                foreach (var name in DeckNames)
+                {
+                    if (name.Value == deckName)
+                    {
+                        DeleteGamesAndFilesBySignature(name.Key);
+                    }
+                }
+            }
+        }
+
+        // Delete all games and files with given signature
+        public static void DeleteGamesAndFilesBySignature(string deckSignature)
+        {
+            var gamesToDelete = Games.FindAll(x => deckSignature == x.GetDeckSignature()).ToList();
+
+            foreach (var game in gamesToDelete)
+            {
+                try
+                {
+                    File.Delete(game.GameLogFile);
+                    if (game.GamePlaybackFile.Length > 0) File.Delete(game.GamePlaybackFile);
+                }
+                catch
+                {
+                    // Skip bad records
+                }
+            }
+
+            Games.RemoveAll(x => deckSignature == x.GetDeckSignature());
         }
 
         /// <summary>

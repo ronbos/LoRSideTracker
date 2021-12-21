@@ -39,11 +39,9 @@
             this.MyDeckStatsDisplay.Location = new System.Drawing.Point(0, 156);
             this.MyDeckStatsDisplay.Name = "MyDeckStatsDisplay";
             this.MyDeckStatsDisplay.Size = new System.Drawing.Size(150, 150);
-            this.MyDeckStatsDisplay.SpellColor = System.Drawing.Color.MediumSeaGreen;
             this.MyDeckStatsDisplay.TabIndex = 1;
             this.MyDeckStatsDisplay.TextColor = System.Drawing.Color.White;
             this.MyDeckStatsDisplay.TheDeck = null;
-            this.MyDeckStatsDisplay.UnitColor = System.Drawing.Color.RoyalBlue;
             // 
             // MyDeckControl
             // 

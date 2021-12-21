@@ -98,7 +98,7 @@ namespace LoRSideTracker
             Type = dict["type"].ToString();
             SuperType = dict["supertype"].ToString();
             Cost = dict["cost"].ToObject<int>();
-            Region = dict["regionRef"].ToString();
+            Region = dict["regionRefs"].ToObject<string[]>()[0];
             Rarity = dict["rarity"].ToString();
             FlavorText = dict["flavorText"].ToString();
             IsCollectible = dict["collectible"].ToObject<bool>();
