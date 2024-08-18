@@ -100,7 +100,8 @@ namespace LoRSideTracker
             var missingSets = new List<ValueTuple<int, long>>();
             for (int i = 0; i < 99; i++)
             {
-                long remoteZipSize = Utilities.CheckURLExists(Constants.GetSetURL(i));
+                string setURL = Constants.GetSetURL(i);
+                long remoteZipSize = Utilities.CheckURLExists(setURL);
                 if (remoteZipSize <= 0)
                 {
                     break;

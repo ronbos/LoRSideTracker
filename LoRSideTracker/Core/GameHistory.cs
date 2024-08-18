@@ -165,7 +165,16 @@ namespace LoRSideTracker
                 }
             }
             try {
-                gr.OpponentName = AIDeckNames[gr.OpponentName];
+                // Translate adventure opponent code to name
+                if (gr.OpponentName.StartsWith("card_") && gr.OpponentName.EndsWith("_Name"))
+                {
+                    String cardCode = gr.OpponentName.Substring(5, gr.OpponentName.Length - 10);
+                    gr.OpponentName = CardLibrary.GetCard(cardCode).Name;
+                }
+                else
+                {
+                    gr.OpponentName = AIDeckNames[gr.OpponentName];
+                }
                 gr.OpponentIsAI = true;
             } catch { }
             Games.Insert(0, gr);

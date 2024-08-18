@@ -125,8 +125,6 @@ namespace LoRSideTracker
         }
         public Rectangle GetCardRectangle(string cardCode)
         {
-            Rectangle r = new Rectangle();
-
             // Measure and draw the title. Blank title indicates we should not draw it
             int topBorderSize = BorderSize;
             if (!string.IsNullOrEmpty(this.Title))

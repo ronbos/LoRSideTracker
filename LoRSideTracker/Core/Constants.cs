@@ -91,8 +91,32 @@ namespace LoRSideTracker
         /// <returns>Localized set name, or core set name if zero</returns>
         public static string GetSetName(int setNumber)
         {
-            return (setNumber == 0) ? String.Format("core-{0}", Language)
-                : String.Format("set{0}-{1}", setNumber, Language);
+            // Riot stop naming the sets nicely with set 6 :(
+            // Latest set URLs can be seen at https://developer.riotgames.com/docs/lor#data-dragon_set-bundles
+            string[] KnownSets =
+            {
+                "core",
+                "set1",
+                "set2",
+                "set3",
+                "set4",
+                "set5",
+                "set6",
+                "set6cde",
+                "set7",
+                "set7b",
+                "set8",
+                "set9",
+                // Confirmed up to here. Guesses below:
+                "set10",
+                "set11",
+                "set12",
+                "set13"
+                ///...
+            };
+
+            return (setNumber < KnownSets.Length) ? String.Format("{0}-{1}", KnownSets[setNumber], Language)
+                : "";
         }
 
         /// <summary>

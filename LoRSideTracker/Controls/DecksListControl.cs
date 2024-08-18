@@ -378,16 +378,21 @@ namespace LoRSideTracker.Controls
 
                 // Determine deck regions
                 Dictionary<string, int> regions = new Dictionary<string, int>();
+                Dictionary<string, int> uniqueRegions = new Dictionary<string, int>();
                 foreach (var c in gr.MyDeck)
                 {
-                    regions.TryGetValue(c.TheCard.Region, out int currentCount);
-                    regions[c.TheCard.Region] = currentCount + 1;
+                    if (c.TheCard.Regions.Length == 1)
+                    {
+                        regions.TryGetValue(c.TheCard.Regions[0], out int currentCount);
+                        regions[c.TheCard.Regions[0]] = currentCount + 1;
+                    }
                 }
 
                 // Sort the regions from lowest to highest
                 var regionsInReverseOrder = regions.OrderBy(i => i.Value).ToList();
 
-                // Draw all regions from right to left
+                // Draw regions from right to left
+                // Multiregion cards increase the population here
                 int right = rect.Right;
                 for (int i = 0; i < regionsInReverseOrder.Count; i++)
                 {

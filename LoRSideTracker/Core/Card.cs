@@ -26,7 +26,7 @@ namespace LoRSideTracker
         /// <summary>Card Cost</summary>
         public int Cost { get; private set; }
         /// <summary>Card Region</summary>
-        public string Region { get; private set; }
+        public string[] Regions { get; private set; }
         /// <summary>Card Rarity</summary>
         public string Rarity { get; private set; }
         /// <summary>Card Flavor Text</summary>
@@ -64,7 +64,7 @@ namespace LoRSideTracker
             Type = "Unit";
             SuperType = "";
             Cost = 0;
-            Region = "";
+            Regions = new string[0];
             Rarity = "";
             FlavorText = "";
             IsCollectible = false;
@@ -98,7 +98,7 @@ namespace LoRSideTracker
             Type = dict["type"].ToString();
             SuperType = dict["supertype"].ToString();
             Cost = dict["cost"].ToObject<int>();
-            Region = dict["regionRefs"].ToObject<string[]>()[0];
+            Regions = dict["regionRefs"].ToObject<string[]>();
             Rarity = dict["rarity"].ToString();
             FlavorText = dict["flavorText"].ToString();
             IsCollectible = dict["collectible"].ToObject<bool>();
@@ -201,7 +201,7 @@ namespace LoRSideTracker
 
             if (addHighlighColor)
             {
-                Color regionColor = Constants.GetRegionAccentColor(this.Region);
+                Color regionColor = Constants.GetRegionAccentColor(this.Regions[0]);
                 Brush brush1 = new SolidBrush(regionColor);
                 Brush brush2 = new LinearGradientBrush(
                    new Point(bannerRect.X, 10),
