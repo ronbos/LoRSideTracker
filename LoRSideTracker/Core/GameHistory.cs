@@ -82,21 +82,31 @@ namespace LoRSideTracker
             Games = new List<GameRecord>();
             if (Directory.Exists(Constants.GetLocalGamesPath()))
             {
+                pdc.Update("Loading game records...", 0);
+                int numDone = 0;
                 DirectoryInfo dirInfo = new DirectoryInfo(Constants.GetLocalGamesPath());
                 FileInfo[] files = dirInfo.GetFiles("*.txt");
                 var filesInOrder = files.OrderBy(x => x.CreationTime);
+
+                GameRecord[] gameRecords = new GameRecord[filesInOrder.Count()];
+                Parallel.For(0, filesInOrder.Count(), i =>
+                {
+                    string path = filesInOrder.ElementAt(i).FullName;
+                    var json = Utilities.ReadLocalFile(path);
+                    gameRecords[i] = GameRecord.LoadFromGameRecordJson(json, path);
+                    pdc.Update("Loading game records...", 100.0 * Interlocked.Increment(ref numDone) / filesInOrder.Count());
+                });
+
                 for (int i = 0; i < filesInOrder.Count(); i++)
                 {
-                    filesInOrder.Count();
                     try
                     {
-                        AddGameRecord(GameRecord.LoadFromFile(filesInOrder.ElementAt(i).FullName));
+                        AddGameRecord(gameRecords[i]);
                     }
                     catch
                     {
                         // Skip bad records
                     }
-                    pdc.Update("Loading game records...", 100.0 * (i + 1) / filesInOrder.Count());
                     //Thread.Yield();
                 }
             }
@@ -229,7 +239,7 @@ namespace LoRSideTracker
             // Update individual game names, but only for constructed
             for (int i = 0; i < Games.Count; i++)
             {
-                if (!Games[i].IsExpedition() && keys.Contains(Games[i].GetDeckSignature()))
+                if (!Games[i].IsAdventure() && keys.Contains(Games[i].GetDeckSignature()))
                 {
                     Games[i].MyDeckName = name;
                 }

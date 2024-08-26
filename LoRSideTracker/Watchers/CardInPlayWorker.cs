@@ -120,7 +120,6 @@ namespace LoRSideTracker
         private bool TestMode = false;
 
         private StaticDeck CurrentConstructedDeck = new StaticDeck();
-        private Expedition CurrentExpedition = new Expedition();
         private GameRecord CurrentGameRecord = new GameRecord();
 
         /// <summary>
@@ -204,40 +203,17 @@ namespace LoRSideTracker
             {
                 CurrentGameRecord = new GameRecord();
                 CurrentConstructedDeck.Reload();
-                CurrentExpedition.Reload();
 
-                if (CurrentConstructedDeck.Cards.Count > 0 && !CurrentConstructedDeck.Cards.SequenceEqual(CurrentExpedition.Cards))
-                {
-                    FullPlayerDeck = Utilities.ConvertDeck(CurrentConstructedDeck.Cards);
-                    Callback.OnPlayerDeckSet(CurrentConstructedDeck.Cards, CurrentConstructedDeck.DeckName);
-                    CurrentGameRecord.MyDeck = Utilities.Clone(CurrentConstructedDeck.Cards);
-                    CurrentGameRecord.MyDeckName = CurrentConstructedDeck.DeckName;
-                    CurrentGameRecord.MyDeckCode = CurrentConstructedDeck.DeckCode;
-                    CurrentGameRecord.OpponentName = OpponentName;
-                    CurrentGameRecord.OpponentDeck = new List<CardWithCount>();
-                    CurrentGameRecord.Notes = "";
-                    CurrentGameRecord.Result = "-";
-                    CurrentGameRecord.ExpeditionSignature = "";
-                    CurrentGameRecord.ExpeditionDraftPicks = null;
-                    result = true;
-                }
-                else if (CurrentExpedition.Cards.Count > 0)
-                {
-                    FullPlayerDeck = Utilities.ConvertDeck(CurrentExpedition.Cards);
-                    string title = string.Format("Expedition {0}-{1}{2}", CurrentExpedition.NumberOfWins,
-                        CurrentExpedition.NumberOfLosses, CurrentExpedition.IsEliminationGame ? "*" : "");
-                    Callback.OnPlayerDeckSet(CurrentExpedition.Cards, title);
-                    CurrentGameRecord.MyDeck = Utilities.Clone(CurrentExpedition.Cards);
-                    CurrentGameRecord.MyDeckName = title;
-                    CurrentGameRecord.MyDeckCode = "";
-                    CurrentGameRecord.OpponentName = OpponentName;
-                    CurrentGameRecord.OpponentDeck = new List<CardWithCount>();
-                    CurrentGameRecord.Notes = "";
-                    CurrentGameRecord.Result = "-";
-                    CurrentGameRecord.ExpeditionSignature = CurrentExpedition.Signature;
-                    CurrentGameRecord.ExpeditionDraftPicks = CurrentExpedition.DraftPicks;
-                    result = true;
-                }
+                FullPlayerDeck = Utilities.ConvertDeck(CurrentConstructedDeck.Cards);
+                Callback.OnPlayerDeckSet(CurrentConstructedDeck.Cards, CurrentConstructedDeck.DeckName);
+                CurrentGameRecord.MyDeck = Utilities.Clone(CurrentConstructedDeck.Cards);
+                CurrentGameRecord.MyDeckName = CurrentConstructedDeck.DeckName;
+                CurrentGameRecord.MyDeckCode = CurrentConstructedDeck.DeckCode;
+                CurrentGameRecord.OpponentName = OpponentName;
+                CurrentGameRecord.OpponentDeck = new List<CardWithCount>();
+                CurrentGameRecord.Notes = "";
+                CurrentGameRecord.Result = "-";
+                result = true;
             }
 
             return result;
@@ -267,20 +243,8 @@ namespace LoRSideTracker
             InGame = true;
             IsInitialDraw = true;
             Log.Clear();
-            if (string.IsNullOrEmpty(CurrentGameRecord.ExpeditionSignature))
-            {
-                Log.WriteLine("New Constructed Game: {0} vs {1}", PlayerName, OpponentName);
-                Log.WriteLine("Deck: {0}", CurrentGameRecord.MyDeckName);
-            }
-            else
-            {
-                Log.WriteLine("New Expedition Game: {0} vs {1}", PlayerName, OpponentName);
-                Log.WriteLine("Expedition Record: {0}-{1}", CurrentExpedition.NumberOfWins, CurrentExpedition.NumberOfLosses);
-                if (CurrentExpedition.IsEliminationGame)
-                {
-                    Log.WriteLine("Note: This is an elimination game");
-                }
-            }
+            Log.WriteLine("New Constructed Game: {0} vs {1}", PlayerName, OpponentName);
+            Log.WriteLine("Deck: {0}", CurrentGameRecord.MyDeckName);
         }
 
         /// <summary>
@@ -299,14 +263,6 @@ namespace LoRSideTracker
                     gameNumber = gameResult["GameID"].ToObject<int>() + 1;
                     bool localPlayerWon = gameResult["LocalPlayerWon"].ToObject<bool>();
                     CurrentGameRecord.Result = localPlayerWon ? "Win" : "Loss";
-                    if (!string.IsNullOrEmpty(CurrentGameRecord.ExpeditionSignature))
-                    {
-                        // Update expedition name to reflect this result
-                        CurrentGameRecord.MyDeckName = string.Format("Expedition {0}-{1}{2}",
-                            CurrentExpedition.NumberOfWins + (localPlayerWon ? 1 : 0),
-                            CurrentExpedition.NumberOfLosses + (localPlayerWon ? 0 : 1),
-                            (CurrentExpedition.IsEliminationGame && !localPlayerWon) ? "*" : "");
-                    }
                 }
                 else
                 {

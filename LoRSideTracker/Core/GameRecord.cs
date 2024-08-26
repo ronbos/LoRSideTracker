@@ -38,11 +38,8 @@ namespace LoRSideTracker
         /// <summary>Game Log</summary>
         public string Log { get; set; }
 
-        /// <summary>Expedition Signature, if expedition</summary>
-        public string ExpeditionSignature { get; set; }
-
-        /// <summary>Expedition Signature, if expedition</summary>
-        public ExpeditionPick[] ExpeditionDraftPicks { get; set; }
+        /// <summary>Deck ordinal number, used to separate adventures</summary>
+        public int DeckOrdinal { get; set; } = 0;
 
         /// <summary>Game Record display string</summary>
         public string DisplayString { get; set; } = "???";
@@ -93,16 +90,16 @@ namespace LoRSideTracker
         /// <returns></returns>
         public string GetDeckSignature()
         {
-            return (!string.IsNullOrEmpty(MyDeckCode)) ? MyDeckCode : ExpeditionSignature;
+            return MyDeckCode;
         }
 
         /// <summary>
         /// Check if a game record is an expedition
         /// </summary>
         /// <returns>true if it is an expedition</returns>
-        public bool IsExpedition()
+        public bool IsAdventure()
         {
-            return (string.IsNullOrEmpty(MyDeckCode));
+            return (MyDeckCode.StartsWith("adventure_"));
         }
 
 
@@ -124,20 +121,20 @@ namespace LoRSideTracker
         public static GameRecord LoadFromFile(string path, string matchingDeckSignature = null)
         {
             var json = Utilities.ReadLocalFile(path);
-            GameRecord result = new GameRecord();
+            return LoadFromGameRecordJson(json, path, matchingDeckSignature);
+        }
+
+        /// <summary>
+        /// Load game record from file
+        /// </summary>
+        /// <param name="path">file path</param>
+        /// <param name="matchingDeckSignature">deck signature to match, if specified</param>
+        /// <returns>Game record, or null if signature did not match</returns>
+        public static GameRecord LoadFromGameRecordJson(string json, string path, string matchingDeckSignature = null)
+        {
             Dictionary<string, JsonElement> gameRecord = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(json);
+            GameRecord result = new GameRecord();
             result.MyDeckCode = gameRecord["MyDeckCode"].ToString();
-            result.ExpeditionSignature = gameRecord["ExpeditionState"].ToString();
-            result.ExpeditionDraftPicks = null;
-            if (gameRecord.ContainsKey("ExpeditionDraftPicks") && gameRecord["ExpeditionDraftPicks"].ValueKind == JsonValueKind.Array)
-            {
-                var picks = gameRecord["ExpeditionDraftPicks"].ToObject<Dictionary<string, JsonElement>[]>();
-                result.ExpeditionDraftPicks = new ExpeditionPick[picks.Length];
-                for (int i = 0; i < picks.Length; i++)
-                {
-                    result.ExpeditionDraftPicks[i] = new ExpeditionPick(picks[i]);
-                }
-            }
 
             // Check if deck signature matches
             if (matchingDeckSignature != null && result.GetDeckSignature() != matchingDeckSignature)
@@ -174,7 +171,7 @@ namespace LoRSideTracker
             }
 
             // Extract expedition record
-            if (result.IsExpedition())
+            if (result.IsAdventure())
             {
                 string deckName = result.MyDeckName;
                 int scoreIndex = deckName.LastIndexOf('-');
@@ -201,7 +198,6 @@ namespace LoRSideTracker
         /// <param name="notes"></param>
         /// <param name="timestamp"></param>
         /// <param name="log"></param>
-        /// <param name="expeditionState"></param>
         public static void SaveToFile(
             string path,
             string myDeckName,
@@ -212,9 +208,7 @@ namespace LoRSideTracker
             string result,
             string notes,
             DateTime timestamp,
-            string log,
-            string expeditionState,
-            ExpeditionPick[] expeditionDraftPicks)
+            string log)
         {
             string[] myDeckList = Utilities.DeckToStringCodeList(myDeck);
             string[] opponentDeckList = Utilities.DeckToStringCodeList(opponentDeck);
@@ -229,9 +223,7 @@ namespace LoRSideTracker
                 Result = result,
                 Notes = notes,
                 Timestamp = timestamp,
-                Log = log,
-                ExpeditionState = expeditionState,
-                ExpeditionDraftPicks = expeditionDraftPicks
+                Log = log
             });
             File.WriteAllText(path, json);
         }
@@ -251,7 +243,7 @@ namespace LoRSideTracker
         /// <param name="path">file path</param>
         public void SaveToFile(string path)
         {
-            GameRecord.SaveToFile(path, MyDeckName, MyDeckCode, MyDeck, OpponentName, OpponentDeck, Result, Notes, Timestamp, Log, ExpeditionSignature, ExpeditionDraftPicks);
+            GameRecord.SaveToFile(path, MyDeckName, MyDeckCode, MyDeck, OpponentName, OpponentDeck, Result, Notes, Timestamp, Log);
         }
 
         /// <summary>
@@ -288,10 +280,6 @@ namespace LoRSideTracker
             if (propertyName == "Log")
             {
                 return Log;
-            }
-            if (propertyName == "ExpeditionState")
-            {
-                return ExpeditionSignature;
             }
 
             return string.Empty;

@@ -334,7 +334,6 @@
             this.DecksListCtrl.TabIndex = 16;
             this.DecksListCtrl.Visible = false;
             this.DecksListCtrl.SelectionChanged += new System.EventHandler(this.DecksListCtrl_SelectionChanged);
-            this.DecksListCtrl.ExpeditionHistory += new System.EventHandler(this.DecksListCtrl_ExpeditionHistory);
             // 
             // HighlightedGameLogControl
             // 

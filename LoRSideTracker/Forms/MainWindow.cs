@@ -17,9 +17,8 @@ namespace LoRSideTracker
     /// <summary>
     /// Main app wondow
     /// </summary>
-    public partial class MainWindow : Form, IExpeditionUpdateCallback, ICardsInPlayCallback, ISetDownloaderCallback
+    public partial class MainWindow : Form, ICardsInPlayCallback, ISetDownloaderCallback
     {
-        private Expedition CurrentExpedition;
         private CardsInPlayWorker CurrentPlayState;
 
         private DeckWindow PlayerActiveDeckWindow;
@@ -55,25 +54,6 @@ namespace LoRSideTracker
             Log.SetLogWindow(null);
         }
 
-        /// <summary>
-        /// Receives notification that expedition deck was updated
-        /// </summary>
-        /// <param name="cards">Updated set</param>
-        public void OnExpeditionDeckUpdated(List<CardWithCount> cards)
-        {
-            if (CurrentExpedition.State == "Picking" || CurrentExpedition.State == "Swapping" || CurrentExpedition.State == "Other")
-            {
-                PlayerActiveDeckWindow.Title = string.Format("Expedition {0}-{1}{2}", CurrentExpedition.NumberOfWins,
-                    CurrentExpedition.NumberOfLosses, CurrentExpedition.IsEliminationGame ? "*" : "");
-                PlayerActiveDeckWindow.SetFullDeck(CurrentExpedition.Cards);
-                PlayerActiveDeckWindow.SetCurrentDeck(CurrentExpedition.Cards);
-            }
-            else if (CurrentPlayState.GameState != "InProgress")
-            {
-                PlayerActiveDeckWindow.Title = string.Format("No Active Deck");
-                PlayerActiveDeckWindow.SetFullDeck(new List<CardWithCount>());
-            }
-        }
 
         /// <summary>
         /// Receives notification that player deck was set
@@ -161,10 +141,10 @@ namespace LoRSideTracker
             if (string.IsNullOrEmpty(Constants.PlayBackDeckPath) && gameRecord.OpponentDeck.Count > 0)
             {
                 var gameLog = CurrentPlayState.StopGameLog();
-                if (gameRecord.IsExpedition())
+                if (gameRecord.IsAdventure())
                 {
-                    gameRecord.NumWins = CurrentExpedition.NumberOfWins + (gameRecord.Result == "Win" ? 1 : 0);
-                    gameRecord.NumLosses = CurrentExpedition.NumberOfLosses + (gameRecord.Result != "Win" ? 1 : 0);
+                    gameRecord.NumWins = (gameRecord.Result == "Win" ? 1 : 0);
+                    gameRecord.NumLosses = (gameRecord.Result != "Win" ? 1 : 0);
                 }
                 GameHistory.AddGameRecord(gameRecord, true, gameLog);
                 Utilities.CallActionSafelyAndWait(DecksListCtrl, new Action(() =>
@@ -309,10 +289,6 @@ namespace LoRSideTracker
             }
 
             CurrentPlayState = new CardsInPlayWorker(this);
-            if (string.IsNullOrEmpty(Constants.PlayBackDeckPath))
-            {
-                CurrentExpedition = new Expedition(this);
-            }
 
             // Hide the progress display and make all the other UI elements visible
             MyProgressDisplay.Visible = false;
@@ -322,12 +298,15 @@ namespace LoRSideTracker
 
             // Load all games. We do this in reverse as AddDeckToList expects them
             // in chronological order
+            bool constructedIsEmpty = true;
             for (int i = GameHistory.Games.Count - 1; i >= 0; i--)
             {
                 DecksListCtrl.AddToDeckList(GameHistory.Games[i]);
+                constructedIsEmpty &= GameHistory.Games[i].IsAdventure();
+
             }
 
-            Utilities.CallActionSafelyAndWait(DecksListCtrl, new Action(() => { DecksListCtrl.SwitchDeckView(false); }));
+            Utilities.CallActionSafelyAndWait(DecksListCtrl, new Action(() => { DecksListCtrl.SwitchDeckView(constructedIsEmpty); }));
 
             CurrentPlayState.Start(string.IsNullOrEmpty(Constants.PlayBackDeckPath) 
                 ? null : Constants.GetLocalGamesPath() + "\\" + Constants.PlayBackDeckPath);
@@ -400,11 +379,11 @@ namespace LoRSideTracker
 
             // Highlight the deck
             string deckName = null;
-            if (!gr.IsExpedition() && gr.MyDeckName != GameRecord.DefaultConstructedDeckName)
+            if (!gr.IsAdventure() && gr.MyDeckName != GameRecord.DefaultConstructedDeckName)
             {
                 deckName = gr.MyDeckName;
             }
-            HighlightedGameLogControl.LoadGames(gr.GetDeckSignature(), deckName, Properties.Settings.Default.HideAIGames);
+            HighlightedGameLogControl.LoadGames(gr.GetDeckSignature(), deckName, gr.DeckOrdinal, Properties.Settings.Default.HideAIGames && !gr.IsAdventure());
             HighlightedDeckControl.SetDeck(gr.MyDeck);
             HighlightedDeckControl.Title = gr.ToString();
             HighlightedDeckStatsDisplay.TheDeck = gr.MyDeck;
@@ -419,20 +398,6 @@ namespace LoRSideTracker
             HighlightedDeckControl.Invalidate();
             HighlightedDeckStatsDisplay.Invalidate();
             HighlightedDeckPanel.Visible = true;
-        }
-
-        private void DecksListCtrl_ExpeditionHistory(object sender, EventArgs e)
-        {
-            //GameRecord gr = DecksListCtrl.SelectedItem;
-            var deckSignature = DecksListCtrl.SelectedItem.GetDeckSignature();
-            var allGames = GameHistory.Games.FindAll(x => deckSignature == x.GetDeckSignature()).ToList();
-            GameRecord gr = allGames[0];
-            if (gr.ExpeditionDraftPicks != null)
-            {
-                ExpeditionHistory history = new ExpeditionHistory();
-                history.DraftPicks = gr.ExpeditionDraftPicks;
-                history.ShowDialog();
-            }
         }
 
         /// <summary>
@@ -491,7 +456,7 @@ namespace LoRSideTracker
                     MessageBoxButtons.YesNo);
                 if (result == DialogResult.Yes)
                 {
-                    if (DecksListCtrl.SelectedItem.IsExpedition() || DecksListCtrl.SelectedItem.MyDeckName == GameRecord.DefaultConstructedDeckName)
+                    if (DecksListCtrl.SelectedItem.IsAdventure() || DecksListCtrl.SelectedItem.MyDeckName == GameRecord.DefaultConstructedDeckName)
                     {
                         var deckSignature = DecksListCtrl.SelectedItem.GetDeckSignature();
                         DecksListCtrl.RemoveFromDeckList(DecksListCtrl.SelectedItem);

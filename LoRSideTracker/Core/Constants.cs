@@ -51,7 +51,7 @@ namespace LoRSideTracker
         /// <summary>
         /// Produce URL for expedition state
         /// </summary>
-        /// <returns>URL for expedition state</returns>
+        /// <returns>URL for expedition state. This is deprecated as expeditions are mo longer a part of the game</returns>
         public static string ExpeditionStateURL()
         {
             return String.Format(@"{0}:{1}/expeditions-state", Constants.Host, Constants.Port);

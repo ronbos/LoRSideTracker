@@ -99,7 +99,38 @@ namespace LoRSideTracker
         {
             Cards.Clear();
             DeckCode = deck["DeckCode"].ToString();
-            try { DeckName = GameHistory.DeckNames[DeckCode]; } catch { DeckName = GameRecord.DefaultConstructedDeckName; }
+            if (DeckCode == "")
+            {
+                // This is an adventure -- we can use the Champion names as deck code
+                // Find the first two champions in the card list
+                // (this list has not been sorted yet so it's in order of addition)
+                int numChampions = 0;
+                foreach (var cardCode in deck["CardsInDeck"].ToObject<Dictionary<string, int>>().Keys)
+                {
+                    var c = CardLibrary.GetCard(cardCode);
+                    if (c.Rarity == "Champion")
+                    {
+                        numChampions++;
+                        if (numChampions == 1)
+                        {
+                            DeckName = CardLibrary.GetCard(cardCode).Name;
+                            DeckCode = "adventure_" + CardLibrary.GetCard(cardCode).Name;
+                        }
+                        else if (numChampions == 2)
+                        {
+                            DeckName += "/" + CardLibrary.GetCard(cardCode).Name;
+                            DeckCode += "_" + CardLibrary.GetCard(cardCode).Name;
+                            break;
+                        }
+                    }
+                }
+            }
+            else
+            {
+                try { DeckName = GameHistory.DeckNames[DeckCode]; } catch { 
+                    DeckName = GameRecord.DefaultConstructedDeckName;
+                }
+            }
             var deckList = deck["CardsInDeck"].ToObject<Dictionary<string, int>>();
             if (deckList != null)
             {
@@ -114,6 +145,22 @@ namespace LoRSideTracker
                 // Sort the deck
                 Cards = Cards.OrderBy(card => card.Cost).ThenBy(card => card.Name).ToList();
             }
+        }
+
+        // Generate deck code from card list (currently not used)
+        private String DeckCodeFromJSON(Dictionary<string, JsonElement> deck)
+        {
+            List<LoRDeckCodes.CardCodeAndCount> cards = new List<LoRDeckCodes.CardCodeAndCount>();
+            var deckList = deck["CardsInDeck"].ToObject<Dictionary<string, int>>();
+            LoRDeckCodes.CardCodeAndCount ccc = new LoRDeckCodes.CardCodeAndCount();
+            foreach (var j in deckList)
+            {
+                ccc.CardCode = j.Key;
+                ccc.Count = j.Value;
+                cards.Add(ccc);
+            }
+
+            return LoRDeckCodes.LoRDeckEncoder.GetCodeFromDeck(cards);
         }
     }
 }

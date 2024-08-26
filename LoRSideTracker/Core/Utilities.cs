@@ -446,5 +446,95 @@ namespace LoRSideTracker
             }
             return result;
         }
+
+        public static List<CardWithCount> DiffDeck(List<CardWithCount> from, List<CardWithCount> to, string rarity)
+        {
+            List<CardWithCount> diff = new List<CardWithCount>();
+            foreach (CardWithCount a in from)
+            {
+                CardWithCount c = (CardWithCount)a.Clone();
+                int index = to.FindIndex(x => c.Code == x.Code);
+                if (index >= 0)
+                {
+                    c.Count -= to[index].Count;
+                }
+                if (c.Count > 0)
+                {
+                    diff.Add(c);
+                }
+            }
+
+            return diff;
+        }
+
+        public static bool SameAdventureDecks(List<CardWithCount> previous, List<CardWithCount> current)
+        {
+            // Check champions match
+            int i1 = 0, i2 = 0;
+
+            // Check cards match
+            int numCardsRemoved = 0;
+            int numCardCountsRemoved = 0;
+            int numCardsAdded = 0;
+            int numCardCountsAdded = 0;
+            while (i1 < previous.Count && i2 < current.Count)
+            {
+                // Find next champion
+                if (previous[i1].Code == current[i2].Code)
+                {
+                    // Same card. Only allow additions if card is a champion
+                    if (previous[i1].TheCard.Rarity == "Champion")
+                    {
+                        if (previous[i1].Count > current[i2].Count)
+                        {
+                            return false;
+                        }
+                    }
+                    else if (previous[i1].Count > current[i2].Count)
+                    {
+                        return false;
+                    }
+                    i1++;
+                    i2++;
+                }
+                else
+                {
+                    // Deck is sorted by cost then by name. We can decide if card was added or removed
+                    if (previous[i1].Cost < current[i2].Cost || (previous[i1].Cost == current[i2].Cost && previous[i1].Name.CompareTo(current[i2].Name) < 0))
+                    {
+                        // Removal. Champions cannot be removed
+                        if (previous[i1].TheCard.Rarity == "Champion")
+                        {
+                            return false;
+                        }
+                        i1++;
+                        numCardsRemoved++;
+                        numCardCountsRemoved += previous[i1].Count;
+                    }
+                    else
+                    {
+                        i2++;
+                        numCardsAdded++;
+                        numCardCountsAdded += current[i2].Count;
+                    }
+                }
+            }
+            for (; i1 < previous.Count; i1++)
+            {
+                numCardsRemoved++;
+                numCardCountsRemoved += previous[i1].Count;
+                if (previous[i1].TheCard.Rarity == "Champion")
+                {
+                    return false;
+                }
+            }
+            for (; i2 < current.Count; i2++)
+            {
+                numCardsAdded++;
+                numCardCountsAdded += current[i2].Count;
+            }
+            return true;
+        }
+
     }
 }

@@ -201,7 +201,7 @@ namespace LoRSideTracker
 
             if (addHighlighColor)
             {
-                Color regionColor = Constants.GetRegionAccentColor(this.Regions[0]);
+                Color regionColor = Constants.GetRegionAccentColor(this.Regions.Length > 0 ? this.Regions[0] : "");
                 Brush brush1 = new SolidBrush(regionColor);
                 Brush brush2 = new LinearGradientBrush(
                    new Point(bannerRect.X, 10),

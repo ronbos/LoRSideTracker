@@ -120,12 +120,6 @@
     <Compile Include="Controls\DecksListControl.Designer.cs">
       <DependentUpon>DecksListControl.cs</DependentUpon>
     </Compile>
-    <Compile Include="Controls\ExpeditionHistory.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Controls\ExpeditionHistory.Designer.cs">
-      <DependentUpon>ExpeditionHistory.cs</DependentUpon>
-    </Compile>
     <Compile Include="Controls\GameLogControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -202,7 +196,6 @@
     <Compile Include="Controls\DeckControl.Designer.cs">
       <DependentUpon>DeckControl.cs</DependentUpon>
     </Compile>
-    <Compile Include="Watchers\Expedition.cs" />
     <Compile Include="Forms\MainWindow.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -217,9 +210,6 @@
     <Compile Include="Core\Utilities.cs" />
     <EmbeddedResource Include="Controls\DecksListControl.resx">
       <DependentUpon>DecksListControl.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Controls\ExpeditionHistory.resx">
-      <DependentUpon>ExpeditionHistory.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Controls\GameLogControl.resx">
       <DependentUpon>GameLogControl.cs</DependentUpon>
@@ -269,7 +259,6 @@
     <Compile Include="LoRDeckCodes\LorDeckCodes\LoRDeckEncoder.cs" />
     <Compile Include="LoRDeckCodes\LorDeckCodes\VarintTranslator.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Core\Utilities.cs" />
     <None Include="app.config" />
     <None Include="Properties\packages.config" />
     <None Include="Properties\Settings.settings">

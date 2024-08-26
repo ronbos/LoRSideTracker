@@ -101,6 +101,23 @@ namespace LoRSideTracker
         }
 
         /// <summary>
+        /// Get the card matching the card name
+        /// </summary>
+        /// <param name="cardName">Card name</param>
+        /// <returns>Corresponding Card object</returns>
+        public static Card GetCardByName(string cardName)
+        {
+            foreach (var c in Cards)
+            {
+                if (c.Value.Name.Equals(cardName))
+                {
+                    return c.Value;
+                }
+            }
+            return Card.UnknownCard;
+        }
+
+        /// <summary>
         /// Get the region corresponding to the region name
         /// </summary>
         /// <param name="regionNameRef">Region name</param>

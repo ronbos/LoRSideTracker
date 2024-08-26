@@ -15,12 +15,9 @@ namespace LoRSideTracker.Controls
     /// </summary>
     public partial class DecksListControl : UserControl
     {
-        private int ExpeditionsCount = 0;
-
         // The event does not have any data, so EventHandler is adequate
         // as the event delegate.
         private EventHandler onSelectionChanged;
-        private EventHandler onExpeditionHistory;
 
         /// <summary>
         /// Define the event member using the event keyword.  
@@ -36,23 +33,6 @@ namespace LoRSideTracker.Controls
             remove
             {
                 onSelectionChanged -= value;
-            }
-        }
-
-        /// <summary>
-        /// Define the event member using the event keyword.  
-        /// In this case, for efficiency, the event is defined
-        /// using the event property construct.  
-        /// </summary>
-        public event EventHandler ExpeditionHistory
-        {
-            add
-            {
-                onExpeditionHistory += value;
-            }
-            remove
-            {
-                onExpeditionHistory -= value;
             }
         }
 
@@ -83,17 +63,17 @@ namespace LoRSideTracker.Controls
             int numConstructedWinsVsAI = 0;
             int numConstructedLossesVsAI = 0;
 
-            ListBox listBox = gr.IsExpedition() ? ExpeditionsListBox : DecksListBox;
+            ListBox listBox = gr.IsAdventure() ? AdventuresListBox : DecksListBox;
 
             // Does the deck already exist in the list? If it does, remove it
             bool deckFound = false;
             string deckSig = gr.GetDeckSignature();
             string deckName = gr.MyDeckName;
             int index = 0;
-            while (index >= 0)
+            //while (index >= 0)
             {
                 index = listBox.Items.Cast<GameRecord>().ToList().FindIndex(x => deckSig == x.GetDeckSignature());
-                if (index == -1 && !gr.IsExpedition() && gr.MyDeckName != GameRecord.DefaultConstructedDeckName)
+                if (index == -1 && !gr.IsAdventure() && gr.MyDeckName != GameRecord.DefaultConstructedDeckName)
                 {
                     index = listBox.Items.Cast<GameRecord>().ToList().FindIndex(x => deckName == x.MyDeckName);
                 }
@@ -101,64 +81,53 @@ namespace LoRSideTracker.Controls
                 {
                     // Keep the deck name
                     GameRecord grPrevious = (GameRecord)listBox.Items[index];
-                    numConstructedWins = grPrevious.NumWins;
-                    numConstructedLosses = grPrevious.NumLosses;
-                    numConstructedWinsVsAI = grPrevious.NumWinsVsAI;
-                    numConstructedLossesVsAI = grPrevious.NumLossesVsAI;
 
-                    deckName = grPrevious.ToString();
-                    // Remove record
-                    int baseNameEnd = deckName.LastIndexOf(" (");
-                    if (baseNameEnd >= 0)
+                    if (!gr.IsAdventure() || Utilities.SameAdventureDecks(grPrevious.MyDeck, gr.MyDeck))
                     {
-                        deckName = deckName.Substring(0, baseNameEnd);
-                    }
+                        numConstructedWins = grPrevious.NumWins;
+                        numConstructedLosses = grPrevious.NumLosses;
+                        numConstructedWinsVsAI = grPrevious.NumWinsVsAI;
+                        numConstructedLossesVsAI = grPrevious.NumLossesVsAI;
+                        gr.DeckOrdinal = grPrevious.DeckOrdinal;
 
-                    // Remove old item
-                    listBox.Items.RemoveAt(index);
-                    deckFound = true;
+                        deckName = grPrevious.ToString();
+                        // Remove record
+                        int baseNameEnd = deckName.LastIndexOf(" (");
+                        if (baseNameEnd >= 0)
+                        {
+                            deckName = deckName.Substring(0, baseNameEnd);
+                        }
+
+                        // Remove old item
+                        listBox.Items.RemoveAt(index);
+                        deckFound = true;
+                    }
+                    else
+                    {
+                        gr.DeckOrdinal = grPrevious.DeckOrdinal + 1;
+                    }
                 }
             }
 
             if (!deckFound)
             {
-                if (gr.IsExpedition())
-                {
-                    // This is guaranteed to be a new expedition, increase expeditions count
-                    ExpeditionsCount++;
-
-                    // Default expedition name if it is not customized
-                    deckName = string.Format("Expedition #{0}", ExpeditionsCount);
-                }
-                else
-                {
-                    deckName = gr.MyDeckName;
-                }
+                deckName = gr.MyDeckName;
             }
 
             // Update record
-            if (string.IsNullOrEmpty(gr.ExpeditionSignature))
+            gr.NumWins = numConstructedWins;
+            gr.NumLosses = numConstructedLosses;
+            gr.NumWinsVsAI = numConstructedWinsVsAI;
+            gr.NumLossesVsAI = numConstructedLossesVsAI;
+            if (gr.OpponentIsAI)
             {
-                gr.NumWins = numConstructedWins;
-                gr.NumLosses = numConstructedLosses;
-                gr.NumWinsVsAI = numConstructedWinsVsAI;
-                gr.NumLossesVsAI = numConstructedLossesVsAI;
-                if (gr.OpponentIsAI)
-                {
-                    if (gr.Result == "Win") gr.NumWinsVsAI++;
-                    else gr.NumLossesVsAI++;
-                }
-                else
-                {
-                    if (gr.Result == "Win") gr.NumWins++;
-                    else gr.NumLosses++;
-                }
+                if (gr.Result == "Win") gr.NumWinsVsAI++;
+                else gr.NumLossesVsAI++;
             }
-
-            // Add the new item
-            if (!string.IsNullOrEmpty(gr.ExpeditionSignature))
+            else
             {
-                try { deckName = GameHistory.DeckNames[gr.ExpeditionSignature]; } catch { }
+                if (gr.Result == "Win") gr.NumWins++;
+                else gr.NumLosses++;
             }
 
             deckName += GetWinLossRecordString(gr);
@@ -167,7 +136,7 @@ namespace LoRSideTracker.Controls
             listBox.Items.Insert(0, gr);
             if (update)
             {
-                SwitchDeckView(gr.IsExpedition());
+                SwitchDeckView(gr.IsAdventure());
             }
         }
 
@@ -178,13 +147,13 @@ namespace LoRSideTracker.Controls
         /// <param name="gr">Game record to remove</param>
         public void RemoveFromDeckList(GameRecord gr)
         {
-            ListBox listBox = gr.IsExpedition() ? ExpeditionsListBox : DecksListBox;
+            ListBox listBox = gr.IsAdventure() ? AdventuresListBox : DecksListBox;
 
             // Does the deck already exist in the list? If it does, remove it
             string deckSig = gr.GetDeckSignature();
             string deckName = gr.MyDeckName;
             int index = listBox.Items.Cast<GameRecord>().ToList().FindIndex(x => deckSig == x.GetDeckSignature());
-            if (index == -1 && !gr.IsExpedition() && deckName != GameRecord.DefaultConstructedDeckName)
+            if (index == -1 && !gr.IsAdventure() && deckName != GameRecord.DefaultConstructedDeckName)
             {
                 index = listBox.Items.Cast<GameRecord>().ToList().FindIndex(x => deckName == x.MyDeckName);
             }
@@ -215,7 +184,7 @@ namespace LoRSideTracker.Controls
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void ExpeditionsButton_Click(object sender, EventArgs e)
+        private void AdventuresButton_Click(object sender, EventArgs e)
         {
             SwitchDeckView(true);
         }
@@ -223,22 +192,22 @@ namespace LoRSideTracker.Controls
         /// <summary>
         /// Switch deck view to decks or expeditions
         /// </summary>
-        /// <param name="showExpeditions">If true, switch to Expeditions</param>
-        public void SwitchDeckView(bool showExpeditions)
+        /// <param name="showAdventures">If true, switch to Expeditions</param>
+        public void SwitchDeckView(bool showAdventures)
         {
             ListBox fromListBox, toListBox;
             Button fromButton, toButton;
-            if (showExpeditions)
+            if (showAdventures)
             {
                 fromListBox = DecksListBox;
                 fromButton = DecksButton;
-                toListBox = ExpeditionsListBox;
-                toButton = ExpeditionsButton;
+                toListBox = AdventuresListBox;
+                toButton = AdventuresButton;
             }
             else
             {
-                fromListBox = ExpeditionsListBox;
-                fromButton = ExpeditionsButton;
+                fromListBox = AdventuresListBox;
+                fromButton = AdventuresButton;
                 toListBox = DecksListBox;
                 toButton = DecksButton;
             }
@@ -272,10 +241,9 @@ namespace LoRSideTracker.Controls
         {
             ListBox listBox = (ListBox)sender;
             int index = listBox.SelectedIndex;
-            if (listBox == ExpeditionsListBox)
+            if (listBox == AdventuresListBox)
             {
-                // Show expedition history
-                onExpeditionHistory?.Invoke(this, null);
+                // Nothing for now
             }
             else
             {
@@ -294,16 +262,16 @@ namespace LoRSideTracker.Controls
                     string result = Microsoft.VisualBasic.Interaction.InputBox("Name:", "Change Deck Name", deckName);
                     if (!string.IsNullOrEmpty(result) && deckName != result)
                     {
-                        if (!gr.IsExpedition())
+                        if (!gr.IsAdventure())
                         {
                             gr.MyDeckName = result;
                         }
 
                         GameHistory.SetDeckName(gr.GetDeckSignature(), result);
 
-                        if (!gr.IsExpedition())
+                        if (!gr.IsAdventure())
                         {
-                            index = listBox.Items.Cast<GameRecord>().ToList().FindIndex(x => result == x.MyDeckName);
+                            index = listBox.Items.Cast<GameRecord>().ToList().FindIndex(x => x.MyDeckName.StartsWith(result));
                             int nextIndex = index;
                             while (nextIndex >= 0 && nextIndex < listBox.Items.Count - 1)
                             {
@@ -379,24 +347,44 @@ namespace LoRSideTracker.Controls
                 // Determine deck regions
                 Dictionary<string, int> regions = new Dictionary<string, int>();
                 Dictionary<string, int> uniqueRegions = new Dictionary<string, int>();
-                foreach (var c in gr.MyDeck)
+                if (gr.IsAdventure() && gr.MyDeckCode.StartsWith("adventure_"))
                 {
-                    if (c.TheCard.Regions.Length == 1)
+                    string[] champions = gr.MyDeckCode.Split(new char[] { '_' });
+                    int orderingCount = 10;
+                    for (int i = 1; i < champions.Length; i++)
                     {
-                        regions.TryGetValue(c.TheCard.Regions[0], out int currentCount);
-                        regions[c.TheCard.Regions[0]] = currentCount + 1;
+                        Card champCard = CardLibrary.GetCardByName(champions[i]);
+                        foreach (var r in champCard.Regions)
+                        {
+                            regions.TryGetValue(r, out int currentCount);
+                            if (currentCount == 0)
+                            {
+                                regions[r] = orderingCount--;
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    foreach (var c in gr.MyDeck)
+                    {
+                        if (c.TheCard.Regions.Length == 1)
+                        {
+                            regions.TryGetValue(c.TheCard.Regions[0], out int currentCount);
+                            regions[c.TheCard.Regions[0]] = currentCount + 1;
+                        }
                     }
                 }
 
                 // Sort the regions from lowest to highest
-                var regionsInReverseOrder = regions.OrderBy(i => i.Value).ToList();
+                var regionsInOrder = regions.OrderBy(i => i.Value).ToList();
 
                 // Draw regions from right to left
                 // Multiregion cards increase the population here
                 int right = rect.Right;
-                for (int i = 0; i < regionsInReverseOrder.Count; i++)
+                foreach (var r in regionsInOrder)
                 {
-                    Image img = CardLibrary.GetRegion(regionsInReverseOrder[i].Key).Banner;
+                    Image img = CardLibrary.GetRegion(r.Key).Banner;
                     int width = img.Width * rect.Height / img.Height * 7 / 8;
                     int height = width * img.Height / img.Height;
                     Rectangle imgRect = new Rectangle(right - width, rect.Top, width, height);
@@ -411,7 +399,7 @@ namespace LoRSideTracker.Controls
         private string GetBaseDeckName(GameRecord gr)
         {
             string deckName = gr.MyDeckName;
-            if (gr.IsExpedition() && deckName[deckName.Length - 3] == '-')
+            if (gr.IsAdventure() && deckName[deckName.Length - 3] == '-')
             {
                 // Remove record
                 deckName = deckName.Substring(0, deckName.Length - 6);
@@ -421,9 +409,9 @@ namespace LoRSideTracker.Controls
 
         private string GetWinLossRecordString(GameRecord gr)
         {
-            if (gr.IsExpedition())
+            if (gr.IsAdventure())
             {
-                return string.Format(@" ({0}-{1})", gr.NumWins, gr.NumLosses);
+                return string.Format(@" ({0}-{1})", gr.NumWinsVsAI, gr.NumLossesVsAI);
             }
             else if ((gr.NumWins + gr.NumLosses) > 0)
             {
