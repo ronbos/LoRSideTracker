@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace LoRSideTracker
 {
@@ -201,7 +198,7 @@ namespace LoRSideTracker
         /// <param name="fn">Comparator function, returns 0 for matches</param>
         /// <param name="combineFn">If specified, function that takes matching members of a and b and produces resulting value</param>
         /// <returns></returns>
-        public static CardList<T> Extract(ref CardList<T> a, ref CardList<T> b, Func<T,T,int> fn, Func<T, T, T> combineFn = null)
+        public static CardList<T> Extract(ref CardList<T> a, ref CardList<T> b, Func<T, T, int> fn, Func<T, T, T> combineFn = null)
         {
             // Example:
             // CardList<CardInPlay>.Extract(a, b, (x, y) => 
@@ -251,7 +248,7 @@ namespace LoRSideTracker
         public CardList<T> GetSubset(Predicate<T> fn)
         {
             CardList<T> result = new CardList<T>();
-            for (int i = 0;  i < Count; i++)
+            for (int i = 0; i < Count; i++)
             {
                 if (fn(this[i]))
                 {

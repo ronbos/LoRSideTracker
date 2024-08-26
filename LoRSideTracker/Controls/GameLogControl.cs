@@ -1,11 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Drawing;
-using System.Data;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace LoRSideTracker
@@ -362,13 +358,13 @@ namespace LoRSideTracker
         {
             MouseEventArgs e = (MouseEventArgs)_e;
             Point cellIndex = FindCell(e.X, e.Y);
-            
+
             if (cellIndex.Y >= 0)
             {
                 LogWindow logWindow = new LogWindow();
                 Utilities.CallActionSafelyAndWait(logWindow, new Action(() =>
                 {
-                logWindow.CreateControl();
+                    logWindow.CreateControl();
                 }));
                 logWindow.SetRtf(Games[cellIndex.Y].Log);
                 logWindow.ShowDialog();

@@ -1,11 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Drawing;
-using System.Data;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace LoRSideTracker
@@ -83,7 +79,7 @@ namespace LoRSideTracker
                 if (unitCounts[i] + spellCounts[i] + landmarkCounts[i] > 0) numCols = i + 1;
             }
 
-            if (maxCount == 0 )
+            if (maxCount == 0)
             {
                 return;
             }
@@ -94,7 +90,7 @@ namespace LoRSideTracker
             {
                 int left = boundsRect.X + boundsRect.Width * i / numCols;
                 int nextLeft = boundsRect.X + boundsRect.Width * (i + 1) / numCols;
-                int right = (i + 1 == numCols) ? nextLeft :  nextLeft - ColumnMargin;
+                int right = (i + 1 == numCols) ? nextLeft : nextLeft - ColumnMargin;
 
                 DrawColumn(e.Graphics, new Rectangle(left, boundsRect.Y, right - left, boundsRect.Height),
                     unitCounts[i], landmarkCounts[i], spellCounts[i]);
@@ -105,7 +101,7 @@ namespace LoRSideTracker
                     text += "+";
                 }
 
-                TextRenderer.DrawText(e.Graphics, text, CostsFont, 
+                TextRenderer.DrawText(e.Graphics, text, CostsFont,
                     new Rectangle(left, boundsRect.Top, right - left, boundsRect.Height),
                     Color.White, TextFormatFlags.Bottom | TextFormatFlags.HorizontalCenter);
             }
@@ -123,7 +119,7 @@ namespace LoRSideTracker
                 int bottom = boundsRect.Bottom - blockHeight * i;
                 int nextBottom = boundsRect.Bottom - blockHeight * (i + 1);
                 int top = nextBottom + 1;
-                g.FillRectangle(new SolidBrush((i < unitCount) ? Constants.UnitAccentColor : (i < unitCount + landmarkCount) ? Constants.LandmarkAccentColor : Constants.SpellAccentColor), 
+                g.FillRectangle(new SolidBrush((i < unitCount) ? Constants.UnitAccentColor : (i < unitCount + landmarkCount) ? Constants.LandmarkAccentColor : Constants.SpellAccentColor),
                     boundsRect.X,
                     top,
                     boundsRect.Width,

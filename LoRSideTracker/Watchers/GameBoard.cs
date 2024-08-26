@@ -1,10 +1,6 @@
 ﻿#define TRACK_TOSSING_ZONE
 using System;
-using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace LoRSideTracker
 {
@@ -219,7 +215,7 @@ namespace LoRSideTracker
                         // We only ever return to deck from initial draw
                         switch (to)
                         {
-                            case PlayZone.Deck: 
+                            case PlayZone.Deck:
                             case PlayZone.Hand: return TransitionResult.Proceed;
                             default: return TransitionResult.Disallow;
                         }

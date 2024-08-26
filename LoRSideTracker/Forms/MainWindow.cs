@@ -1,13 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Diagnostics;
 using System.Drawing;
 using System.IO;
-using System.Linq;
-using System.Text.Json;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Input;
@@ -243,19 +237,19 @@ namespace LoRSideTracker
             double deckOpacity = Properties.Settings.Default.DeckTransparency / 100.0;
             PlayerActiveDeckWindow = CreateDeckWindow("No Active Deck", deckScale, deckOpacity,
                 Properties.Settings.Default.ShowPlayerDeck,
-                Properties.Settings.Default.PlayerDeckLocation.X, 
+                Properties.Settings.Default.PlayerDeckLocation.X,
                 Properties.Settings.Default.PlayerDeckLocation.Y);
             PlayerDrawnCardsWindow = CreateDeckWindow("Drawn Cards", deckScale, deckOpacity,
                 Properties.Settings.Default.ShowPlayerDrawnCards,
-                Properties.Settings.Default.PlayerDrawnCardsLocation.X, 
+                Properties.Settings.Default.PlayerDrawnCardsLocation.X,
                 Properties.Settings.Default.PlayerDrawnCardsLocation.Y);
             PlayerGraveyardWindow = CreateDeckWindow("Graveyard", deckScale, deckOpacity,
                 Properties.Settings.Default.ShowPlayerGraveyard,
-                Properties.Settings.Default.PlayerPlayedCardsLocation.X, 
+                Properties.Settings.Default.PlayerPlayedCardsLocation.X,
                 Properties.Settings.Default.PlayerPlayedCardsLocation.Y);
             OpponentGraveyardWindow = CreateDeckWindow("Opponent Graveyard", deckScale, deckOpacity,
                 Properties.Settings.Default.ShowOpponentGraveyard,
-                Properties.Settings.Default.OpponentPlayedCardsLocation.X, 
+                Properties.Settings.Default.OpponentPlayedCardsLocation.X,
                 Properties.Settings.Default.OpponentPlayedCardsLocation.Y);
 
             PlayerActiveDeckWindow.HideZeroCountCards = Properties.Settings.Default.HideZeroCountInDeck;
@@ -308,7 +302,7 @@ namespace LoRSideTracker
 
             Utilities.CallActionSafelyAndWait(DecksListCtrl, new Action(() => { DecksListCtrl.SwitchDeckView(constructedIsEmpty); }));
 
-            CurrentPlayState.Start(string.IsNullOrEmpty(Constants.PlayBackDeckPath) 
+            CurrentPlayState.Start(string.IsNullOrEmpty(Constants.PlayBackDeckPath)
                 ? null : Constants.GetLocalGamesPath() + "\\" + Constants.PlayBackDeckPath);
         }
 

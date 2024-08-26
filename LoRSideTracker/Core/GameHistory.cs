@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -174,7 +173,8 @@ namespace LoRSideTracker
                     File.WriteAllBytes(Constants.GetLocalGamesPath() + "\\" + fileName + ".playback", Utilities.ZipFromStringList(gameLog));
                 }
             }
-            try {
+            try
+            {
                 // Translate adventure opponent code to name
                 if (gr.OpponentName.StartsWith("card_") && gr.OpponentName.EndsWith("_Name"))
                 {
@@ -186,7 +186,8 @@ namespace LoRSideTracker
                     gr.OpponentName = AIDeckNames[gr.OpponentName];
                 }
                 gr.OpponentIsAI = true;
-            } catch { }
+            }
+            catch { }
             Games.Insert(0, gr);
         }
 
@@ -198,8 +199,8 @@ namespace LoRSideTracker
         public static void SetDeckName(string deckSignature, string name)
         {
             List<string> keys = new List<string>();
-            try 
-            { 
+            try
+            {
                 string previousName = DeckNames[deckSignature];
 
                 // Collect all signatures mapping to this name

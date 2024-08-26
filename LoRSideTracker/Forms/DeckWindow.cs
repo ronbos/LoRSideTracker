@@ -1,11 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace LoRSideTracker
@@ -27,8 +23,9 @@ namespace LoRSideTracker
         public string Title
         {
             get { return MyDeckControl != null ? MyDeckControl.Title : string.Empty; }
-            set { 
-                MyDeckControl.Title = value; 
+            set
+            {
+                MyDeckControl.Title = value;
                 MyDeckControl.Invalidate(new Rectangle(0, 0, MyDeckControl.Width, MyDeckControl.CustomDeckScale.TitleHeight));
             }
         }
@@ -82,7 +79,7 @@ namespace LoRSideTracker
         {
             if (!currentCards.SequenceEqual(CurrentCards))
             {
-               UpdateDeck(null, currentCards);
+                UpdateDeck(null, currentCards);
             }
         }
 
@@ -130,7 +127,7 @@ namespace LoRSideTracker
             }
             else
             {
-               remainingCards = CurrentCards.Clone();
+                remainingCards = CurrentCards.Clone();
             }
 
             if (remainingCards.Count == 0)

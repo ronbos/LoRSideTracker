@@ -8,10 +8,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
-using System.Windows.Forms;
 
 namespace LoRSideTracker
 {
@@ -181,7 +178,7 @@ namespace LoRSideTracker
 
                 // Process the deck
                 gameLog[0] = gameLog[0].Trim();
-                List <CardWithCount> deck = Utilities.DeckFromStringCodeList(gameLog[0].Split(new char[] { ' ' }));
+                List<CardWithCount> deck = Utilities.DeckFromStringCodeList(gameLog[0].Split(new char[] { ' ' }));
                 FullPlayerDeck = Utilities.ConvertDeck(deck);
                 PlayerCards[(int)PlayZone.Deck] = FullPlayerDeck.Clone();
                 IsInitialDraw = true;
@@ -400,7 +397,7 @@ namespace LoRSideTracker
                 // We normalize elements' bounding box based on screen height. However, if screen ratio becomes
                 // too high, screen expands height-wise. To make sure we have same behavior as before,
                 // We adjust the height accordingly.
-                int normalizedScreenHeight = (int) (0.5 + GameBoard.ComputeNormalizedScreenHeight(ScreenWidth, ScreenHeight));
+                int normalizedScreenHeight = (int)(0.5 + GameBoard.ComputeNormalizedScreenHeight(ScreenWidth, ScreenHeight));
 
                 Point correctionOffset = new Point(0, 0);
                 var rectangles = overlay["Rectangles"].ToObject<Dictionary<string, JsonElement>[]>();
@@ -604,7 +601,7 @@ namespace LoRSideTracker
                     int z = x.TheCard.Cost - y.TheCard.Cost;
                     if (z == 0) z = x.TheCard.Name.CompareTo(y.TheCard.Name);
                     return z;
-                }, (x, y) => 
+                }, (x, y) =>
                 {
                     y.BoundingBox = x.BoundingBox;
                     y.NormalizedBoundingBox = x.NormalizedBoundingBox;
@@ -654,7 +651,7 @@ namespace LoRSideTracker
             // For each card in next, look for approved transitions, skipping current in deck
             for (int i = 0; i < NumZones; i++)
             {
-                if (i == (int) PlayZone.Deck)
+                if (i == (int)PlayZone.Deck)
                 {
                     continue;
                 }
@@ -744,7 +741,7 @@ namespace LoRSideTracker
                 {
                     continue;
                 }
-                if (i == (int) PlayZone.Stage && isInitialDraw)
+                if (i == (int)PlayZone.Stage && isInitialDraw)
                 {
                     newZone = PlayZone.Deck;
                 }

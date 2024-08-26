@@ -1,13 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Drawing;
-using System.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.Drawing.Drawing2D;
 
 namespace LoRSideTracker
 {
@@ -82,7 +76,7 @@ namespace LoRSideTracker
         public void SetDeck(List<CardWithCount> cards)
         {
             List<CardWithCount> cardsCopy = cards.Clone();
-            Utilities.CallActionSafelyAndWait(this, new Action(() => 
+            Utilities.CallActionSafelyAndWait(this, new Action(() =>
             {
                 Cards = cardsCopy;
                 Invalidate();
@@ -118,7 +112,7 @@ namespace LoRSideTracker
             Size result = new Size(2 * BorderSize + CustomDeckScale.CardSize.Width, topBorderSize);
             if (!IsMinimized)
             {
-                result.Height += BorderSize + CustomDeckScale.CardSize.Height * Cards.Count 
+                result.Height += BorderSize + CustomDeckScale.CardSize.Height * Cards.Count
                     + SpacingSize * (Cards.Count - 1) + BorderSize;
             }
             return result;
@@ -160,7 +154,7 @@ namespace LoRSideTracker
                 topBorderSize += CustomDeckScale.TitleHeight;
             }
 
-            Rectangle cardRect = new Rectangle(BorderSize, topBorderSize, 
+            Rectangle cardRect = new Rectangle(BorderSize, topBorderSize,
                 this.Bounds.Width - 2 * BorderSize, CustomDeckScale.CardSize.Height);
             if (!string.IsNullOrEmpty(this.Title))
             {
@@ -199,7 +193,7 @@ namespace LoRSideTracker
             g.FillRectangle(new SolidBrush(Color.FromArgb(128, Color.Black)), paintRect);
 
             // Draw the cost
-            TextRenderer.DrawText(g, card.Cost.ToString(), CustomDeckScale.TitleFont, costRect, 
+            TextRenderer.DrawText(g, card.Cost.ToString(), CustomDeckScale.TitleFont, costRect,
                 Color.LightGray, TextFormatFlags.VerticalCenter | TextFormatFlags.HorizontalCenter);
 
             // Draw the name
@@ -212,11 +206,11 @@ namespace LoRSideTracker
             {
                 textColor = Color.LightGreen;
             }
-            TextRenderer.DrawText(g, card.Name, CustomDeckScale.CardFont, cardRect, textColor, 
+            TextRenderer.DrawText(g, card.Name, CustomDeckScale.CardFont, cardRect, textColor,
                 TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis);
 
             // Draw the count
-            TextRenderer.DrawText(g, "x" + card.Count.ToString(), CustomDeckScale.TitleFont, countRect, 
+            TextRenderer.DrawText(g, "x" + card.Count.ToString(), CustomDeckScale.TitleFont, countRect,
                 Color.LightGray, TextFormatFlags.VerticalCenter | TextFormatFlags.HorizontalCenter);
 
             if (card.Count == 0)
@@ -311,7 +305,7 @@ namespace LoRSideTracker
             {
                 topBorderSize += CustomDeckScale.TitleHeight;
             }
-            return new Rectangle(BorderSize, topBorderSize + index * (CustomDeckScale.CardSize.Height + SpacingSize), 
+            return new Rectangle(BorderSize, topBorderSize + index * (CustomDeckScale.CardSize.Height + SpacingSize),
                 this.ClientRectangle.Width - 2 * BorderSize, CustomDeckScale.CardSize.Height);
         }
 

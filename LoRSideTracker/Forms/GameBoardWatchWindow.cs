@@ -1,11 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace LoRSideTracker
@@ -40,7 +34,7 @@ namespace LoRSideTracker
         /// <param name="screenHeight"></param>
         public void Update(CardList<CardInPlay> playerElements, CardList<CardInPlay> opponentElements, int screenWidth, int screenHeight)
         {
-            CardList<CardInPlay> playerElementsCopy= playerElements.Clone();
+            CardList<CardInPlay> playerElementsCopy = playerElements.Clone();
             CardList<CardInPlay> opponentElementsCopy = opponentElements.Clone();
             if (InvokeRequired)
             {

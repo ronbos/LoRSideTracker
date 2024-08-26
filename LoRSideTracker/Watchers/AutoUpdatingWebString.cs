@@ -1,9 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Text.Json;
 using System.Threading;
 using System.Windows.Forms;
 
@@ -56,8 +52,8 @@ namespace LoRSideTracker
         /// <param name="callbackObject">Object to receive OnWebStringUpdated() notifications</param>
         /// <param name="forceUpdateInterval">If > 0, mnumber of milliseconds when next update is forced even with the same string</param>
         /// <param name="shouldSuppressMouseDownUpdates">If true, updates when mouse id down are ignored</param>
-        public AutoUpdatingWebString(string url, 
-            int intervalMs = 1000, 
+        public AutoUpdatingWebString(string url,
+            int intervalMs = 1000,
             AutoUpdatingWebStringCallback callbackObject = null,
             int forceUpdateInterval = 0,
             bool shouldSuppressMouseDownUpdates = false)
@@ -178,7 +174,7 @@ namespace LoRSideTracker
             {
                 valueChanged = false;
             }
-            if (valueChanged || (ForceUpdateInterval.TotalMilliseconds > 0 && 
+            if (valueChanged || (ForceUpdateInterval.TotalMilliseconds > 0 &&
                 now > LastUpdateTimestamp + ForceUpdateInterval))
             {
                 double timestamp = (now - StartTimestamp).TotalMilliseconds;

@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text;
 using System.Text.Json;
 
 namespace LoRSideTracker
@@ -127,7 +125,9 @@ namespace LoRSideTracker
             }
             else
             {
-                try { DeckName = GameHistory.DeckNames[DeckCode]; } catch { 
+                try { DeckName = GameHistory.DeckNames[DeckCode]; }
+                catch
+                {
                     DeckName = GameRecord.DefaultConstructedDeckName;
                 }
             }
